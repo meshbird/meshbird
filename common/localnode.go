@@ -31,6 +31,7 @@ func NewLocalNode(cfg *Config) *LocalNode {
 	n.services = make(map[string]Service)
 
 	n.services[DiscoveryDHT{}.Name()] = &DiscoveryDHT{}
+	n.services[NetTable{}.Name()] = &NetTable{}
 	//n.services[STUNService{}.Name()] = &STUNService{}
 	//n.services[UPnPService{}.Name()] = &UPnPService{}
 	return n
@@ -46,23 +47,23 @@ func (n *LocalNode) State() State {
 
 func (n *LocalNode) Start() error {
 	serviceCounter := 0
-	for _, service := range n.services {
-		log.Printf("[%s] service init", service.Name())
+	for name, service := range n.services {
+		log.Printf("[%s] service init", name)
 		err := service.Init(n)
 		if err != nil {
-			log.Printf("[%s] init error: %s", service.Name(), err)
+			log.Printf("[%s] init error: %s", name, err)
 			continue
 		}
 		serviceCounter++
 	}
 	n.waitGroup.Add(serviceCounter)
-	for _, service := range n.services {
+	for name, service := range n.services {
 		go func() {
 			defer n.waitGroup.Done()
-			log.Printf("[%s] service run", service.Name())
+			log.Printf("[%s] service run", name)
 			err := service.Run()
 			if err != nil {
-				log.Printf("[%s] error: %s", service.Name(), err)
+				log.Printf("[%s] error: %s", name, err)
 			}
 		}()
 	}
