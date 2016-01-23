@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/gophergala2016/meshbird/core"
 	"github.com/codegangsta/cli"
 )
 
@@ -41,5 +42,6 @@ func actionNew(ctx *cli.Context) {
 }
 
 func actionJoin(ctx *cli.Context) {
-
+	node := core.NewNode(nil)
+	defer node.Stop()
 }
