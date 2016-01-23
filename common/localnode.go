@@ -3,12 +3,8 @@ package common
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	"fmt"
 	"log"
 	"sync"
-	"time"
-
-	"github.com/nictuku/dht"
 )
 
 type LocalNode struct {
@@ -26,14 +22,40 @@ type LocalNode struct {
 
 func NewLocalNode(cfg *Config) *LocalNode {
 	n := new(LocalNode)
+	n.config = cfg
+	n.state = &State{}
 	n.services = append(n.services, &STUNService{})
+	n.services = append(n.services, &DiscoveryDHT{})
 	return n
 }
 
+func (n *LocalNode) Config() Config {
+	return *n.config
+}
+
+func (n* LocalNode) State() State {
+	return *n.state
+}
+
 func (n *LocalNode) Run() error {
-	n.waitGroup.Add(len(n.services))
+	serviceCounter := 0
 	for _, service := range n.services {
-		service.Init(n, &n.waitGroup)
+		err := service.Init(n)
+		if err != nil {
+			log.Printf("[%s] init error: %s", service.Name(), err)
+			continue
+		}
+		serviceCounter++
+	}
+	n.waitGroup.Add(serviceCounter)
+	for _, service := range n.services {
+		go func() {
+			defer n.waitGroup.Done()
+			err := service.Run()
+			if err != nil {
+				log.Printf("service [%s] error: %s")
+			}
+		}()
 	}
 	n.SetStatus(1)
 	return nil
@@ -45,55 +67,6 @@ func (n *LocalNode) Stop() error {
 	}
 	n.waitGroup.Wait()
 	return nil
-}
-
-func (n *LocalNode) discovery(networkID string, port int) error {
-	ih, err := dht.DecodeInfoHash(networkID)
-	if err != nil {
-		return fmt.Errorf("decode infohash err: %s", err)
-	}
-
-	config := dht.NewConfig()
-	config.Port = port
-	d, err := dht.New(config)
-	if err != nil {
-		return fmt.Errorf("new dht init err: %s", err)
-	}
-
-	if err = d.Start(); err != nil {
-		return fmt.Errorf("dht start err: %s", err)
-	}
-	defer d.Stop()
-	go n.discoveryAwait(d)
-
-	log.Printf("peer request to DHT")
-	for {
-		log.Printf("dht request")
-		d.PeersRequest(string(ih), true)
-		time.Sleep(time.Second * 60)
-	}
-	return nil
-}
-
-func (n *LocalNode) discoveryAwait(dhtNetwork *dht.DHT) {
-	defer log.Printf("discovery await exit")
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case r := <-dhtNetwork.PeersRequestResults:
-			for _, peers := range r {
-				for _, x := range peers {
-					log.Printf("peer: %v\n", dht.DecodePeerAddress(x))
-				}
-			}
-		case <-ticker.C:
-		}
-		if n.Status() > 1 {
-			break
-		}
-	}
 }
 
 func hashSecretKey(key string) string {

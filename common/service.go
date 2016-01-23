@@ -1,11 +1,7 @@
 package common
 
-import (
-	"sync"
-)
-
 type Service interface {
-	Init(*LocalNode, *sync.WaitGroup) error
+	Init(*LocalNode) error
 	Name() string
 	Run() error
 	Stop()

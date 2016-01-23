@@ -3,7 +3,6 @@ package common
 import (
 	"fmt"
 	"log"
-	"sync"
 
 	"github.com/ccding/go-stun/stun"
 	"time"
@@ -19,7 +18,7 @@ type STUNService struct {
 	client *stun.Client
 }
 
-func (s *STUNService) Init(ln *LocalNode, wg *sync.WaitGroup) error {
+func (s *STUNService) Init(ln *LocalNode) error {
 	s.client = stun.NewClient()
 	s.client.SetServerAddr(STUNAddress)
 	return nil
