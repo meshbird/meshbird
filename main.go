@@ -42,6 +42,6 @@ func actionNew(ctx *cli.Context) {
 }
 
 func actionJoin(ctx *cli.Context) {
-	node := common.NewNode(nil)
+	node := common.NewLocalNode(nil)
 	defer node.Stop()
 }
