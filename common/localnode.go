@@ -21,13 +21,12 @@ type LocalNode struct {
 }
 
 func NewLocalNode(cfg *Config) *LocalNode {
+	key := ecdsa.Unpack([]byte(cfg.SecretKey))
+
 	n := new(LocalNode)
 	n.config = cfg
 	n.config.NetworkID = ecdsa.HashSecretKey(n.config.SecretKey)
-
-	key := ecdsa.Unpack([]byte(cfg.SecretKey))
-
-	n.state = NewState(key.CIDR)
+	n.state = NewState(key.CIDR, n.config.NetworkID)
 	n.services = append(n.services, &DiscoveryDHT{})
 	//n.services = append(n.services, &STUNService{})
 	//n.services = append(n.services, &UPnPService{})

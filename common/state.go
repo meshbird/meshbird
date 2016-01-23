@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gophergala2016/meshbird/network"
 	"io/ioutil"
 	"log"
@@ -12,10 +13,13 @@ import (
 type State struct {
 	ListenPort int    `json:"port"`
 	ListenHost string `json:"host"`
+	netId      string
 }
 
-func NewState(net string) *State {
-	s := &State{}
+func NewState(net, netId string) *State {
+	s := &State{
+		netId: netId,
+	}
 	s.Load()
 
 	var save bool
@@ -57,5 +61,5 @@ func (s *State) Save() {
 }
 
 func (s *State) getConfigPath() string {
-	return path.Join(os.Getenv("HOME"), ".meshbird.json")
+	return path.Join(os.Getenv("HOME"), fmt.Sprintf(".meshbird_%s.json", s.netId))
 }
