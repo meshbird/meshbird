@@ -17,39 +17,91 @@ type Signature struct {
 	s *big.Int
 }
 
+type Key struct {
+	Private *ecdsa.PrivateKey
+	Public  *ecdsa.PublicKey
+}
+
 //Signature.Encode return encoded r, s pair
 func (sg Signature) Encode() []byte {
 	//signature := sg.r.Bytes()
 	//signature = append(signature, sg.s.Bytes()...)
-	signature := pointsToDER(sg.r, sg.s)
+	signature := pointsToDER(sg.r.Bytes(), sg.s.Bytes())
 	return signature
+}
+
+func (sg Signature) String() string {
+	return string(sg.Encode())
 }
 
 //Signature.Decode return decoded r, s pair
 func (sg *Signature) Decode(data []byte) {
-	sg.r, sg.s = pointsFromDER(data)
+	r, s := pointsFromDER(data)
+	sg.r.SetBytes(r)
+	sg.s.SetBytes(s)
 }
 
 //GenerateKey generates a public & private key pair
-func GenerateKey() (pubKey ecdsa.PublicKey, privKey *ecdsa.PrivateKey, err error) {
-	privKey, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader) // this generates a public & private key pair
-	pubKey = privKey.PublicKey
-	fmt.Println("Private Key :")
-	fmt.Printf("%x \n", privKey)
-
-	fmt.Println("Public Key :")
-	fmt.Printf("%x \n", pubKey)
+func GenerateKey() (key *Key, err error) {
+	privKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader) // this generates a public & private key pair
+	pubKey := &privKey.PublicKey
+	key = &Key{privKey, pubKey}
 	return
 }
 
-//PrintPrivateKey return private key as a string
-func PrintPrivateKey(key ecdsa.PrivateKey) string {
-	return fmt.Sprintf("%x", key)
+func InitKey(C elliptic.Curve, D, X, Y *big.Int) ecdsa.PrivateKey {
+	priv := ecdsa.PrivateKey{
+		PublicKey: ecdsa.PublicKey{
+			Curve: C,
+			X:     X,
+			Y:     Y,
+		},
+		D: D,
+	}
+	return priv
 }
 
-//PrintPublicKey return public key as a string
-func PrintPublicKey(key ecdsa.PublicKey) string {
-	return fmt.Sprintf("%x", key)
+func (k Key) GetPublic() string {
+	buf := elliptic.Marshal(elliptic.P256(), k.Public.X, k.Public.Y)
+	encoded := make([]byte, base62.StdEncoding.EncodedLen(len(buf)))
+	base62.StdEncoding.Encode(encoded, buf)
+	return string(encoded)
+}
+
+func (k *Key) ParsePublic(q string) {
+	buf := []byte(q)
+	decoded := make([]byte, base62.StdEncoding.DecodedLen(len(buf)))
+	base62.StdEncoding.Decode(decoded, buf)
+	c := elliptic.P256()
+	x, y := elliptic.Unmarshal(c, decoded)
+	k.Public = &ecdsa.PublicKey{
+		Curve: c,
+		X:     x,
+		Y:     y,
+	}
+}
+
+func (k Key) GetPrivate() string {
+	// Private Key: D + Public
+	return string(pointsToDER(k.Private.D.Bytes(), elliptic.Marshal(elliptic.P256(), k.Public.X, k.Public.Y)))
+}
+
+func (k *Key) ParsePrivate(q string) {
+	D := big.NewInt(0)
+	d, public := pointsFromDER([]byte(q))
+	D.SetBytes(d)
+	c := elliptic.P256()
+	x, y := elliptic.Unmarshal(c, public)
+
+	k.Private = &ecdsa.PrivateKey{
+		PublicKey: ecdsa.PublicKey{
+			Curve: c,
+			X:     x,
+			Y:     y,
+		},
+		D: D,
+	}
+	k.Public = &k.Private.PublicKey
 }
 
 // Sign signs msg with ECDSA private key
@@ -74,7 +126,7 @@ func Verify(pubKey *ecdsa.PublicKey, signhash []byte, sg *Signature) bool {
 
 // Convert an ECDSA signature (points R and S) to a byte array using ASN.1 DER encoding.
 // This is a port of Bitcore's Key.rs2DER method.
-func pointsToDER(r, s *big.Int) []byte {
+func pointsToDER(r, s []byte) []byte {
 	// Ensure MSB doesn't break big endian encoding in DER sigs
 	prefixPoint := func(b []byte) []byte {
 		if len(b) == 0 {
@@ -88,8 +140,10 @@ func pointsToDER(r, s *big.Int) []byte {
 		return b
 	}
 
-	rb := prefixPoint(r.Bytes())
-	sb := prefixPoint(s.Bytes())
+	rb := prefixPoint(r)
+	sb := prefixPoint(s)
+	//rb := prefixPoint(r.Bytes())
+	//sb := prefixPoint(s.Bytes())
 
 	// DER encoding:
 	// 0x30 + z + 0x02 + len(rb) + rb + 0x02 + len(sb) + sb
@@ -109,10 +163,10 @@ func pointsToDER(r, s *big.Int) []byte {
 // Sometimes demarshalling using Golang's DEC to struct unmarshalling fails; this extracts R and S from the bytes
 // manually to prevent crashing.
 // This should NOT be a hex encoded byte array
-func pointsFromDER(der []byte) (R, S *big.Int) {
+func pointsFromDER(der []byte) ([]byte, []byte) {
 	decoded := make([]byte, base62.StdEncoding.DecodedLen(len(der)))
 	base62.StdEncoding.Decode(decoded, der)
-	R, S = &big.Int{}, &big.Int{}
+	//R, S := &big.Int{}, &big.Int{}
 
 	data := asn1.RawValue{}
 	if _, err := asn1.Unmarshal(decoded, &data); err != nil {
@@ -125,8 +179,8 @@ func pointsFromDER(der []byte) (R, S *big.Int) {
 	// Ignore the next 0x02 and slen bytes and just take the start of S to the end of the byte array
 	s := data.Bytes[rLen+4:]
 
-	R.SetBytes(r)
-	S.SetBytes(s)
+	//R.SetBytes(r)
+	//S.SetBytes(s)
 
-	return
+	return r, s
 }

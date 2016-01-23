@@ -1,28 +1,22 @@
 package ecdsa
 
 import (
+	"log"
 	"testing"
 
 	"github.com/gophergala2016/meshbird/ecdsa"
 )
 
 func generationTest(t *testing.T) {
-	public, private, err := ecdsa.GenerateKey()
+	key, _ := ecdsa.GenerateKey()
 
+	sg, hs, err := ecdsa.Sign(key.Private, []byte("Hello World!"))
 	if err != nil {
-		t.Error("ECDSA key generation error: ", err)
+		log.Println("ECDSA sign string error: ", err)
 	}
-	sg, hs, err := ecdsa.Sign(private, []byte("Hello World!"))
-	if err != nil {
-		t.Error("ECDSA sign string error: ", err)
+
+	if !ecdsa.Verify(key.Public, hs, &sg) {
+		log.Println("ECDSA verification test failed!")
 	}
-	return
-	if !ecdsa.Verify(&public, hs, &sg) {
-		t.Error("ECDSA verification test failed!")
-	}
-	sg1 := &ecdsa.Signature{}
-	sg1.Decode(sg.Encode())
-	if !ecdsa.Verify(&public, hs, sg1) {
-		t.Error("ECDSA signature encoding/decoding test failed!")
-	}
+
 }
