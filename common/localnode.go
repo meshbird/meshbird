@@ -17,7 +17,7 @@ type LocalNode struct {
 	mutex     sync.Mutex
 	waitGroup sync.WaitGroup
 
-	services []Service
+	services map[string]Service
 }
 
 func NewLocalNode(cfg *Config) *LocalNode {
@@ -27,9 +27,11 @@ func NewLocalNode(cfg *Config) *LocalNode {
 	n.config = cfg
 	n.config.NetworkID = ecdsa.HashSecretKey(n.config.SecretKey)
 	n.state = NewState(key.CIDR, n.config.NetworkID)
-	n.services = append(n.services, &DiscoveryDHT{})
-	//n.services = append(n.services, &STUNService{})
-	//n.services = append(n.services, &UPnPService{})
+
+	n.services = make(map[string]Service)
+	n.services["DHT"] = &DiscoveryDHT{}
+	//n.services["STUN"] = &STUNService{}
+	//n.services["UPnP"] = &UPnPService{}
 	return n
 }
 
@@ -64,6 +66,14 @@ func (n *LocalNode) Start() error {
 		}()
 	}
 	return nil
+}
+
+func (n *LocalNode) GetService(name string) Service {
+	service, ok := n.services[name]
+	if !ok {
+		log.Panicf("service %s not found", name)
+	}
+	return  service
 }
 
 func (n *LocalNode) WaitStop() {
