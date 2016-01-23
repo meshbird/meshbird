@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/codegangsta/cli"
@@ -44,4 +45,8 @@ func actionNew(ctx *cli.Context) {
 func actionJoin(ctx *cli.Context) {
 	node := common.NewLocalNode(nil)
 	defer node.Stop()
+	err := node.Run()
+	if err != nil {
+		log.Printf("node run error: %s", err)
+	}
 }
