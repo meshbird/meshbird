@@ -6,6 +6,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/gophergala2016/meshbird/common"
+	"os/signal"
 )
 
 var (
@@ -27,7 +28,7 @@ func main() {
 		},
 		{
 			Name:    "join",
-			Aliases: []string{"r"},
+			Aliases: []string{"j"},
 			Usage:   "join network",
 			Action:  actionJoin,
 		},
@@ -44,7 +45,16 @@ func actionNew(ctx *cli.Context) {
 
 func actionJoin(ctx *cli.Context) {
 	node := common.NewLocalNode(nil)
-	defer node.Stop()
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Interrupt, os.Kill)
+	defer signal.Stop(signalChan)
+
+	go func() {
+		s := <- signalChan
+		log.Printf("received signal %s, stopping...", s)
+		node.Stop()
+	}()
+
 	err := node.Run()
 	if err != nil {
 		log.Printf("node run error: %s", err)
