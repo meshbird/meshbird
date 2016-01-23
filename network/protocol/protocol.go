@@ -16,7 +16,7 @@ const (
 
 const (
 	CurrentVersion = 1
-	bodyVectorLen = 16
+	bodyVectorLen  = 16
 )
 
 var (

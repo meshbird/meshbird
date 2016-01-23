@@ -15,7 +15,7 @@ const (
 )
 
 var (
-// VERSION var using for auto versioning through Go linker
+	// VERSION var using for auto versioning through Go linker
 	VERSION = "dev"
 )
 
@@ -26,10 +26,10 @@ func main() {
 	app.Version = VERSION
 	app.Commands = []cli.Command{
 		{
-			Name:    "new",
-			Aliases: []string{"n"},
-			Usage:   "create new network",
-			Action:  actionNew,
+			Name:      "new",
+			Aliases:   []string{"n"},
+			Usage:     "create new network",
+			Action:    actionNew,
 			ArgsUsage: "<key>",
 			Flags: []cli.Flag{
 				cli.StringFlag{
@@ -54,10 +54,10 @@ func main() {
 
 func actionNew(ctx *cli.Context) {
 	key := new(ecdsa.Key)
-	if len(ctx.Args())>0 {
+	if len(ctx.Args()) > 0 {
 		key = ecdsa.Unpack([]byte(ctx.Args()[0]))
 	} else {
-		key,_ = ecdsa.GenerateKey()
+		key, _ = ecdsa.GenerateKey()
 		key.CIDR = ctx.String("CIDR")
 	}
 	println(string(ecdsa.Pack(key)))

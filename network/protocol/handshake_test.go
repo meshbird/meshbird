@@ -11,8 +11,8 @@ func TestDecodeHandShake(t *testing.T) {
 	key := []byte("m7JC5ApnVKrTLs5L2Sz8SPMRckP2Wqkj")
 	data := []byte{
 		0, 33, // length
-		1,              // version
-		0,              // type
+		1, // version
+		0, // type
 		109, 55, 74, 67, 53, 65, 112, 110, 86, 75, 114, 84, 76, 115, 53, 76,
 		50, 83, 122, 56, 83, 80, 77, 82, 99, 107, 80, 50, 87, 113, 107, 106,
 	}
