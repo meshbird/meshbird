@@ -12,10 +12,11 @@ const (
 	TypeHeartbeat
 	TypeGone
 	TypeTransfer
+)
 
-	bodyVectorLen = 16
-
+const (
 	CurrentVersion = 1
+	bodyVectorLen  = 16
 )
 
 var (
@@ -120,15 +121,9 @@ func Decode(data []byte) (*Packet, error) {
 		return nil, ErrorUnableToReadMessage
 	}
 
-	var err error
-
 	switch pack.Data.Type {
 	case TypeHandshake:
-		pack.Data.Msg, err = decodeHandshake(message)
-	}
-
-	if err != nil {
-		return nil, err
+		pack.Data.Msg = HandshakeMessage(message)
 	}
 
 	return &pack, nil

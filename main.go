@@ -15,7 +15,7 @@ const (
 )
 
 var (
-// VERSION var using for auto versioning through Go linker
+	// VERSION var using for auto versioning through Go linker
 	VERSION = "dev"
 )
 
@@ -26,10 +26,10 @@ func main() {
 	app.Version = VERSION
 	app.Commands = []cli.Command{
 		{
-			Name:    "new",
-			Aliases: []string{"n"},
-			Usage:   "create new network",
-			Action:  actionNew,
+			Name:      "new",
+			Aliases:   []string{"n"},
+			Usage:     "create new network",
+			Action:    actionNew,
 			ArgsUsage: "<key>",
 			Flags: []cli.Flag{
 				cli.StringFlag{

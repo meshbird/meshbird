@@ -4,7 +4,9 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/sha1"
 	"encoding/asn1"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 	"net"
@@ -231,4 +233,9 @@ func pointsFromDER(der []byte) ([]byte, []byte) {
 	//S.SetBytes(s)
 
 	return r, s
+}
+
+func HashSecretKey(key string) string {
+	hashBytes := sha1.Sum([]byte(key))
+	return hex.EncodeToString(hashBytes[:])
 }

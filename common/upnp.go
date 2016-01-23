@@ -15,6 +15,10 @@ type UPnPService struct {
 	port    int
 }
 
+func (d UPnPService) Name() string {
+	return "UPnP"
+}
+
 func (s *UPnPService) Init(ln *LocalNode) error {
 	s.mapping = new(upnp.Upnp)
 	s.port = ln.State().ListenPort

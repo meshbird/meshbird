@@ -7,8 +7,4 @@ Vagrant.configure(2) do |config|
     config.vm.define "node01" do |node01|
         node01.vm.network "private_network", ip: "192.168.33.10"
     end
-
-    config.vm.define "node02" do |node02|
-        node02.vm.network "private_network", ip: "192.168.33.11"
-    end
 end
