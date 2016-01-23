@@ -1,41 +1,34 @@
 package network
 
 import (
-	"github.com/hsheth2/water"
 	"os/exec"
-	"fmt"
+
+	"github.com/hsheth2/water"
 )
 
 type InterfaceHandler struct {
-
 }
 
-func CreateTunInterface (iface string) (error, *water.Interface) (
-	return water.NewTUN(iface)
-)
-
-func CreateTunInterfaceWithIp(iface string, IpAddr string) (error, *water.Interface) {
-	iface, err := CreateTunInterface(iface)
-	if err != nil {
-		fmt.Println(error)
-	}
-	err = AssignIpAddress(iface, IpAddr)
-	if err != nil {
-		fmt.Println(error)
-	}
-	err = UpInterface(iface, IpAddr)
-
-	if err != nil {
-		fmt.Println(error)
-	}
+func CreateTunInterface(iface string) (*water.Interface, error) {
+	ifce, err := water.NewTUN(iface)
+	err = UpInterface(iface)
+	return ifce, err
 }
-func AssignIpAddress (iface string, IpAddr string) error{
+
+func CreateTunInterfaceWithIp(iface string, IpAddr string) (*water.Interface, error) {
+	ifce, err := CreateTunInterface(iface)
+	if err == nil {
+		err = AssignIpAddress(iface, IpAddr)
+	}
+	return ifce, err
+}
+func AssignIpAddress(iface string, IpAddr string) error {
 	err := exec.Command("ip", "addr", "add", IpAddr, "dev", iface).Run()
 	return err
 }
 
-func UpInterface(iface string, IpAddr string) error {
-	err := exec.Command("ip", "addr", "add", IpAddr, "dev", iface).Run()
+func UpInterface(iface string) error {
+	err := exec.Command("ip", "link", "set", iface, "up").Run()
 	return err
 }
 
