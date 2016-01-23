@@ -4,6 +4,13 @@ import (
 	"sync/atomic"
 )
 
+const (
+	StatusCreated = iota
+	StatusRunned
+	StatusStopping
+	StatusStopped
+)
+
 type Statusable struct {
 	status uint32
 }
