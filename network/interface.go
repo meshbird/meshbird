@@ -6,7 +6,12 @@ import (
 	"github.com/hsheth2/water"
 )
 
-type InterfaceHandler struct {
+const DEFAULT_MTU = 1500
+
+var MTU int
+
+func Init() {
+	MTU = 0
 }
 
 func CreateTunInterface(iface string) (*water.Interface, error) {
@@ -31,7 +36,17 @@ func UpInterface(iface string) error {
 	err := exec.Command("ip", "link", "set", iface, "up").Run()
 	return err
 }
+func SetMTU(mtu int) {
+	MTU = mtu
+}
 
-func PacketsHandler() {
-	// TODO: Make handler
+func NextNetworkPacket(iface *water.Interface) ([]byte, error) {
+	if MTU == 0 {
+		MTU = DEFAULT_MTU
+	}
+
+	raw_data := make([]byte, MTU)
+
+	_, err := iface.Read(raw_data)
+	return raw_data, err
 }
