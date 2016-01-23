@@ -1,0 +1,21 @@
+syntax = "proto3";
+package proto;
+
+message Host {
+    string id = 1;
+    string address = 2;
+    int64 time = 3;
+    repeated string tags = 4;
+}
+
+message Packet {
+    enum Type {
+        Heartbeat = 0;
+        Gone = 1;
+        Transmit = 2;
+    }
+
+    Type type = 1;
+    Host host = 2;
+    bytes data = 3;
+}
