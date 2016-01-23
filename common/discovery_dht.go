@@ -38,7 +38,6 @@ func (d *DiscoveryDHT) Run() error {
 	}
 	config := dht.NewConfig()
 	config.Port = d.localNode.State().ListenPort
-	config.Address = d.localNode.State().ListenHost
 	d.node, err = dht.New(config)
 	if err != nil {
 		return fmt.Errorf("new dht init err: %s", err)

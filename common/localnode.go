@@ -24,7 +24,10 @@ func NewLocalNode(cfg *Config) *LocalNode {
 	n := new(LocalNode)
 	n.config = cfg
 	n.config.NetworkID = ecdsa.HashSecretKey(n.config.SecretKey)
-	n.state = NewState()
+
+	key := ecdsa.Unpack([]byte(cfg.SecretKey))
+
+	n.state = NewState(key.CIDR)
 	n.services = append(n.services, &DiscoveryDHT{})
 	//n.services = append(n.services, &STUNService{})
 	//n.services = append(n.services, &UPnPService{})

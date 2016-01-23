@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/json"
+	"github.com/gophergala2016/meshbird/network"
 	"io/ioutil"
 	"log"
 	"os"
@@ -13,15 +14,37 @@ type State struct {
 	ListenHost string `json:"host"`
 }
 
-func NewState() *State {
+func NewState(net string) *State {
 	s := &State{}
 	s.Load()
+
+	var save bool
+
+	if s.ListenPort < 1 {
+		s.ListenPort = GetRandomPort()
+		save = true
+	}
+	if s.ListenHost == "" {
+		var err error
+		if s.ListenHost, err = network.GenerateIPAddress(net); err == nil {
+			save = true
+		} else {
+			log.Printf("Error on generate IP: %s", err)
+		}
+	}
+
+	if save {
+		s.Save()
+	}
+
 	return s
 }
 
 func (s *State) Load() {
 	if data, err := ioutil.ReadFile(s.getConfigPath()); err == nil {
-		json.Unmarshal(data, s)
+		if err = json.Unmarshal(data, s); err == nil {
+			log.Printf("State restored: %v", s)
+		}
 	}
 }
 
