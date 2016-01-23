@@ -23,9 +23,9 @@ func NewLocalNode(cfg *Config) *LocalNode {
 	n := new(LocalNode)
 	n.config = cfg
 	n.state = &State{}
-	n.services = append(n.services, &STUNService{})
 	n.services = append(n.services, &DiscoveryDHT{})
-	n.services = append(n.services, &UPnPService{})
+	//n.services = append(n.services, &STUNService{})
+	//n.services = append(n.services, &UPnPService{})
 	return n
 }
 
@@ -40,6 +40,7 @@ func (n *LocalNode) State() State {
 func (n *LocalNode) Start() error {
 	serviceCounter := 0
 	for _, service := range n.services {
+		log.Printf("[%s] service init", service.Name())
 		err := service.Init(n)
 		if err != nil {
 			log.Printf("[%s] init error: %s", service.Name(), err)
@@ -51,20 +52,25 @@ func (n *LocalNode) Start() error {
 	for _, service := range n.services {
 		go func() {
 			defer n.waitGroup.Done()
+			log.Printf("[%s] service run", service.Name())
 			err := service.Run()
 			if err != nil {
-				log.Printf("service [%s] error: %s")
+				log.Printf("[%s] error: %s", service.Name(), err)
 			}
 		}()
 	}
 	return nil
 }
 
+func (n *LocalNode) WaitStop() {
+	n.waitGroup.Wait()
+}
+
 func (n *LocalNode) Stop() error {
+	log.Printf("closing up local node")
 	for _, service := range n.services {
 		service.Stop()
 	}
-	n.waitGroup.Wait()
 	return nil
 }
 
