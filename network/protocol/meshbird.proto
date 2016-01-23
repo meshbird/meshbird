@@ -1,5 +1,5 @@
 syntax = "proto3";
-package proto;
+package protocol;
 
 message Host {
     string id = 1;
