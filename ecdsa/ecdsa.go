@@ -4,37 +4,45 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"crypto/sha256"
 	"fmt"
+	"hash"
+	"io"
+	"math/big"
 )
 
-//GeneratePublicKey generates a elliptic curve for further pub+priv key pair generation using GeneratePrivateKey method
-func GeneratePublicKey() elliptic.Curve {
-	return elliptic.P256()
-}
-
-//GeneratePrivateKey generates private key
-func GeneratePrivateKey(pub elliptic.Curve) (privKey *ecdsa.PrivateKey, err error) {
-	privKey, err = ecdsa.GenerateKey(pub, rand.Reader) // this generates a public & private key pair
+//GenerateKey generates a public & private key pair
+func GenerateKey() (pubKey ecdsa.PublicKey, privKey *ecdsa.PrivateKey, err error) {
+	privKey, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader) // this generates a public & private key pair
+	pubKey = privKey.PublicKey
 	fmt.Println("Private Key :")
 	fmt.Printf("%x \n", privKey)
 
 	fmt.Println("Public Key :")
-	fmt.Printf("%x \n", pub)
+	fmt.Printf("%x \n", pubKey)
 	return
 }
 
-/*// Sign signs msg with ECDSA private key
-func Sign(priv *ecdsa.PrivateKey, msg []byte) (signature []byte, err error) {
-	r := big.NewInt(0)
-	s := big.NewInt(0)
+func getSignature(r, s *big.Int) []byte {
+	signature := r.Bytes()
+	signature = append(signature, s.Bytes()...)
+	return signature
+}
+
+// SignString signs msg with ECDSA private key
+func SignString(priv *ecdsa.PrivateKey, msg string) (r, s *big.Int, signhash []byte, err error) {
+	r = big.NewInt(0)
+	s = big.NewInt(0)
 	var h hash.Hash
 	h = sha256.New()
-	signhash := h.Sum(nil)
+	io.WriteString(h, msg)
+	signhash = h.Sum(nil)
 	r, s, err = ecdsa.Sign(rand.Reader, priv, signhash)
-	signature = r.Bytes()
-	signature = append(signature, s.Bytes()...)
+	fmt.Printf("Signature: %x \n", getSignature(r, s))
 	return
 }
 
-func Verify() {}
-*/
+// Verify use publick key to verify signature
+func Verify(pubKey *ecdsa.PublicKey, signhash []byte, r, s *big.Int) bool {
+	return ecdsa.Verify(pubKey, signhash, r, s)
+}
