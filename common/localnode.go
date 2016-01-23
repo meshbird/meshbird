@@ -37,7 +37,7 @@ func (n *LocalNode) State() State {
 	return *n.state
 }
 
-func (n *LocalNode) Run() error {
+func (n *LocalNode) Start() error {
 	serviceCounter := 0
 	for _, service := range n.services {
 		err := service.Init(n)
