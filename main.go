@@ -44,17 +44,22 @@ func actionNew(ctx *cli.Context) {
 }
 
 func actionJoin(ctx *cli.Context) {
-	node := common.NewLocalNode(nil)
+	nodeConfig := &common.Config{}
+	node := common.NewLocalNode(nodeConfig)
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt, os.Kill)
 	defer signal.Stop(signalChan)
+
+	go func() {
+		s := <-signalChan
+		log.Printf("received signal %s, stopping...", s)
+		node.Stop()
+	}()
 
 	err := node.Start()
 	if err != nil {
 		log.Printf("node start error: %s", err)
 	}
 
-	s := <-signalChan
-	log.Printf("received signal %s, stopping...", s)
-	node.Stop()
+	node.WaitStop()
 }

@@ -18,6 +18,10 @@ type DiscoveryDHT struct {
 	waitGroup sync.WaitGroup
 }
 
+func (d DiscoveryDHT) Name() string {
+	return "discovery-dht"
+}
+
 func (d *DiscoveryDHT) Init(ln *LocalNode) error {
 	d.localNode = ln
 	return nil
