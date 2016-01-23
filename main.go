@@ -25,6 +25,7 @@ func main() {
 			Aliases: []string{"n"},
 			Usage:   "create new network",
 			Action:  actionNew,
+			ArgsUsage: "<key>",
 		},
 		{
 			Name:    "join",
@@ -35,7 +36,7 @@ func main() {
 	}
 	err := app.Run(os.Args)
 	if err != nil {
-		println("error: ", err)
+		log.Printf("error: %s", err)
 	}
 }
 
@@ -44,7 +45,15 @@ func actionNew(ctx *cli.Context) {
 }
 
 func actionJoin(ctx *cli.Context) {
-	nodeConfig := &common.Config{}
+	log.Printf("flags: %s", ctx.FlagNames())
+	key := os.Getenv("MESHBIRD_KEY")
+	if key == "" {
+		log.Fatal("key is not specified")
+	}
+
+	nodeConfig := &common.Config{
+		SecretKey: key,
+	}
 	node := common.NewLocalNode(nodeConfig)
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt, os.Kill)
