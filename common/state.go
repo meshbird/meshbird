@@ -13,7 +13,7 @@ import (
 type State struct {
 	ListenPort int    `json:"port"`
 	ListenHost string `json:"host"`
-	netId      string
+	netId      string `json:"-"`
 }
 
 func NewState(net, netId string) *State {

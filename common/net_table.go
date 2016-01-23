@@ -30,6 +30,7 @@ func (nt *NetTable) Run() error {
 }
 
 func (nt *NetTable) Stop() {
+	defer close(nt.dhtInChan)
 	nt.SetStatus(StatusStopping)
 }
 
