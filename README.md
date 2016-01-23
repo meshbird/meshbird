@@ -14,5 +14,5 @@ $ meshbird new
 ```
 
 ```bash
-MESHBIRD_KEY="<key>" meshbird join
+$ MESHBIRD_KEY="<key>" meshbird join
 ```
