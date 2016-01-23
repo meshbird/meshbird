@@ -9,7 +9,6 @@ import (
 
 type LocalNode struct {
 	Node
-	Statusable
 
 	config *Config
 	state  *State
@@ -17,7 +16,7 @@ type LocalNode struct {
 	mutex     sync.Mutex
 	waitGroup sync.WaitGroup
 
-	services  []Service
+	services []Service
 }
 
 func NewLocalNode(cfg *Config) *LocalNode {
@@ -26,6 +25,7 @@ func NewLocalNode(cfg *Config) *LocalNode {
 	n.state = &State{}
 	n.services = append(n.services, &STUNService{})
 	n.services = append(n.services, &DiscoveryDHT{})
+	n.services = append(n.services, &UPnPService{})
 	return n
 }
 
@@ -33,7 +33,7 @@ func (n *LocalNode) Config() Config {
 	return *n.config
 }
 
-func (n* LocalNode) State() State {
+func (n *LocalNode) State() State {
 	return *n.state
 }
 
@@ -57,7 +57,6 @@ func (n *LocalNode) Run() error {
 			}
 		}()
 	}
-	n.SetStatus(1)
 	return nil
 }
 

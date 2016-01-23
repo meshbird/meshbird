@@ -13,8 +13,8 @@ const (
 )
 
 type STUNService struct {
-	Service
-	Statusable
+	BaseService
+
 	client *stun.Client
 }
 
@@ -25,7 +25,7 @@ func (s *STUNService) Init(ln *LocalNode) error {
 }
 
 func (s *STUNService) Run() error {
-	for s.Status() < 2 {
+	for !s.IsNeedStop() {
 		err := s.process()
 		if err != nil {
 			log.Printf("stun err: %s", err)
@@ -35,13 +35,9 @@ func (s *STUNService) Run() error {
 	return nil
 }
 
-func (s *STUNService) Stop() {
-	s.SetStatus(StatusStopping)
-}
-
 func (s *STUNService) process() (err error) {
 	defer func() {
-		if r:=recover(); r!=nil {
+		if r := recover(); r != nil {
 			err = fmt.Errorf("panic: %s", r)
 		}
 	}()

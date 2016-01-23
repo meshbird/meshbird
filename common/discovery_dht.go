@@ -3,15 +3,14 @@ package common
 import (
 	"fmt"
 	"log"
-	"time"
 	"sync"
+	"time"
 
 	"github.com/nictuku/dht"
 )
 
 type DiscoveryDHT struct {
-	Service
-	Statusable
+	BaseService
 
 	node      *dht.DHT
 	ih        dht.InfoHash
