@@ -13,11 +13,11 @@ func generationTest(t *testing.T) {
 	if err != nil {
 		t.Error("ECDSA key generation error: ", err)
 	}
-	r, s, hs, err := ecdsa.SignString(private, "Hello World!")
+	sg, hs, err := ecdsa.Sign(private, []byte("Hello World!"))
 	if err != nil {
 		t.Error("ECDSA sign string error: ", err)
 	}
-	if !ecdsa.Verify(&public, hs, r, s) {
+	if !ecdsa.Verify(&public, hs, sg) {
 		t.Error("ECDSA verification test failed!")
 	}
 }

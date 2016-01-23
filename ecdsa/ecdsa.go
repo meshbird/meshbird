@@ -4,12 +4,24 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
-	"crypto/sha256"
 	"fmt"
-	"hash"
-	"io"
 	"math/big"
+
+	"github.com/lytics/base62"
 )
+
+//Signature stores ecdsa r,s sign points
+type Signature struct {
+	r *big.Int
+	s *big.Int
+}
+
+//Signature.Cat
+func (sg *Signature) Cat() []byte {
+	signature := sg.r.Bytes()
+	signature = append(signature, sg.s.Bytes()...)
+	return signature
+}
 
 //GenerateKey generates a public & private key pair
 func GenerateKey() (pubKey ecdsa.PublicKey, privKey *ecdsa.PrivateKey, err error) {
@@ -23,26 +35,22 @@ func GenerateKey() (pubKey ecdsa.PublicKey, privKey *ecdsa.PrivateKey, err error
 	return
 }
 
-func getSignature(r, s *big.Int) []byte {
-	signature := r.Bytes()
-	signature = append(signature, s.Bytes()...)
-	return signature
-}
+// Sign signs msg with ECDSA private key
+func Sign(priv *ecdsa.PrivateKey, msg []byte) (sg Signature, signhash []byte, err error) {
+	sg.r = big.NewInt(0)
+	sg.s = big.NewInt(0)
+	//var h hash.Hash
+	//h = sha256.New()
+	//signhash = h.Sum(msg)
+	signhash = make([]byte, base62.StdEncoding.EncodedLen(len(msg)))
+	base62.StdEncoding.Encode(signhash, msg)
 
-// SignString signs msg with ECDSA private key
-func SignString(priv *ecdsa.PrivateKey, msg string) (r, s *big.Int, signhash []byte, err error) {
-	r = big.NewInt(0)
-	s = big.NewInt(0)
-	var h hash.Hash
-	h = sha256.New()
-	io.WriteString(h, msg)
-	signhash = h.Sum(nil)
-	r, s, err = ecdsa.Sign(rand.Reader, priv, signhash)
-	fmt.Printf("Signature: %x \n", getSignature(r, s))
+	sg.r, sg.s, err = ecdsa.Sign(rand.Reader, priv, signhash)
+	fmt.Printf("Signature: %x \n", sg.Cat())
 	return
 }
 
 // Verify use publick key to verify signature
-func Verify(pubKey *ecdsa.PublicKey, signhash []byte, r, s *big.Int) bool {
-	return ecdsa.Verify(pubKey, signhash, r, s)
+func Verify(pubKey *ecdsa.PublicKey, signhash []byte, sg Signature) bool {
+	return ecdsa.Verify(pubKey, signhash, sg.r, sg.s)
 }
