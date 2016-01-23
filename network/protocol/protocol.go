@@ -14,6 +14,8 @@ const (
 	TypeTransfer
 
 	bodyVectorLen = 16
+
+	CurrentVersion = 1
 )
 
 var (

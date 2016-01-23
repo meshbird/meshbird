@@ -35,6 +35,20 @@ func NewHandshakeMessage(key []byte) HandshakeMessage {
 	}
 }
 
+func NewHandshakePacket(key []byte) *Packet {
+	body := Body{
+		Type: TypeHandshake,
+		Msg:  NewHandshakeMessage(key),
+	}
+	return &Packet{
+		Head: Header{
+			Length:  body.Len(),
+			Version: CurrentVersion,
+		},
+		Data: body,
+	}
+}
+
 func (m HandshakeMessage) Len() uint16 {
 	return uint16(len(handshakeMagic) + handshakeKeyLen)
 }
