@@ -5,9 +5,10 @@ import (
 )
 
 type Node struct {
-	ID        string
-	PublicKey []byte
-	Host      string
-	Port      int
-	LastSeen  time.Time
+	ID         string
+	PublicKey  []byte
+	Host       string
+	Port       int
+	InternalIP string
+	LastSeen   uint64
 }
