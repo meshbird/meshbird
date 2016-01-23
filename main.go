@@ -9,6 +9,10 @@ import (
 	"os/signal"
 )
 
+const (
+	MeshbirdKeyEnv = "MESHBIRD_KEY"
+)
+
 var (
 // VERSION var using for auto versioning through Go linker
 	VERSION = "dev"
@@ -45,10 +49,9 @@ func actionNew(ctx *cli.Context) {
 }
 
 func actionJoin(ctx *cli.Context) {
-	log.Printf("flags: %s", ctx.FlagNames())
-	key := os.Getenv("MESHBIRD_KEY")
+	key := os.Getenv(MeshbirdKeyEnv)
 	if key == "" {
-		log.Fatal("key is not specified")
+		log.Fatalf("environment variable %s is not specified", MeshbirdKeyEnv)
 	}
 
 	nodeConfig := &common.Config{
