@@ -83,9 +83,13 @@ func (d *DiscoveryDHT) awaitPeers() {
 	for d.Status() != StatusStopping {
 		select {
 		case r := <-d.node.PeersRequestResults:
+			service := d.localNode.GetService("net-table")
+			netTable := service.(*NetTable)
 			for _, peers := range r {
 				for _, x := range peers {
-					log.Printf("peer: %v\n", dht.DecodePeerAddress(x))
+					host := dht.DecodePeerAddress(x)
+					log.Printf("peer: %s\n", host)
+					netTable.GetDHTInChannel() <- host
 				}
 			}
 		case <-ticker.C:
