@@ -165,72 +165,48 @@ func pointsToDER(r, s []byte) []byte {
 }
 
 //Pack encode Key container into byte slice
-func Pack(k *Key) []byte {
+func Pack(k *Key) (string, error) {
 	// CIDR preparation
-	_, IPNet, err := net.ParseCIDR(k.CIDR)
+	_, ipnet, err := net.ParseCIDR(k.CIDR)
 	if err != nil {
-		fmt.Println("ecdsa Pack error: ", err)
+		return "", err
 	}
 
-	pubBuf := elliptic.Marshal(elliptic.P256(), k.Public.X, k.Public.Y)
+	data := append(k.Private.X.Bytes(), k.Private.Y.Bytes()...)
+	data = append(data, k.Private.D.Bytes()...)
+	data = append(data, ipnet.IP...)
+	data = append(data, ipnet.Mask...)
 
-	// DER encoding:
-	// 0x30 + z + 0x02 + len(rb) + rb + 0x02 + len(sb) + sb
 
-	length := 2 + len(k.Private.D.Bytes()) + 2 + len(pubBuf) + 2 + len(IPNet.IP) + 2 + len(IPNet.Mask)
-
-	//length := 2 + len(k.Private.D.Bytes())
-	der := append([]byte{0x30, byte(length), 0x02, byte(len(k.Private.D.Bytes()))}, k.Private.D.Bytes()...)
-	der = append(der, 0x02, byte(len(pubBuf)))
-	der = append(der, pubBuf...)
-	der = append(der, 0x02, byte(len(IPNet.IP)))
-	der = append(der, IPNet.IP...)
-	der = append(der, 0x02, byte(len(IPNet.Mask)))
-	der = append(der, IPNet.Mask...)
-	encoded := make([]byte, base62.StdEncoding.EncodedLen(len(der)))
-	base62.StdEncoding.Encode(encoded, der)
-
-	return encoded
+	return base62.StdEncoding.EncodeToString(data), nil
 }
 
 //Unpack decodes Key container from byte slice
-func Unpack(buf []byte) *Key {
-	// @Todo errors handling
-	// rlen + r + 0x02 + slen + s + 0x02 + cidrlen + 0x02 + cidr
-	decoded := make([]byte, base62.StdEncoding.DecodedLen(len(buf)))
-	base62.StdEncoding.Decode(decoded, buf)
-
+func Unpack(buf string) (*Key, error) {
+	data, err := base62.StdEncoding.DecodeString(buf)
+	if err != nil {
+		return nil, err
+	}
 	ipnet := new(net.IPNet)
-	D := big.NewInt(0)
 
-	l := 1 + 2
-	l0 := int(decoded[l]) // The entire length of R + offset of 2 for 0x02 and rlen
-	D.SetBytes(decoded[l+1 : l+l0+1])
-	l += l0 + 2
-	l1 := int(decoded[l])
 	c := elliptic.P256()
-	x, y := elliptic.Unmarshal(c, decoded[l+1:l+l1+1])
-
-	l += l1 + 2
-	l2 := int(decoded[l])
-	ipnet.IP = decoded[l+1 : l+l2+1]
-	l += l2 + 2
-	l3 := int(decoded[l])
-	ipnet.Mask = decoded[l+1 : l+l3+1]
 
 	k := new(Key)
 	k.Private = &ecdsa.PrivateKey{
 		PublicKey: ecdsa.PublicKey{
 			Curve: c,
-			X:     x,
-			Y:     y,
+			X:     big.NewInt(0).SetBytes(data[:32]),
+			Y:     big.NewInt(0).SetBytes(data[32:64]),
 		},
-		D: D,
+		D: big.NewInt(0).SetBytes(data[64:96]),
 	}
-	k.CIDR = ipnet.String()
 	k.Public = &k.Private.PublicKey
 
-	return k
+	ipnet.IP = data[96:100]
+	ipnet.Mask = data[100:104]
+	k.CIDR = ipnet.String()
+
+	return k, nil
 }
 
 // Get the X and Y points from a DER encoded signature
