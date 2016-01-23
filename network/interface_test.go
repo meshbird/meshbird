@@ -2,6 +2,7 @@ package network
 
 import (
 	"net"
+	"strings"
 	"testing"
 )
 
@@ -10,6 +11,13 @@ func TestDeviceCreate(t *testing.T) {
 	_, err := CreateTunInterface(iface)
 	if err != nil {
 		t.Error(err)
+	}
+	niface, err := net.InterfaceByName(iface)
+	if err != nil {
+		t.Error(err)
+	}
+	if !strings.Contains(niface.Flags.String(), "up") {
+		t.Error("Interface not up")
 	}
 }
 
