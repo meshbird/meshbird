@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 apt-get update
-apt-get install git hg
+apt-get install git
 curl -O https://storage.googleapis.com/golang/go1.5.3.linux-amd64.tar.gz
 tar -xvf go1.5.3.linux-amd64.tar.gz
 mv go /usr/local
