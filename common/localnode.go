@@ -20,19 +20,29 @@ type LocalNode struct {
 
 	mutex     sync.Mutex
 	waitGroup sync.WaitGroup
+
+	services  []Service
 }
 
 func NewLocalNode(cfg *Config) *LocalNode {
 	n := new(LocalNode)
+	n.services = append(n.services, &STUNService{})
 	return n
 }
 
 func (n *LocalNode) Run() error {
+	n.waitGroup.Add(len(n.services))
+	for _, service := range n.services {
+		service.Init(n, &n.waitGroup)
+	}
 	n.SetStatus(1)
 	return nil
 }
 
 func (n *LocalNode) Stop() error {
+	for _, service := range n.services {
+		service.Stop()
+	}
 	n.waitGroup.Wait()
 	return nil
 }
@@ -79,6 +89,9 @@ func (n *LocalNode) discoveryAwait(dhtNetwork *dht.DHT) {
 				}
 			}
 		case <-ticker.C:
+		}
+		if n.Status() > 1 {
+			break
 		}
 	}
 }
