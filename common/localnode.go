@@ -80,6 +80,9 @@ func (n *LocalNode) discoveryAwait(dhtNetwork *dht.DHT) {
 			}
 		case <-ticker.C:
 		}
+		if n.Status() > 1 {
+			break
+		}
 	}
 }
 
