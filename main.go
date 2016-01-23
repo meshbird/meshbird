@@ -83,7 +83,10 @@ func actionJoin(ctx *cli.Context) {
 	nodeConfig := &common.Config{
 		SecretKey: key,
 	}
-	node := common.NewLocalNode(nodeConfig)
+	node, err := common.NewLocalNode(nodeConfig)
+	if err != nil {
+		log.Fatalf("local node init error: %s", err)
+	}
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt, os.Kill)
 	defer signal.Stop(signalChan)

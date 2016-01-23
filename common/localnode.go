@@ -20,8 +20,11 @@ type LocalNode struct {
 	services map[string]Service
 }
 
-func NewLocalNode(cfg *Config) *LocalNode {
-	key := ecdsa.Unpack([]byte(cfg.SecretKey))
+func NewLocalNode(cfg *Config) (*LocalNode, error) {
+	key, err := ecdsa.Unpack(cfg.SecretKey)
+	if err != nil {
+		return nil, err
+	}
 
 	n := new(LocalNode)
 	n.config = cfg
@@ -34,7 +37,7 @@ func NewLocalNode(cfg *Config) *LocalNode {
 	n.services[NetTable{}.Name()] = &NetTable{}
 	//n.services[STUNService{}.Name()] = &STUNService{}
 	//n.services[UPnPService{}.Name()] = &UPnPService{}
-	return n
+	return n, nil
 }
 
 func (n *LocalNode) Config() Config {
