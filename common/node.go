@@ -1,16 +1,8 @@
-package core
-
-type Config struct {
-
-}
-
-type State struct {
-	ListenPort int
-}
+package common
 
 type Node struct {
 	config *Config
-	state *State
+	state  *State
 }
 
 func NewNode(cfg *Config) *Node {

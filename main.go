@@ -3,12 +3,12 @@ package main
 import (
 	"os"
 
-	"github.com/gophergala2016/meshbird/core"
 	"github.com/codegangsta/cli"
+	"github.com/gophergala2016/meshbird/common"
 )
 
 var (
-// VERSION var using for auto versioning through Go linker
+	// VERSION var using for auto versioning through Go linker
 	VERSION = "dev"
 )
 
@@ -42,6 +42,6 @@ func actionNew(ctx *cli.Context) {
 }
 
 func actionJoin(ctx *cli.Context) {
-	node := core.NewNode(nil)
+	node := common.NewNode(nil)
 	defer node.Stop()
 }
