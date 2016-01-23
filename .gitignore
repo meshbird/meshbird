@@ -1,3 +1,4 @@
 .idea
+.vagrant
 *.iml
 *.sw[p,o]
