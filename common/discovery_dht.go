@@ -16,6 +16,7 @@ type DiscoveryDHT struct {
 	ih        dht.InfoHash
 	localNode *LocalNode
 	waitGroup sync.WaitGroup
+	stopChan  chan bool
 }
 
 func (d DiscoveryDHT) Name() string {
@@ -24,6 +25,7 @@ func (d DiscoveryDHT) Name() string {
 
 func (d *DiscoveryDHT) Init(ln *LocalNode) error {
 	d.localNode = ln
+	d.stopChan = make(chan bool)
 	return nil
 }
 
@@ -52,15 +54,24 @@ func (d *DiscoveryDHT) Run() error {
 
 func (d *DiscoveryDHT) Stop() {
 	d.SetStatus(StatusStopping)
+	d.stopChan <- true
 }
 
 func (d *DiscoveryDHT) process() {
 	defer d.node.Stop()
 	defer d.waitGroup.Done()
+	t := time.NewTimer(60 * time.Second)
+	defer t.Stop()
+	log.Printf("dht request")
+	d.node.PeersRequest(string(d.ih), true)
 	for d.Status() != StatusStopping {
-		log.Printf("dht request")
-		d.node.PeersRequest(string(d.ih), true)
-		time.Sleep(time.Second * 60)
+		select {
+		case <-t.C:
+			log.Printf("dht request")
+			d.node.PeersRequest(string(d.ih), true)
+		case <-d.stopChan:
+			return
+		}
 	}
 }
 
