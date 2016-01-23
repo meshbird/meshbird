@@ -18,6 +18,10 @@ type STUNService struct {
 	client *stun.Client
 }
 
+func (d STUNService) Name() string {
+	return "STUN"
+}
+
 func (s *STUNService) Init(ln *LocalNode) error {
 	s.client = stun.NewClient()
 	s.client.SetServerAddr(STUNAddress)

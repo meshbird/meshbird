@@ -29,9 +29,10 @@ func NewLocalNode(cfg *Config) *LocalNode {
 	n.state = NewState(key.CIDR, n.config.NetworkID)
 
 	n.services = make(map[string]Service)
-	n.services["DHT"] = &DiscoveryDHT{}
-	//n.services["STUN"] = &STUNService{}
-	//n.services["UPnP"] = &UPnPService{}
+
+	n.services[DiscoveryDHT{}.Name()] = &DiscoveryDHT{}
+	//n.services[STUNService{}.Name()] = &STUNService{}
+	//n.services[UPnPService{}.Name()] = &UPnPService{}
 	return n
 }
 
@@ -73,7 +74,7 @@ func (n *LocalNode) GetService(name string) Service {
 	if !ok {
 		log.Panicf("service %s not found", name)
 	}
-	return  service
+	return service
 }
 
 func (n *LocalNode) WaitStop() {
