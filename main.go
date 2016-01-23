@@ -53,14 +53,25 @@ func main() {
 }
 
 func actionNew(ctx *cli.Context) {
-	key := new(ecdsa.Key)
+	var key *ecdsa.Key
+	var err error
+
 	if len(ctx.Args())>0 {
-		key = ecdsa.Unpack([]byte(ctx.Args()[0]))
+		key, err = ecdsa.Unpack(ctx.Args().First())
+		if err != nil {
+			log.Fatal(err)
+		}
 	} else {
-		key,_ = ecdsa.GenerateKey()
+		key, _ = ecdsa.GenerateKey()
 		key.CIDR = ctx.String("CIDR")
 	}
-	println(string(ecdsa.Pack(key)))
+
+	keyStr, err := ecdsa.Pack(key)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("key: %s", keyStr)
 }
 
 func actionJoin(ctx *cli.Context) {
