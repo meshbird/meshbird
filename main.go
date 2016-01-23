@@ -6,6 +6,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/gophergala2016/meshbird/common"
+	"github.com/gophergala2016/meshbird/ecdsa"
 	"os/signal"
 )
 
@@ -30,6 +31,13 @@ func main() {
 			Usage:   "create new network",
 			Action:  actionNew,
 			ArgsUsage: "<key>",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "CIDR",
+					Value: "192.168.137.1/24",
+					Usage: "Define custom CIDR",
+				},
+			},
 		},
 		{
 			Name:    "join",
@@ -45,7 +53,14 @@ func main() {
 }
 
 func actionNew(ctx *cli.Context) {
-
+	key := new(ecdsa.Key)
+	if len(ctx.Args())>0 {
+		key = ecdsa.Unpack([]byte(ctx.Args()[0]))
+	} else {
+		key,_ = ecdsa.GenerateKey()
+		key.CIDR = ctx.String("CIDR")
+	}
+	println(string(ecdsa.Pack(key)))
 }
 
 func actionJoin(ctx *cli.Context) {
