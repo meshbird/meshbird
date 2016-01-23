@@ -177,7 +177,6 @@ func Pack(k *Key) (string, error) {
 	data = append(data, ipnet.IP...)
 	data = append(data, ipnet.Mask...)
 
-
 	return base62.StdEncoding.EncodeToString(data), nil
 }
 

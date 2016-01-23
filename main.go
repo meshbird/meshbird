@@ -56,7 +56,7 @@ func actionNew(ctx *cli.Context) {
 	var key *ecdsa.Key
 	var err error
 
-	if len(ctx.Args())>0 {
+	if len(ctx.Args()) > 0 {
 		key, err = ecdsa.Unpack(ctx.Args().First())
 		if err != nil {
 			log.Fatal(err)
@@ -97,8 +97,7 @@ func actionJoin(ctx *cli.Context) {
 		node.Stop()
 	}()
 
-	err := node.Start()
-	if err != nil {
+	if err := node.Start(); err != nil {
 		log.Printf("node start error: %s", err)
 	}
 
