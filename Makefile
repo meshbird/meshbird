@@ -1,15 +1,15 @@
 TARGET=meshbird
 
-all: clean depends build
+all: clean build
 
 clean:
 	rm -rf $(TARGET)
 
 depends:
-	go get -d
+	go get -u -v
 
 build:
-	go build -o $(TARGET) *.go
+	go build -v -o  $(TARGET) *.go
 
 fmt:
 	go fmt *.go

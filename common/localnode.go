@@ -3,6 +3,7 @@ package common
 import (
 	"crypto/sha1"
 	"encoding/hex"
+	"github.com/gophergala2016/meshbird/ecdsa"
 	"log"
 	"sync"
 )
@@ -22,6 +23,7 @@ type LocalNode struct {
 func NewLocalNode(cfg *Config) *LocalNode {
 	n := new(LocalNode)
 	n.config = cfg
+	n.config.NetworkID = ecdsa.HashSecretKey(n.config.SecretKey)
 	n.state = &State{}
 	n.services = append(n.services, &DiscoveryDHT{})
 	//n.services = append(n.services, &STUNService{})

@@ -46,6 +46,7 @@ func (d *DiscoveryDHT) Run() error {
 	d.waitGroup.Add(2)
 	go d.process()
 	go d.awaitPeers()
+	d.waitGroup.Wait()
 	return nil
 }
 
