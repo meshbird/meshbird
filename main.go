@@ -9,6 +9,7 @@ import (
 	"github.com/gophergala2016/meshbird/secure"
 	"net"
 	"os/signal"
+	"time"
 )
 
 const (
@@ -95,6 +96,9 @@ func actionJoin(ctx *cli.Context) {
 		s := <-signalChan
 		log.Printf("received signal %s, stopping...", s)
 		node.Stop()
+
+		time.Sleep(2 * time.Second)
+		os.Exit(0)
 	}()
 
 	err = node.Start()

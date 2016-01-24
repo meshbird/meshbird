@@ -28,21 +28,12 @@ func (nt *NetTable) Init(ln *LocalNode) error {
 
 func (nt *NetTable) Run() error {
 	for i := 0; i < 10; i++ {
-		nt.waitGroup.Add(1)
 		go nt.processDHTIn()
 	}
-
-	/*for i := 0; i < 10; i++ {
-		nt.waitGroup.Add(1)
-		go nt.processUnTrusted()
-	}*/
-
-	nt.waitGroup.Wait()
 	return nil
 }
 
 func (nt *NetTable) Stop() {
-	defer close(nt.dhtInChan)
 	nt.SetStatus(StatusStopping)
 }
 
@@ -51,8 +42,6 @@ func (nt *NetTable) GetDHTInChannel() chan<- string {
 }
 
 func (nt *NetTable) processDHTIn() {
-	defer nt.waitGroup.Done()
-
 	for nt.Status() != StatusStopping {
 		select {
 		case host, ok := <-nt.dhtInChan:
