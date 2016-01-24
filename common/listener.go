@@ -69,11 +69,15 @@ func (l *ListenerService) process(c net.Conn) error {
 		return errDecode
 	}
 
-	log.Printf("Received: %v", pack)
+	log.Printf("Received: %+v", pack)
 
 	if pack.Data.Type == protocol.TypeHandshake {
+		log.Println("Handshake!!!")
+
 		msg := pack.Data.Msg.(protocol.HandshakeMessage)
 		if protocol.IsMagicValid([]byte(msg)) {
+			log.Println("Ja, ja supa magic!")
+
 			replyPack := protocol.NewOkMessage()
 			reply, errEncode := protocol.Encode(replyPack)
 			if errEncode != nil {
@@ -81,8 +85,16 @@ func (l *ListenerService) process(c net.Conn) error {
 				return nil
 			}
 
-			c.Write(reply)
+			log.Printf("Sending reply: %+v", replyPack)
+
+			if _, err := c.Write(reply); err != nil {
+				log.Printf("Erro on write: %v", err)
+			}
+		} else {
+			log.Println("Magic is not valid")
 		}
+	} else {
+		log.Printf("Expected handshake but got: %d", pack.Data.Type)
 	}
 
 	return nil

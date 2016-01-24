@@ -55,7 +55,9 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 		return nil, errEncode
 	}
 
-	rn.conn.Write(data)
+	if _, err := rn.conn.Write(data); err != nil {
+		log.Printf("Error on write: %v", err)
+	}
 
 	buf := make([]byte, 1500)
 	n, errRead := rn.conn.Read(buf)
@@ -65,6 +67,8 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 		}
 		return nil, errRead
 	}
+
+	log.Printf("Readed: %v", buf)
 
 	pack, errDecode := protocol.Decode(buf[:n], sessionKey)
 	if errDecode != nil {
