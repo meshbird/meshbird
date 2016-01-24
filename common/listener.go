@@ -53,7 +53,7 @@ func (l *ListenerService) Stop() {
 }
 
 func (l *ListenerService) process(c net.Conn) error {
-	defer c.Close()
+	//defer c.Close()
 
 	handshakeMsg, errHandshake := protocol.ReadDecodeHandshake(c)
 	if errHandshake != nil {
