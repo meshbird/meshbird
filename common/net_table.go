@@ -68,6 +68,14 @@ func (nt *NetTable) processDHTIn() {
 			}
 			nt.lock.Lock()
 			_, ok = nt.blackList[host]
+			if !ok {
+				for _, peer := range nt.peers {
+					if peer.publicAddress == host {
+						ok = true
+						break
+					}
+				}
+			}
 			nt.lock.Unlock()
 
 			if !ok {
