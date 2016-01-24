@@ -101,10 +101,10 @@ func Decode(r io.Reader) (*Packet, error) {
 	if err := binary.Read(r, binary.BigEndian, &pack.Head.Length); err != nil {
 		return nil, err
 	}
-	if err := binary.Read(r, binary.BigEndian, &pack.Head.Version) err != nil {
+	if err := binary.Read(r, binary.BigEndian, &pack.Head.Version); err != nil {
 		return nil, err
 	}
-	if err := binary.Read(r, binary.BigEndian, &pack.Data.Type) err != nil {
+	if err := binary.Read(r, binary.BigEndian, &pack.Data.Type); err != nil {
 		return nil, err
 	}
 	if !isKnownType(pack.Data.Type) {
