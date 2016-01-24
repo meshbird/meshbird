@@ -14,6 +14,7 @@ const (
 	TypeHeartbeat
 	TypeGone
 	TypeTransfer
+	TypePeerInfo
 )
 
 const (
@@ -36,6 +37,7 @@ var (
 		TypeHeartbeat,
 		TypeGone,
 		TypeTransfer,
+		TypePeerInfo,
 	}
 
 	typeNames = map[uint8]string{
@@ -44,6 +46,7 @@ var (
 		TypeHeartbeat: "Heartbeat",
 		TypeGone:      "Gone",
 		TypeTransfer:  "Transfer",
+		TypePeerInfo:  "PeerInfo",
 	}
 )
 

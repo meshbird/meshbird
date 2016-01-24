@@ -16,7 +16,7 @@ type (
 func NewOkMessage(privateIP net.IP) *Packet {
 	body := Body{
 		Type: TypeOk,
-		Msg:  HandshakeMessage(append(onMessage, privateIP...)),
+		Msg:  HandshakeMessage(onMessage),
 	}
 	return &Packet{
 		Head: Header{
@@ -34,8 +34,4 @@ func (o OkMessage) Len() uint16 {
 func (o OkMessage) WriteTo(w io.Writer) (int64, error) {
 	n, err := w.Write(o)
 	return int64(n), err
-}
-
-func (o OkMessage) PrivateIP() net.IP {
-	return net.IP(o[2:])
 }

@@ -74,7 +74,31 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 		return nil, fmt.Errorf("Got non OK message")
 	}
 
-	rn.privateIP = pack.Data.Msg.(protocol.OkMessage).PrivateIP()
+	pack, errDecode = protocol.ReadAndDecode(rn.conn, rn.sessionKey)
+	if errDecode != nil {
+		log.Printf("Unable to decode packet: %s", errDecode)
+		return nil, errDecode
+	}
+
+	if pack.Data.Type != protocol.TypePeerInfo {
+		log.Printf("Got non PeerInfo message: %+v", pack)
+		return nil, fmt.Errorf("Got non PeerInfo message")
+	}
+
+	rn.privateIP = pack.Data.Msg.(protocol.PeerInfoMessage).PrivateIP()
+
+	pack = protocol.NewPeerInfoMessage(rn.privateIP)
+	data, errEncode = protocol.Encode(pack)
+	if errEncode != nil {
+		log.Printf("Error on PeerInfo generate: %s", errEncode)
+		return nil, errEncode
+	}
+
+	if _, err := rn.conn.Write(data); err != nil {
+		log.Printf("Error on write: %v", err)
+		return nil, err
+	}
+
 	log.Printf("Connected to node: %s/%s", rn.privateIP.String(), rn.publicAddress)
 
 	return rn, nil

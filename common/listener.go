@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/anacrolix/utp"
 	"github.com/gophergala2016/meshbird/network/protocol"
-	"io"
 	"log"
 	"net"
 )
