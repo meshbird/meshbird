@@ -111,7 +111,7 @@ func Decode(data []byte, sessionKey []byte) (*Packet, error) {
 
 	remainLength := int(pack.Head.Length) - 1 // minus type
 
-	if TypeHandshake != pack.Data.Type {
+	if TypeHandshake != pack.Data.Type && TypeOk != pack.Data.Type {
 		pack.Data.Vector = reader.Next(bodyVectorLen)
 		if len(pack.Data.Vector) != bodyVectorLen {
 			return nil, ErrorUnableToReadVector
