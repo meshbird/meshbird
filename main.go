@@ -1,18 +1,11 @@
 package main
 
 import (
-<<<<<<< HEAD
-=======
-	"log"
-	"os"
-	"net"
->>>>>>> Moved pprof to httpd
 	"github.com/codegangsta/cli"
 	"github.com/gophergala2016/meshbird/common"
 	"github.com/gophergala2016/meshbird/secure"
 	"log"
 	"net"
-	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"time"

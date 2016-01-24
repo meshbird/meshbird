@@ -2,6 +2,7 @@ package common
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -12,13 +13,13 @@ type HttpService struct {
 	BaseService
 
 	localnode *LocalNode
-	netTable  *NetTable
 	iface     *InterfaceService
 	logger    *log.Logger
 }
+
 type Response struct {
-	ifaceName   string `json:"iface"`
-	localIPAddr string `json:"local_ip_addr"`
+	IfaceName   string `json:"iface"`
+	LocalIPAddr string `json:"local_ip_addr"`
 }
 
 func (hs *HttpService) Name() string {
@@ -29,14 +30,17 @@ func (hs *HttpService) Init(ln *LocalNode) (err error) {
 	hs.logger = log.New(os.Stderr, "[httpd] ", log.LstdFlags)
 	hs.iface = ln.Service("iface").(*InterfaceService)
 	hs.localnode = ln
-	hs.netTable = ln.Service("net-table").(*NetTable)
 	return nil
 }
 
 func (hs *HttpService) Run() error {
 	http.HandleFunc("/stats", func(w http.ResponseWriter, r *http.Request) {
-		resp := Response{hs.iface.instance.Name(), hs.localnode.State().PrivateIP.String()}
+		iName := hs.iface.instance.Name()
+		ipAddr := hs.localnode.State().PrivateIP.String()
+		fmt.Println(iName, ipAddr)
+		resp := Response{iName, ipAddr}
 		data, err := json.Marshal(resp)
+		fmt.Println(hs.iface.instance.Name())
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
