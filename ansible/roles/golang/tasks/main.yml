@@ -31,3 +31,12 @@
         dest=/etc/profile.d
   tags:
     - packages
+
+- name: Creare go folders
+  file: path={{ item }} state=directory mode=0755
+  with_items:
+    - go/src
+    - go/pkg
+    - go/bin
+  tags:
+    - configuration
