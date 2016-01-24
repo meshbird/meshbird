@@ -142,6 +142,8 @@ func Decode(data []byte, sessionKey []byte) (*Packet, error) {
 		pack.Data.Msg = HandshakeMessage(message)
 	case TypeOk:
 		pack.Data.Msg = OkMessage(message)
+	case TypePeerInfo:
+		pack.Data.Msg = PeerInfoMessage(message)
 	}
 
 	return &pack, nil
