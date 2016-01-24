@@ -57,7 +57,7 @@ func (m HandshakeMessage) SessionKey() []byte {
 func ReadDecodeHandshake(r io.Reader, sessionKey []byte) (HandshakeMessage, error) {
 	log.Printf("Trying to read Handshake message...")
 
-	okPack, errDecode := ReadAndDecode(r, sessionKey)
+	okPack, errDecode := ReadAndDecode(r, 28, sessionKey)
 	if errDecode != nil {
 		log.Printf("Unable to decode package: %s", errDecode)
 		return nil, fmt.Errorf("Error on read Handshake package: %v", errDecode)

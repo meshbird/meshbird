@@ -157,8 +157,8 @@ func Encode(pack *Packet) ([]byte, error) {
 	return writer.Bytes(), nil
 }
 
-func ReadAndDecode(r io.Reader, sessionKey []byte) (*Packet, error) {
-	buf := make([]byte, 1500)
+func ReadAndDecode(r io.Reader, n int, sessionKey []byte) (*Packet, error) {
+	buf := make([]byte, n)
 	n, errRead := r.Read(buf)
 
 	if errRead != nil {

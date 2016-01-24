@@ -13,7 +13,7 @@ type (
 
 func NewPeerInfoMessage(privateIP net.IP) *Packet {
 	body := Body{
-		Type: TypeOk,
+		Type: TypePeerInfo,
 		Msg:  PeerInfoMessage(privateIP),
 	}
 	return &Packet{
@@ -41,7 +41,7 @@ func (m PeerInfoMessage) PrivateIP() net.IP {
 func ReadDecodePeerInfo(r io.Reader, sessionKey []byte) (PeerInfoMessage, error) {
 	log.Printf("Trying to read PeerInfo message...")
 
-	peerInfoPack, errDecode := ReadAndDecode(r, sessionKey)
+	peerInfoPack, errDecode := ReadAndDecode(r, 8, sessionKey)
 	if errDecode != nil {
 		log.Printf("Unable to decode package: %s", errDecode)
 		return nil, fmt.Errorf("Error on read PeerInfo package: %v", errDecode)
