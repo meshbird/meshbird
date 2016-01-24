@@ -1,6 +1,7 @@
 package common
 
 import (
+	"github.com/gophergala2016/meshbird/network/protocol"
 	"log"
 	"net"
 	"os"
@@ -18,6 +19,8 @@ type NetTable struct {
 	lock      sync.RWMutex
 	blackList map[string]time.Time
 	peers     map[string]*RemoteNode
+
+	heartbeatTicker <-chan time.Time
 
 	logger *log.Logger
 }
@@ -39,6 +42,7 @@ func (nt *NetTable) Run() error {
 	for i := 0; i < 10; i++ {
 		go nt.processDHTIn()
 	}
+	go nt.heartbeat()
 	return nil
 }
 
@@ -74,7 +78,7 @@ func (nt *NetTable) AddRemoteNode(rn *RemoteNode) {
 func (nt *NetTable) RemoveRemoteNode(ip net.IP) {
 	nt.lock.Lock()
 	defer nt.lock.Unlock()
-	delete(nt.peers, ip.String())
+	delete(nt.peers, ip.To4().String())
 }
 
 func (nt *NetTable) processDHTIn() {
@@ -99,6 +103,26 @@ func (nt *NetTable) processDHTIn() {
 			if !ok {
 				nt.tryConnect(host)
 			}
+		}
+	}
+}
+
+func (nt *NetTable) heartbeat() {
+	nt.heartbeatTicker = time.Tick(5 * time.Second)
+
+	for {
+		select {
+		case _, ok := <-nt.heartbeatTicker:
+			if !ok {
+				break
+			}
+			nt.lock.Lock()
+			for _, peer := range nt.peers {
+				if err := peer.SendPack(protocol.NewHeartbeatMessage(nt.localNode.State().PrivateIP)); err != nil {
+					nt.logger.Printf("Error on send heartbeat: %v", err)
+				}
+			}
+			nt.lock.Unlock()
 		}
 	}
 }
@@ -130,7 +154,7 @@ func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
 		return
 	}
 
-	if err := rn.SendPacket(payload); err != nil {
+	if err := rn.SendToInterface(payload); err != nil {
 		nt.logger.Printf("Send packet to %s err: %s", dstIP.String(), err)
 	}
 }

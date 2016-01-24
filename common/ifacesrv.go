@@ -25,7 +25,7 @@ func (is *InterfaceService) Name() string {
 func (is *InterfaceService) Init(ln *LocalNode) (err error) {
 	is.logger = log.New(os.Stderr, "[iface] ", log.LstdFlags)
 	is.localnode = ln
-	is.netTable = ln.Service("net-table").(*NetTable)
+	is.netTable = ln.NetTable()
 	netsize, _ := ln.State().Secret.Net.Mask.Size()
 	IPAddr := fmt.Sprintf("%s/%s", ln.State().PrivateIP, strconv.Itoa(netsize))
 	is.instance, err = network.CreateTunInterfaceWithIp("", IPAddr)

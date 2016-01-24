@@ -102,3 +102,11 @@ func (n *LocalNode) Stop() error {
 func (n *LocalNode) NetworkSecret() *secure.NetworkSecret {
 	return n.secret
 }
+
+func (n *LocalNode) NetTable() *NetTable {
+	service, ok := n.services["net-table"]
+	if !ok {
+		panic("net-table not found")
+	}
+	return service.(*NetTable)
+}

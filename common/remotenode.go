@@ -20,6 +20,7 @@ type RemoteNode struct {
 	privateIP     net.IP
 	publicAddress string
 	logger        *log.Logger
+	lastHeartbeat time.Time
 }
 
 func NewRemoteNode(conn net.Conn, sessionKey []byte, privateIP net.IP) *RemoteNode {
@@ -29,21 +30,25 @@ func NewRemoteNode(conn net.Conn, sessionKey []byte, privateIP net.IP) *RemoteNo
 		privateIP:     privateIP,
 		publicAddress: conn.RemoteAddr().String(),
 		logger:        log.New(os.Stderr, fmt.Sprintf("[remote priv/%s] ", privateIP.To4().String()), log.LstdFlags),
+		lastHeartbeat: time.Now(),
 	}
 }
 
-func (rn *RemoteNode) SendPacket(payload []byte) error {
+func (rn *RemoteNode) SendToInterface(payload []byte) error {
 	return protocol.WriteEncodeTransfer(rn.conn, payload)
+}
+
+func (rn *RemoteNode) SendPack(pack *protocol.Packet) (err error) {
+	if err = protocol.EncodeAndWrite(rn.conn, pack); err != nil {
+		err = fmt.Errorf("Error on write Transfer message: %v", err)
+	}
+	return
 }
 
 func (rn *RemoteNode) listen(ln *LocalNode) {
 	defer rn.logger.Printf("EXIT LISTEN")
 	defer func() {
-		netTable, ok := ln.Service("net-table").(*NetTable)
-		if !ok || netTable == nil {
-			return
-		}
-		netTable.RemoveRemoteNode(rn.privateIP)
+		ln.NetTable().RemoveRemoteNode(rn.privateIP)
 	}()
 
 	iface, ok := ln.Service("iface").(*InterfaceService)
@@ -65,8 +70,11 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 
 		switch pack.Data.Type {
 		case protocol.TypeTransfer:
-			rn.logger.Printf("Writing to interface ... ")
+			rn.logger.Printf("Writing to interface...")
 			iface.WritePacket(pack.Data.Msg.(protocol.TransferMessage).Bytes())
+		case protocol.TypeHeartbeat:
+			rn.logger.Printf("Received heardbeat... %v", pack.Data.Msg)
+			rn.lastHeartbeat = time.Now()
 		}
 	}
 }
@@ -83,6 +91,7 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret, ln *LocalNode) (*
 	}
 
 	rn := new(RemoteNode)
+	rn.lastHeartbeat = time.Now()
 	rn.publicAddress = fmt.Sprintf("%s:%d", host, port+1)
 	rn.logger = log.New(os.Stderr, fmt.Sprintf("[remote pub/%s] ", rn.publicAddress), log.LstdFlags)
 

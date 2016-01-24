@@ -103,12 +103,9 @@ func (d *DiscoveryDHT) addPeer(peer string) {
 	if exists {
 		return
 	}
-	service := d.localNode.Service("net-table")
-	netTable := service.(*NetTable)
 
 	d.logger.Printf("Reer: %s", peer)
-
-	netTable.GetDHTInChannel() <- peer
+	d.localNode.NetTable().GetDHTInChannel() <- peer
 }
 
 func (d *DiscoveryDHT) awaitPeers() {

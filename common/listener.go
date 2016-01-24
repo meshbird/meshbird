@@ -89,13 +89,8 @@ func (l *ListenerService) process(c net.Conn) error {
 
 	rn := NewRemoteNode(c, handshakeMsg.SessionKey(), peerInfo.PrivateIP())
 
-	netTable, ok := l.localNode.Service("net-table").(*NetTable)
-	if !ok || netTable == nil {
-		return fmt.Errorf("net-table is nil")
-	}
-
 	l.logger.Printf("Adding remote node from listener...")
-	netTable.AddRemoteNode(rn)
+	l.localNode.NetTable().AddRemoteNode(rn)
 
 	return nil
 }
