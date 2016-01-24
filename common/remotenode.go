@@ -11,7 +11,6 @@ import (
 	"github.com/gophergala2016/meshbird/network/protocol"
 	"github.com/gophergala2016/meshbird/secure"
 	"os"
-	"io"
 )
 
 type RemoteNode struct {
@@ -46,32 +45,22 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 		}
 		netTable.RemoveRemoteNode(rn.privateIP)
 	}()
-	iface, ok := ln.Service("iface").(*InterfaceService)
-	if !ok {
-		rn.logger.Printf("InterfaceService not found")
-		return
-	}
+	//iface, ok := ln.Service("iface").(*InterfaceService)
+	//if !ok {
+	//	rn.logger.Printf("InterfaceService not found")
+	//	return
+	//}
 
 	rn.logger.Printf("Listening...")
 
 	for {
-		pack, err := protocol.Decode(rn.conn)
+		buf := make([]byte, 1500)
+		n, err := rn.conn.Read(buf)
 		if err != nil {
-			rn.logger.Printf("REMOTE NODE LISTEN ERROR: %s", err)
-			if err != io.EOF && err != io.ErrUnexpectedEOF {
-				rn.logger.Printf("Decode error: %v", err)
-				break
-			}
-			continue
+			rn.logger.Printf("READ ERROR: %s", err)
+			break
 		}
-
-		rn.logger.Printf("Received package: %+v", pack)
-
-		switch pack.Data.Type {
-		case protocol.TypeTransfer:
-			rn.logger.Printf("Writing to interface ... ")
-			iface.WritePacket(pack.Data.Msg.(protocol.TransferMessage).Bytes())
-		}
+		rn.logger.Printf("RECEIVE MESSAGE: %d %x", n, buf[:n])
 	}
 }
 
