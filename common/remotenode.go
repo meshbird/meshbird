@@ -71,7 +71,7 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 	}
 }
 
-func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, error) {
+func TryConnect(h string, networkSecret *secure.NetworkSecret, ln *LocalNode) (*RemoteNode, error) {
 	host, portStr, errSplit := net.SplitHostPort(h)
 	if errSplit != nil {
 		return nil, errSplit
@@ -118,7 +118,7 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 	rn.privateIP = peerInfo.PrivateIP()
 	rn.logger = log.New(os.Stderr, fmt.Sprintf("[remote priv/%s] ", rn.privateIP.To4().String()), log.LstdFlags)
 
-	if err := protocol.WriteEncodePeerInfo(rn.conn, rn.privateIP); err != nil {
+	if err := protocol.WriteEncodePeerInfo(rn.conn, ln.State().PrivateIP); err != nil {
 		return nil, err
 	}
 
