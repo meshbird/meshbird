@@ -7,7 +7,7 @@ import (
 
 func TestGenerateIPAddress(t *testing.T) {
 	_, ipnet, err := net.ParseCIDR("192.168.0.0/24")
-	IPAddress, err := GenerateIPAddress("192.168.0.0/24")
+	IPAddress, err := GenerateIPAddress(ipnet)
 	if err != nil {
 		t.Fatal(err)
 	}

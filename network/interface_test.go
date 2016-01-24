@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hsheth2/water"
+	"github.com/miolini/water"
 )
 
 func startReadData(ch chan<- []byte, iface *water.Interface) {
