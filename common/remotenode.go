@@ -54,7 +54,7 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 	rn.logger.Printf("Listening...")
 
 	for {
-		buf := make([]byte, 1500)
+		buf := make([]byte, 4)
 		n, err := rn.conn.Read(buf)
 		if err != nil {
 			rn.logger.Printf("READ ERROR: %s", err)
