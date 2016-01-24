@@ -44,7 +44,7 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 
 	conn, errDial := s.DialTimeout(rn.publicAddress, 10*time.Second)
 	if errDial != nil {
-		log.Printf("Unable to dial: %s", errDial)
+		log.Printf("Unable to dial to %s: %s", rn.publicAddress, errDial)
 		return nil, errDial
 	}
 

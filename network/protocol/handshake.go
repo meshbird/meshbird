@@ -43,3 +43,7 @@ func (m HandshakeMessage) WriteTo(w io.Writer) (int64, error) {
 	n, err := w.Write(m)
 	return int64(n), err
 }
+
+func (m HandshakeMessage) Bytes() []byte {
+	return []byte(m)
+}

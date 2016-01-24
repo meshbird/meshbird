@@ -53,48 +53,38 @@ func (l *ListenerService) Stop() {
 func (l *ListenerService) process(c net.Conn) error {
 	defer c.Close()
 
-	buf := make([]byte, 1500)
-	n, errRead := c.Read(buf)
-	if errRead != nil {
-		if errRead != io.EOF {
-			log.Printf("Error on read from socket: %s", errRead)
-			return errRead
-		}
-		return nil
-	}
-
-	pack, errDecode := protocol.Decode(buf[:n], nil)
+	pack, errDecode := protocol.ReadAndDecode(c, nil)
 	if errDecode != nil {
-		log.Printf("Unable to decode packet: %s", errDecode)
-		return errDecode
+		return fmt.Errorf("Unable to decode packet: %s", errDecode)
 	}
 
 	log.Printf("Received: %+v", pack)
 
-	if pack.Data.Type == protocol.TypeHandshake {
-		log.Println("Handshake!!!")
+	if pack.Data.Type != protocol.TypeHandshake {
+		return fmt.Errorf("Unexpected message type: %s", protocol.TypeName(pack.Data.Type))
+	}
 
-		msg := pack.Data.Msg.(protocol.HandshakeMessage)
-		if protocol.IsMagicValid([]byte(msg)) {
-			log.Println("Ja, ja supa magic!")
+	log.Println("Processing hansdhake...")
 
-			replyPack := protocol.NewOkMessage(l.localNode.State().PrivateIP)
-			reply, errEncode := protocol.Encode(replyPack)
-			if errEncode != nil {
-				log.Printf("Error on encode: %v", errEncode)
-				return nil
-			}
+	msg := pack.Data.Msg.(protocol.HandshakeMessage)
+	if !protocol.IsMagicValid(msg.Bytes()) {
+		return fmt.Errorf("Invalid magic bytes")
+	}
 
-			log.Printf("Sending reply: %+v", replyPack)
+	log.Println("Magic bytes are correct. Preparing reply...")
 
-			if _, err := c.Write(reply); err != nil {
-				log.Printf("Erro on write: %v", err)
-			}
-		} else {
-			log.Println("Magic is not valid")
-		}
-	} else {
-		log.Printf("Expected handshake but got: %d", pack.Data.Type)
+	reply, errEncode := protocol.Encode(
+		protocol.NewOkMessage(l.localNode.State().PrivateIP),
+	)
+
+	if errEncode != nil {
+		return fmt.Errorf("Error on encoding reply: %v", errEncode)
+	}
+
+	log.Printf("Sending reply...")
+
+	if _, err := c.Write(reply); err != nil {
+		return fmt.Errorf("Error on write reply: %v", err)
 	}
 
 	return nil

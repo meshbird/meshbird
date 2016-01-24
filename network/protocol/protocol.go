@@ -37,6 +37,14 @@ var (
 		TypeGone,
 		TypeTransfer,
 	}
+
+	typeNames = map[uint8]string{
+		TypeHandshake: "Handshake",
+		TypeOk:        "Ok",
+		TypeHeartbeat: "Heartbeat",
+		TypeGone:      "Gone",
+		TypeTransfer:  "Transfer",
+	}
 )
 
 type (
@@ -166,6 +174,10 @@ func ReadAndDecode(r io.Reader, sessionKey []byte) (*Packet, error) {
 	}
 
 	return pack, nil
+}
+
+func TypeName(t uint8) string {
+	return typeNames[t]
 }
 
 func isKnownType(needle uint8) bool {
