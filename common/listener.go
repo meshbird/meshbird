@@ -65,26 +65,53 @@ func (l *ListenerService) process(c net.Conn) error {
 
 	log.Println("Processing hansdhake...")
 
-	msg := pack.Data.Msg.(protocol.HandshakeMessage)
-	if !protocol.IsMagicValid(msg.Bytes()) {
+	msgHandshake := pack.Data.Msg.(protocol.HandshakeMessage)
+	if !protocol.IsMagicValid(msgHandshake.Bytes()) {
 		return fmt.Errorf("Invalid magic bytes")
 	}
 
 	log.Println("Magic bytes are correct. Preparing reply...")
 
 	reply, errEncode := protocol.Encode(
-		protocol.NewOkMessage(l.localNode.State().PrivateIP),
+		protocol.NewOkMessage(),
 	)
-
 	if errEncode != nil {
 		return fmt.Errorf("Error on encoding reply: %v", errEncode)
 	}
-
-	log.Printf("Sending reply...")
-
+	log.Printf("Sending OK reply...")
 	if _, err := c.Write(reply); err != nil {
 		return fmt.Errorf("Error on write reply: %v", err)
 	}
+
+	reply, errEncode = protocol.Encode(
+		protocol.NewPeerInfoMessage(l.localNode.State().PrivateIP),
+	)
+	if errEncode != nil {
+		return fmt.Errorf("Error on encoding reply: %v", errEncode)
+	}
+	log.Printf("Sending PeerInfo reply...")
+	if _, err := c.Write(reply); err != nil {
+		return fmt.Errorf("Error on write reply: %v", err)
+	}
+
+
+	pack, errDecode = protocol.ReadAndDecode(c, nil)
+	if errDecode != nil {
+		return fmt.Errorf("Unable to decode packet: %s", errDecode)
+	}
+	log.Printf("Received: %+v", pack)
+	if pack.Data.Type != protocol.TypePeerInfo {
+		return fmt.Errorf("Unexpected message type: %s", protocol.TypeName(pack.Data.Type))
+	}
+	log.Println("Processing PeerInfo...")
+	msg := pack.Data.Msg.(protocol.PeerInfoMessage)
+
+	rn := NewRemoteNode(c, msgHandshake.SessionKey(), msg.PrivateIP())
+	netTable, ok := l.localNode.Service("net-table").(*NetTable)
+	if !ok && netTable == nil {
+		return fmt.Errorf("net-table is nil")
+	}
+	netTable.AddRemoteNode(rn)
 
 	return nil
 }

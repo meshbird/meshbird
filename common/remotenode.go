@@ -20,6 +20,15 @@ type RemoteNode struct {
 	publicAddress string
 }
 
+func NewRemoteNode(conn net.Conn, sessionKey []byte, privateIP net.IP) *RemoteNode {
+	return &RemoteNode{
+		conn: conn,
+		sessionKey: sessionKey,
+		privateIP: privateIP,
+		publicAddress: conn.RemoteAddr().String(),
+	}
+}
+
 func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, error) {
 	host, portStr, errSplit := net.SplitHostPort(h)
 	if errSplit != nil {

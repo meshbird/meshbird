@@ -4,6 +4,7 @@ import (
 	"net"
 	"sync"
 	"time"
+	"log"
 )
 
 type NetTable struct {
@@ -49,6 +50,13 @@ func (nt *NetTable) RemoteNodeByIP(ip net.IP) *RemoteNode {
 	nt.lock.Lock()
 	defer nt.lock.Unlock()
 	return nt.peers[ip.String()]
+}
+
+func (nt *NetTable) AddRemoteNode(rn *RemoteNode) {
+	nt.lock.Lock()
+	defer nt.lock.Unlock()
+	log.Printf("add remote node: %s/%s", rn.privateIP.String(), rn.publicAddress)
+	nt.peers[rn.privateIP.String()] = rn
 }
 
 func (nt *NetTable) processDHTIn() {

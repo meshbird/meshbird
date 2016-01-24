@@ -47,3 +47,7 @@ func (m HandshakeMessage) WriteTo(w io.Writer) (int64, error) {
 func (m HandshakeMessage) Bytes() []byte {
 	return []byte(m)
 }
+
+func (m HandshakeMessage) SessionKey() []byte {
+	return m[len(magicKey):]
+}

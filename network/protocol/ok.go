@@ -2,7 +2,6 @@ package protocol
 
 import (
 	"io"
-	"net"
 )
 
 var (
@@ -13,7 +12,7 @@ type (
 	OkMessage []byte
 )
 
-func NewOkMessage(privateIP net.IP) *Packet {
+func NewOkMessage() *Packet {
 	body := Body{
 		Type: TypeOk,
 		Msg:  HandshakeMessage(onMessage),
