@@ -83,7 +83,7 @@ func (d *DiscoveryDHT) awaitPeers() {
 	for d.Status() != StatusStopping {
 		select {
 		case r := <-d.node.PeersRequestResults:
-			service := d.localNode.GetService("net-table")
+			service := d.localNode.Service("net-table")
 			netTable := service.(*NetTable)
 			for _, peers := range r {
 				for _, x := range peers {

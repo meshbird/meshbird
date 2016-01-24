@@ -109,6 +109,10 @@ func (k *Key) ParsePrivate(q string) {
 	k.Public = &k.Private.PublicKey
 }
 
+func (k *Key) Encrypt(in []byte) []byte {
+	return nil
+}
+
 // Sign signs msg with ECDSA private key
 func Sign(priv *ecdsa.PrivateKey, msg []byte) (sg Signature, signhash []byte, err error) {
 	sg.r = big.NewInt(0)

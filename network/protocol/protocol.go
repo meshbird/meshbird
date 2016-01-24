@@ -9,6 +9,7 @@ import (
 
 const (
 	TypeHandshake uint8 = iota
+	TypeOk
 	TypeHeartbeat
 	TypeGone
 	TypeTransfer

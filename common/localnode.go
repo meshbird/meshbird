@@ -18,18 +18,21 @@ type LocalNode struct {
 	waitGroup sync.WaitGroup
 
 	services map[string]Service
+	networkKey *ecdsa.Key
 }
 
 func NewLocalNode(cfg *Config) (*LocalNode, error) {
+	n := new(LocalNode)
+
 	key, err := ecdsa.Unpack(cfg.SecretKey)
 	if err != nil {
 		return nil, err
 	}
+	n.networkKey = key
 
-	n := new(LocalNode)
 	n.config = cfg
 	n.config.NetworkID = ecdsa.HashSecretKey(n.config.SecretKey)
-	n.state = NewState(key.CIDR, n.config.NetworkID)
+	n.state = NewState(n.networkKey.CIDR, n.config.NetworkID)
 
 	n.services = make(map[string]Service)
 
@@ -66,12 +69,16 @@ func (n *LocalNode) Start() error {
 	return nil
 }
 
-func (n *LocalNode) GetService(name string) Service {
+func (n *LocalNode) Service(name string) Service {
 	service, ok := n.services[name]
 	if !ok {
 		log.Panicf("service %s not found", name)
 	}
 	return service
+}
+
+func (n *LocalNode) NetworkKey() *ecdsa.Key {
+	return n.networkKey
 }
 
 func (n *LocalNode) WaitStop() {

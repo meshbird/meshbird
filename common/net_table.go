@@ -1,8 +1,8 @@
 package common
 
 import (
-	"log"
 	"sync"
+	"time"
 )
 
 type NetTable struct {
@@ -10,6 +10,9 @@ type NetTable struct {
 	localNode *LocalNode
 	waitGroup sync.WaitGroup
 	dhtInChan chan string
+
+	lock      sync.RWMutex
+	blackList map[string]time.Time
 }
 
 func (nt NetTable) Name() string {
@@ -18,13 +21,22 @@ func (nt NetTable) Name() string {
 
 func (nt *NetTable) Init(ln *LocalNode) error {
 	nt.localNode = ln
-	nt.dhtInChan = make(chan string)
+	nt.dhtInChan = make(chan string, 10)
+	nt.blackList = make(map[string]time.Time)
 	return nil
 }
 
 func (nt *NetTable) Run() error {
-	nt.waitGroup.Add(1)
-	go nt.processDHTIn()
+	for i := 0; i < 10; i++ {
+		nt.waitGroup.Add(1)
+		go nt.processDHTIn()
+	}
+
+	/*for i := 0; i < 10; i++ {
+		nt.waitGroup.Add(1)
+		go nt.processUnTrusted()
+	}*/
+
 	nt.waitGroup.Wait()
 	return nil
 }
@@ -47,7 +59,30 @@ func (nt *NetTable) processDHTIn() {
 			if !ok {
 				return
 			}
-			log.Printf("Got %s host from DHT", host)
+			nt.lock.Lock()
+			_, ok := nt.blackList[host]
+			nt.lock.Unlock()
+
+			if !ok {
+				nt.tryConnect(host)
+			}
 		}
 	}
+}
+
+func (nt *NetTable) tryConnect(h string) {
+	rn, err := TryConnect(h, nt.localNode.NetworkKey())
+	if err != nil {
+		nt.addToBlackList(h)
+		return
+	}
+	if rn == nil {
+		return
+	}
+}
+
+func (nt *NetTable) addToBlackList(h string) {
+	nt.lock.Lock()
+	defer nt.lock.Unlock()
+	nt.blackList[h] = time.Now()
 }
