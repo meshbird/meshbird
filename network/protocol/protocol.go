@@ -145,6 +145,8 @@ func Decode(r io.Reader) (*Packet, error) {
 		pack.Data.Msg = PeerInfoMessage(message)
 	case TypeTransfer:
 		pack.Data.Msg = TransferMessage(message)
+	case TypeHeartbeat:
+		pack.Data.Msg = HeartbeatMessage(message)
 	}
 
 	return &pack, nil
