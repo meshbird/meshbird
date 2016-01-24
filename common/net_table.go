@@ -107,7 +107,7 @@ func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
 		log.Printf("[net-table] destination host unreachable: %s", dstIP.String())
 		return
 	}
-	err := rn.SendPacket(dstIP, payload)
+	err := rn.SendPacket(payload)
 	if err != nil {
 		log.Printf("[net-table] send packet to %s err: %s", dstIP.String(), err)
 	}

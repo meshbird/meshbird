@@ -29,7 +29,7 @@ func NewRemoteNode(conn net.Conn, sessionKey []byte, privateIP net.IP) *RemoteNo
 	}
 }
 
-func (rn *RemoteNode) SendPacket(dstIP net.IP, payload []byte) error {
+func (rn *RemoteNode) SendPacket(payload []byte) error {
 	return protocol.WriteEncodeTransfer(rn.conn, payload)
 }
 
