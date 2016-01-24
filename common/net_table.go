@@ -57,6 +57,13 @@ func (nt *NetTable) RemoteNodeByIP(ip net.IP) *RemoteNode {
 }
 
 func (nt *NetTable) AddRemoteNode(rn *RemoteNode) {
+	nt.logger.Printf("Trying to add node %s/%s ...", rn.privateIP.String(), rn.publicAddress)
+
+	if nt.localNode.State().PrivateIP.Equal(rn.privateIP) {
+		nt.logger.Printf("Found myself, node will not be added!")
+		return
+	}
+
 	nt.lock.Lock()
 	defer nt.lock.Unlock()
 
@@ -96,11 +103,6 @@ func (nt *NetTable) tryConnect(h string) {
 	rn, err := TryConnect(h, nt.localNode.NetworkSecret())
 	if err != nil {
 		nt.addToBlackList(h)
-		return
-	}
-
-	if nt.localNode.State().PrivateIP.Equal(rn.privateIP) {
-		nt.logger.Printf("Found myself ;)")
 		return
 	}
 
