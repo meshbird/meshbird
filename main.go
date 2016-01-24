@@ -1,13 +1,13 @@
 package main
 
 import (
-	"log"
-	_ "net/http/pprof"
-	"os"
-	"net"
 	"github.com/codegangsta/cli"
 	"github.com/gophergala2016/meshbird/common"
 	"github.com/gophergala2016/meshbird/secure"
+	"log"
+	"net"
+	_ "net/http/pprof"
+	"os"
 	"os/signal"
 	"time"
 )

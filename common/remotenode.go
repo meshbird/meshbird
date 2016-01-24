@@ -45,6 +45,11 @@ func (rn *RemoteNode) SendPack(pack *protocol.Packet) (err error) {
 	return
 }
 
+func (rn *RemoteNode) Close() {
+	defer rn.conn.Close()
+	rn.logger.Printf("Closing...")
+}
+
 func (rn *RemoteNode) listen(ln *LocalNode) {
 	defer rn.logger.Printf("EXIT LISTEN")
 	defer func() {
