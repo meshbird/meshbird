@@ -6,8 +6,8 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/gophergala2016/meshbird/common"
-	"github.com/gophergala2016/meshbird/ecdsa"
 	"os/signal"
+	"net"
 )
 
 const (
@@ -15,7 +15,7 @@ const (
 )
 
 var (
-	// VERSION var using for auto versioning through Go linker
+// VERSION var using for auto versioning through Go linker
 	VERSION = "dev"
 )
 
@@ -53,24 +53,23 @@ func main() {
 }
 
 func actionNew(ctx *cli.Context) {
-	var key *ecdsa.Key
+	var secret *common.NetworkSecret
 	var err error
 
-	if len(ctx.Args())>0 {
-		key, err = ecdsa.Unpack(ctx.Args().First())
+	if len(ctx.Args()) > 0 {
+		keyStr := ctx.Args().First()
+		secret, err = common.NetworkSecretUnmarshal(keyStr)
 		if err != nil {
 			log.Fatal(err)
 		}
 	} else {
-		key, _ = ecdsa.GenerateKey()
-		key.CIDR = ctx.String("CIDR")
+		_, ipnet, err := net.ParseCIDR(ctx.String("CIDR"))
+		if err != nil {
+			log.Fatalf("cidr parse error: %s", err)
+		}
+		secret = common.NewNetworkSecret(ipnet)
 	}
-
-	keyStr, err := ecdsa.Pack(key)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	keyStr := secret.Marshal()
 	log.Printf("key: %s", keyStr)
 }
 

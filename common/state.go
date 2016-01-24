@@ -11,15 +11,13 @@ import (
 )
 
 type State struct {
+	Secret     *NetworkSecret `json:"-"`
 	ListenPort int    `json:"port"`
-	ListenHost string `json:"host"`
-	netId      string
+	PrivateIP  string `json:"private_ip"`
 }
 
-func NewState(net, netId string) *State {
-	s := &State{
-		netId: netId,
-	}
+func NewState(secret *NetworkSecret) *State {
+	s := &State{}
 	s.Load()
 
 	var save bool
@@ -28,9 +26,9 @@ func NewState(net, netId string) *State {
 		s.ListenPort = GetRandomPort()
 		save = true
 	}
-	if s.ListenHost == "" {
+	if s.PrivateIP == "" {
 		var err error
-		if s.ListenHost, err = network.GenerateIPAddress(net); err == nil {
+		if s.PrivateIP, err = network.GenerateIPAddress(secret.Net); err == nil {
 			save = true
 		} else {
 			log.Printf("Error on generate IP: %s", err)
@@ -61,5 +59,5 @@ func (s *State) Save() {
 }
 
 func (s *State) getConfigPath() string {
-	return path.Join(os.Getenv("HOME"), fmt.Sprintf(".meshbird_%s.json", s.netId))
+	return path.Join(os.Getenv("HOME"), fmt.Sprintf(".meshbird_%s.json", s.Secret.InfoHash()))
 }

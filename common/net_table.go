@@ -1,8 +1,8 @@
 package common
 
 import (
+	"log"
 	"sync"
-"log"
 )
 
 type NetTable struct {
