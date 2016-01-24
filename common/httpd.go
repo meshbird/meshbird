@@ -2,7 +2,6 @@ package common
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -18,8 +17,9 @@ type HttpService struct {
 }
 
 type Response struct {
-	IfaceName   string `json:"iface"`
-	LocalIPAddr string `json:"local_ip_addr"`
+	IfaceName   string      `json:"iface"`
+	LocalIPAddr string      `json:"local_ip_addr"`
+	Peers       interface{} `json:"net_peers"`
 }
 
 func (hs *HttpService) Name() string {
@@ -37,10 +37,9 @@ func (hs *HttpService) Run() error {
 	http.HandleFunc("/stats", func(w http.ResponseWriter, r *http.Request) {
 		iName := hs.iface.instance.Name()
 		ipAddr := hs.localnode.State().PrivateIP.String()
-		fmt.Println(iName, ipAddr)
-		resp := Response{iName, ipAddr}
+		peers := hs.iface.netTable.PeerAddresses()
+		resp := Response{iName, ipAddr, peers}
 		data, err := json.Marshal(resp)
-		fmt.Println(hs.iface.instance.Name())
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
