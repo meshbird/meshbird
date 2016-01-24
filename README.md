@@ -31,7 +31,7 @@ $ go get github.com/gophergala2016/meshbird
 $ meshbird new
 ```
 
-### Join to the private network
+### Join to the private network with interface meshbird0
 
 ```bash
 $ MESHBIRD_KEY="<key>" meshbird join
