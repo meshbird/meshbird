@@ -179,6 +179,23 @@ func ReadAndDecode(r io.Reader, sessionKey []byte) (*Packet, error) {
 	return pack, nil
 }
 
+func EncodeAndWrite(w io.Writer, pack *Packet) error {
+	reply, errEncode := Encode(pack)
+	if errEncode != nil {
+		log.Printf("Error on encoding %s: %v", TypeName(pack.Data.Type), errEncode)
+		return errEncode
+	}
+
+	log.Printf("Sending %s message...", TypeName(pack.Data.Type))
+
+	if _, err := w.Write(reply); err != nil {
+		log.Printf("Error on write %s: %v", TypeName(pack.Data.Type), err)
+		return err
+	}
+
+	return nil
+}
+
 func TypeName(t uint8) string {
 	return typeNames[t]
 }

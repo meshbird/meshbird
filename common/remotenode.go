@@ -22,9 +22,9 @@ type RemoteNode struct {
 
 func NewRemoteNode(conn net.Conn, sessionKey []byte, privateIP net.IP) *RemoteNode {
 	return &RemoteNode{
-		conn: conn,
-		sessionKey: sessionKey,
-		privateIP: privateIP,
+		conn:          conn,
+		sessionKey:    sessionKey,
+		privateIP:     privateIP,
 		publicAddress: conn.RemoteAddr().String(),
 	}
 }
@@ -60,15 +60,7 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 	rn.conn = conn
 	rn.sessionKey = RandomBytes(16)
 
-	pack := protocol.NewHandshakePacket(rn.sessionKey, networkSecret)
-	data, errEncode := protocol.Encode(pack)
-	if errEncode != nil {
-		log.Printf("Error on handshake generate: %s", errEncode)
-		return nil, errEncode
-	}
-
-	if _, err := rn.conn.Write(data); err != nil {
-		log.Printf("Error on write: %v", err)
+	if err := protocol.EncodeAndWrite(rn.conn, protocol.NewHandshakePacket(rn.sessionKey, networkSecret)); err != nil {
 		return nil, err
 	}
 
@@ -96,15 +88,7 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 
 	rn.privateIP = pack.Data.Msg.(protocol.PeerInfoMessage).PrivateIP()
 
-	pack = protocol.NewPeerInfoMessage(rn.privateIP)
-	data, errEncode = protocol.Encode(pack)
-	if errEncode != nil {
-		log.Printf("Error on PeerInfo generate: %s", errEncode)
-		return nil, errEncode
-	}
-
-	if _, err := rn.conn.Write(data); err != nil {
-		log.Printf("Error on write: %v", err)
+	if err := protocol.EncodeAndWrite(rn.conn, protocol.NewPeerInfoMessage(rn.privateIP)); err != nil {
 		return nil, err
 	}
 
