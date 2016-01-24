@@ -13,7 +13,7 @@ type (
 func NewHeartbeatMessage(privateIP net.IP) *Packet {
 	body := Body{
 		Type: TypeHeartbeat,
-		Msg:  HeartbeatMessage(privateIP),
+		Msg:  HeartbeatMessage(privateIP.To4()),
 	}
 	return &Packet{
 		Head: Header{
