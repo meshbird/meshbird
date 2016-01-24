@@ -71,8 +71,8 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 	}
 
 	rn := new(RemoteNode)
-	rn.logger = log.New(os.Stderr, fmt.Sprintf("[remote pub/%s] ", rn.publicAddress), log.LstdFlags)
 	rn.publicAddress = fmt.Sprintf("%s:%d", host, port+1)
+	rn.logger = log.New(os.Stderr, fmt.Sprintf("[remote pub/%s] ", rn.publicAddress), log.LstdFlags)
 
 	rn.logger.Printf("Trying to connection to: %s", rn.publicAddress)
 
