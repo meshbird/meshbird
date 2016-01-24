@@ -26,6 +26,7 @@ func (nt *NetTable) Init(ln *LocalNode) error {
 	nt.localNode = ln
 	nt.dhtInChan = make(chan string, 10)
 	nt.blackList = make(map[string]time.Time)
+	nt.peers = make(map[string]*RemoteNode)
 	return nil
 }
 
