@@ -52,52 +52,37 @@ func (l *ListenerService) Stop() {
 func (l *ListenerService) process(c net.Conn) error {
 	defer c.Close()
 
-	pack, errDecode := protocol.ReadAndDecode(c, nil)
-	if errDecode != nil {
-		return fmt.Errorf("Unable to decode packet: %s", errDecode)
-	}
-
-	log.Printf("Received: %+v", pack)
-
-	if pack.Data.Type != protocol.TypeHandshake {
-		return fmt.Errorf("Unexpected message type: %s", protocol.TypeName(pack.Data.Type))
+	handshakeMsg, errHandshake := protocol.ReadDecodeHandshake(c, nil)
+	if errHandshake != nil {
+		return errHandshake
 	}
 
 	log.Println("Processing hansdhake...")
 
-	msgHandshake := pack.Data.Msg.(protocol.HandshakeMessage)
-	if !protocol.IsMagicValid(msgHandshake.Bytes()) {
+	if !protocol.IsMagicValid(handshakeMsg.Bytes()) {
 		return fmt.Errorf("Invalid magic bytes")
 	}
 
 	log.Println("Magic bytes are correct. Preparing reply...")
 
-	if err := protocol.EncodeAndWrite(c, protocol.NewOkMessage()); err != nil {
+	if err := protocol.WriteEncodeOk(c); err != nil {
 		return err
 	}
-	if err := protocol.EncodeAndWrite(c, protocol.NewPeerInfoMessage(l.localNode.State().PrivateIP)); err != nil {
+	if err := protocol.WriteEncodePeerInfo(c, l.localNode.State().PrivateIP); err != nil {
 		return err
 	}
 
-	pack, errDecode = protocol.ReadAndDecode(c, nil)
-	if errDecode != nil {
-		return fmt.Errorf("Unable to decode packet: %s", errDecode)
-	}
-
-	log.Printf("Received: %+v", pack)
-
-	if pack.Data.Type != protocol.TypePeerInfo {
-		return fmt.Errorf("Unexpected message type: %s", protocol.TypeName(pack.Data.Type))
+	peerInfo, errPeerInfo := protocol.ReadDecodePeerInfo(c, nil)
+	if errPeerInfo != nil {
+		return errPeerInfo
 	}
 
 	log.Println("Processing PeerInfo...")
 
-	msg := pack.Data.Msg.(protocol.PeerInfoMessage)
+	rn := NewRemoteNode(c, handshakeMsg.SessionKey(), peerInfo.PrivateIP())
 
-	rn := NewRemoteNode(c, msgHandshake.SessionKey(), msg.PrivateIP())
 	netTable, ok := l.localNode.Service("net-table").(*NetTable)
-
-	if !ok && netTable == nil {
+	if !ok || netTable == nil {
 		return fmt.Errorf("net-table is nil")
 	}
 

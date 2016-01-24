@@ -55,7 +55,7 @@ func (nt *NetTable) RemoteNodeByIP(ip net.IP) *RemoteNode {
 func (nt *NetTable) AddRemoteNode(rn *RemoteNode) {
 	nt.lock.Lock()
 	defer nt.lock.Unlock()
-	log.Printf("add remote node: %s/%s", rn.privateIP.String(), rn.publicAddress)
+	log.Printf("Add remote node: %s/%s", rn.privateIP.String(), rn.publicAddress)
 	nt.peers[rn.privateIP.String()] = rn
 }
 
@@ -83,9 +83,7 @@ func (nt *NetTable) tryConnect(h string) {
 		nt.addToBlackList(h)
 		return
 	}
-	nt.lock.Lock()
-	defer nt.lock.Unlock()
-	nt.peers[rn.privateIP.String()] = rn
+	nt.AddRemoteNode(rn)
 }
 
 func (nt *NetTable) addToBlackList(h string) {

@@ -60,35 +60,21 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 	rn.conn = conn
 	rn.sessionKey = RandomBytes(16)
 
-	if err := protocol.EncodeAndWrite(rn.conn, protocol.NewHandshakePacket(rn.sessionKey, networkSecret)); err != nil {
+	if err := protocol.WriteEncodeHandshake(rn.conn, rn.sessionKey, networkSecret); err != nil {
 		return nil, err
 	}
-
-	pack, errDecode := protocol.ReadAndDecode(rn.conn, rn.sessionKey)
-	if errDecode != nil {
-		log.Printf("Unable to decode packet: %s", errDecode)
-		return nil, errDecode
+	if _, okError := protocol.ReadDecodeOk(rn.conn, rn.sessionKey); okError != nil {
+		return nil, okError
 	}
 
-	if pack.Data.Type != protocol.TypeOk {
-		log.Printf("Got non OK message: %+v", pack)
-		return nil, fmt.Errorf("Got non OK message")
+	peerInfo, errPeerInfo := protocol.ReadDecodePeerInfo(rn.conn, rn.sessionKey)
+	if errPeerInfo != nil {
+		return nil, errPeerInfo
 	}
 
-	pack, errDecode = protocol.ReadAndDecode(rn.conn, rn.sessionKey)
-	if errDecode != nil {
-		log.Printf("Unable to decode packet: %s", errDecode)
-		return nil, errDecode
-	}
+	rn.privateIP = peerInfo.PrivateIP()
 
-	if pack.Data.Type != protocol.TypePeerInfo {
-		log.Printf("Got non PeerInfo message: %+v", pack)
-		return nil, fmt.Errorf("Got non PeerInfo message")
-	}
-
-	rn.privateIP = pack.Data.Msg.(protocol.PeerInfoMessage).PrivateIP()
-
-	if err := protocol.EncodeAndWrite(rn.conn, protocol.NewPeerInfoMessage(rn.privateIP)); err != nil {
+	if err := protocol.WriteEncodePeerInfo(rn.conn, rn.privateIP); err != nil {
 		return nil, err
 	}
 

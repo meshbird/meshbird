@@ -2,8 +2,10 @@ package protocol
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/gophergala2016/meshbird/secure"
 	"io"
+	"log"
 )
 
 var (
@@ -50,4 +52,30 @@ func (m HandshakeMessage) Bytes() []byte {
 
 func (m HandshakeMessage) SessionKey() []byte {
 	return m[len(magicKey):]
+}
+
+func ReadDecodeHandshake(r io.Reader, sessionKey []byte) (HandshakeMessage, error) {
+	log.Printf("Trying to read Handshake message...")
+
+	okPack, errDecode := ReadAndDecode(r, sessionKey)
+	if errDecode != nil {
+		log.Printf("Unable to decode package: %s", errDecode)
+		return nil, fmt.Errorf("Error on read Handshake package: %v", errDecode)
+	}
+
+	if okPack.Data.Type != TypeHandshake {
+		return nil, fmt.Errorf("Got non Handshake message: %+v", okPack)
+	}
+
+	log.Printf("Readed Handshake: %+v", okPack.Data.Msg)
+
+	return okPack.Data.Msg.(HandshakeMessage), nil
+}
+
+func WriteEncodeHandshake(w io.Writer, sessionKey []byte, networkSecret *secure.NetworkSecret) (err error) {
+	log.Printf("Trying to write Handshake message...")
+	if err = EncodeAndWrite(w, NewHandshakePacket(sessionKey, networkSecret)); err != nil {
+		err = fmt.Errorf("Error on write Handshake message: %v", err)
+	}
+	return
 }

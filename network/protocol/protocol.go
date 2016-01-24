@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 )
@@ -165,10 +166,16 @@ func ReadAndDecode(r io.Reader, sessionKey []byte) (*Packet, error) {
 			log.Printf("Error on read from connection: %s", errRead)
 			return nil, errRead
 		}
+
+		log.Printf("EOF but got %d bytes", n)
+
+		if n == 0 {
+			return nil, fmt.Errorf("Received 0 bytes")
+		}
 	}
 
 	buf = buf[:n]
-	log.Printf("Readed: %v", buf)
+	log.Printf("Received %d bytes: %v", n, buf)
 
 	pack, errDecode := Decode(buf, sessionKey)
 	if errDecode != nil {
@@ -176,22 +183,31 @@ func ReadAndDecode(r io.Reader, sessionKey []byte) (*Packet, error) {
 		return nil, errDecode
 	}
 
+	log.Printf("Received packet: %+v", pack)
+
 	return pack, nil
 }
 
 func EncodeAndWrite(w io.Writer, pack *Packet) error {
+	log.Printf("Encoding package: %+v", pack)
+
+	typeName := TypeName(pack.Data.Type)
+
 	reply, errEncode := Encode(pack)
 	if errEncode != nil {
-		log.Printf("Error on encoding %s: %v", TypeName(pack.Data.Type), errEncode)
+		log.Printf("Error on encoding %s: %v", typeName, errEncode)
 		return errEncode
 	}
 
-	log.Printf("Sending %s message...", TypeName(pack.Data.Type))
+	log.Printf("Sending %s message %d bytes...", typeName, len(reply))
 
-	if _, err := w.Write(reply); err != nil {
-		log.Printf("Error on write %s: %v", TypeName(pack.Data.Type), err)
+	n, err := w.Write(reply)
+	if err != nil {
+		log.Printf("Error on write %s: %v", typeName, err)
 		return err
 	}
+
+	log.Printf("%d of %s bytes of %s message sent", n, len(reply), typeName)
 
 	return nil
 }
