@@ -57,6 +57,7 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 	for {
 		pack, err := protocol.Decode(rn.conn)
 		if err != nil {
+			rn.logger.Printf("REMOTE NODE LISTEN ERROR: %s", err)
 			if err != io.EOF && err != io.ErrUnexpectedEOF {
 				rn.logger.Printf("Decode error: %v", err)
 				break
