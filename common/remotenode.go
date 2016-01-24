@@ -69,13 +69,13 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 		return nil, errDecode
 	}
 
-	if pack.Data.Type == protocol.TypeOk {
+	if pack.Data.Type != protocol.TypeOk {
 		log.Printf("Got non OK message: %+v", pack)
 		return nil, fmt.Errorf("Got non OK message")
 	}
 
+	log.Printf("Connected to node: %s/%s", rn.privateIP.String(), rn.publicAddress)
 	rn.privateIP = pack.Data.Msg.(protocol.OkMessage).PrivateIP()
-	log.Printf("Packet message: %+v", pack.Data.Msg)
 
 	return rn, nil
 }
