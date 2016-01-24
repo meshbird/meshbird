@@ -33,7 +33,7 @@ func AssignIpAddress(iface string, IpAddr string) error {
 }
 
 func UpInterface(iface string) error {
-	err := exec.Command("ip", "link", "set", iface, "up").Run()
+	err := exec.Command("ifconfig", iface, "up").Run()
 	return err
 }
 func SetMTU(mtu int) {
