@@ -4,7 +4,6 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
-	"github.com/lytics/base62"
 	"net"
 )
 
@@ -20,13 +19,16 @@ func NewNetworkSecret(network *net.IPNet) *NetworkSecret {
 	}
 }
 
+func (ns NetworkSecret) Bytes() []byte {
+	return append(ns.Key, append(ns.Net.IP, ns.Net.Mask...)...)
+}
+
 func (ns NetworkSecret) Marshal() string {
-	data := append(ns.Key, append(ns.Net.IP, ns.Net.Mask...)...)
-	return base62.StdEncoding.EncodeToString(data)
+	return hex.EncodeToString(ns.Bytes())
 }
 
 func NetworkSecretUnmarshal(v string) (*NetworkSecret, error) {
-	data, err := base62.StdEncoding.DecodeString(v)
+	data, err := hex.DecodeString(v)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +46,7 @@ func NetworkSecretUnmarshal(v string) (*NetworkSecret, error) {
 }
 
 func (ns NetworkSecret) InfoHash() string {
-	hashBytes := sha1.Sum([]byte(ns.Marshal()))
+	hashBytes := sha1.Sum(ns.Bytes())
 	return hex.EncodeToString(hashBytes[:])
 }
 
