@@ -164,6 +164,16 @@ func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
 	}
 }
 
+func (nt *NetTable) PeerAddresses() map[string]string {
+	nt.lock.Lock()
+	defer nt.lock.Unlock()
+	peers := make(map[string]string)
+	for l, peer := range nt.peers {
+		peers[l] = peer.publicAddress
+	}
+	return peers
+}
+
 func (nt *NetTable) knownHosts() []string {
 	nt.lock.Lock()
 	defer nt.lock.Unlock()

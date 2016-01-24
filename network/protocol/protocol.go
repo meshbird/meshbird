@@ -116,7 +116,8 @@ func Decode(r io.Reader) (*Packet, error) {
 
 	remainLength := int(pack.Head.Length) - 1 // minus type
 
-	if TypeHandshake != pack.Data.Type && TypeOk != pack.Data.Type && TypePeerInfo != pack.Data.Type && TypeHeartbeat != pack.Data.Type {
+	// Only `TypeTransfer` has vector
+	if TypeTransfer == pack.Data.Type {
 		vector := make([]byte, bodyVectorLen)
 		if n, err := r.Read(vector); err != nil || n != bodyVectorLen {
 			if n != bodyVectorLen {
