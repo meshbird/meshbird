@@ -2,14 +2,15 @@ package common
 
 import (
 	"fmt"
-	"log"
 	"github.com/anacrolix/utp"
+	"io"
+	"log"
 	"net"
 	"strconv"
 	"time"
-	"io"
 
 	"github.com/gophergala2016/meshbird/network/protocol"
+	"github.com/gophergala2016/meshbird/secure"
 )
 
 type RemoteNode struct {
@@ -17,7 +18,7 @@ type RemoteNode struct {
 	conn net.Conn
 }
 
-func TryConnect(h string, networkKey *ecdsa.Key) (*RemoteNode, error) {
+func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, error) {
 	host, portStr, err := net.SplitHostPort(h)
 	if err != nil {
 		return nil, nil
@@ -28,7 +29,7 @@ func TryConnect(h string, networkKey *ecdsa.Key) (*RemoteNode, error) {
 		return nil, nil
 	}
 
-	conn, err := utp.DialTimeout(fmt.Sprintf("%s:%d", host, port + 1), 10 * time.Second)
+	conn, err := utp.DialTimeout(fmt.Sprintf("%s:%d", host, port+1), 10*time.Second)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +39,7 @@ func TryConnect(h string, networkKey *ecdsa.Key) (*RemoteNode, error) {
 
 	sessionKey := RandomBytes(16)
 
-	pack := protocol.NewHandshakePacket(sessionKey, networkKey)
+	pack := protocol.NewHandshakePacket(sessionKey, networkSecret)
 	data, err := protocol.Encode(pack)
 	if err != nil {
 		log.Printf("Error on handshake generate: %s", err)
@@ -57,7 +58,7 @@ func TryConnect(h string, networkKey *ecdsa.Key) (*RemoteNode, error) {
 	}
 
 	buf = buf[:n]
-	pack, err := protocol.Decode(buf, sessionKey)
+	//pack, err := protocol.Decode(buf, sessionKey)
 
 	return rn, nil
 }

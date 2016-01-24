@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gophergala2016/meshbird/network"
+	"github.com/gophergala2016/meshbird/secure"
 	"io/ioutil"
 	"log"
 	"os"
@@ -11,13 +12,15 @@ import (
 )
 
 type State struct {
-	Secret     *NetworkSecret `json:"-"`
-	ListenPort int    `json:"port"`
-	PrivateIP  string `json:"private_ip"`
+	Secret     *secure.NetworkSecret `json:"-"`
+	ListenPort int                   `json:"port"`
+	PrivateIP  string                `json:"private_ip"`
 }
 
-func NewState(secret *NetworkSecret) *State {
-	s := &State{}
+func NewState(secret *secure.NetworkSecret) *State {
+	s := &State{
+		Secret: secret,
+	}
 	s.Load()
 
 	var save bool

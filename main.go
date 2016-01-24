@@ -6,8 +6,9 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/gophergala2016/meshbird/common"
-	"os/signal"
+	"github.com/gophergala2016/meshbird/secure"
 	"net"
+	"os/signal"
 )
 
 const (
@@ -15,7 +16,7 @@ const (
 )
 
 var (
-// VERSION var using for auto versioning through Go linker
+	// VERSION var using for auto versioning through Go linker
 	VERSION = "dev"
 )
 
@@ -53,12 +54,12 @@ func main() {
 }
 
 func actionNew(ctx *cli.Context) {
-	var secret *common.NetworkSecret
+	var secret *secure.NetworkSecret
 	var err error
 
 	if len(ctx.Args()) > 0 {
 		keyStr := ctx.Args().First()
-		secret, err = common.NetworkSecretUnmarshal(keyStr)
+		secret, err = secure.NetworkSecretUnmarshal(keyStr)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -67,7 +68,7 @@ func actionNew(ctx *cli.Context) {
 		if err != nil {
 			log.Fatalf("cidr parse error: %s", err)
 		}
-		secret = common.NewNetworkSecret(ipnet)
+		secret = secure.NewNetworkSecret(ipnet)
 	}
 	keyStr := secret.Marshal()
 	log.Printf("key: %s", keyStr)

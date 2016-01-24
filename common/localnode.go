@@ -1,8 +1,7 @@
 package common
 
 import (
-	"crypto/sha1"
-	"encoding/hex"
+	"github.com/gophergala2016/meshbird/secure"
 	"log"
 	"sync"
 )
@@ -10,21 +9,21 @@ import (
 type LocalNode struct {
 	Node
 
-	secret       *NetworkSecret
-	config    *Config
-	state     *State
+	secret *secure.NetworkSecret
+	config *Config
+	state  *State
 
 	mutex     sync.Mutex
 	waitGroup sync.WaitGroup
 
-	services  map[string]Service
+	services map[string]Service
 }
 
 func NewLocalNode(cfg *Config) (*LocalNode, error) {
 	var err error
 	n := new(LocalNode)
 
-	n.secret, err = NetworkSecretUnmarshal(cfg.SecretKey)
+	n.secret, err = secure.NetworkSecretUnmarshal(cfg.SecretKey)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +67,7 @@ func (n *LocalNode) Start() error {
 	return nil
 }
 
-func (n *LocalNode) GetService(name string) Service {
+func (n *LocalNode) Service(name string) Service {
 	service, ok := n.services[name]
 	if !ok {
 		log.Panicf("service %s not found", name)
@@ -88,6 +87,6 @@ func (n *LocalNode) Stop() error {
 	return nil
 }
 
-func (n *LocalNode) NetworkSecret() *NetworkSecret {
+func (n *LocalNode) NetworkSecret() *secure.NetworkSecret {
 	return n.secret
 }

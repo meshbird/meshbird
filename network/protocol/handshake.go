@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	"github.com/gophergala2016/meshbird/secure"
 	"io"
 )
 
@@ -14,7 +15,7 @@ type (
 
 func NewHandshakePacket(sessionKey []byte, networkSecret *secure.NetworkSecret) *Packet {
 	sessionKey = append(magicKey, sessionKey...)
-	data := networkKey.Encrypt(sessionKey)
+	data := networkSecret.Encode(sessionKey)
 
 	body := Body{
 		Type: TypeHandshake,

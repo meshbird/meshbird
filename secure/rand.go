@@ -1,10 +1,8 @@
-package common
+package secure
 
-import (
-	"crypto/rand"
-)
+import "crypto/rand"
 
-func RandomBytes(len int) []byte {
+func randomBytes(len int) []byte {
 	buf := make([]byte, len)
 	if n, err := rand.Read(buf); err != nil || n != len {
 		panic("something wrong")

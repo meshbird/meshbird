@@ -1,22 +1,22 @@
-package common
+package secure
 
 import (
-	"net"
-	"fmt"
 	"crypto/sha1"
 	"encoding/hex"
+	"fmt"
 	"github.com/lytics/base62"
+	"net"
 )
 
 type NetworkSecret struct {
-	Key    []byte
-	Net    *net.IPNet
+	Key []byte
+	Net *net.IPNet
 }
 
 func NewNetworkSecret(network *net.IPNet) *NetworkSecret {
 	return &NetworkSecret{
 		Net: network,
-		Key: RandomBytes(16),
+		Key: randomBytes(16),
 	}
 }
 
@@ -36,7 +36,7 @@ func NetworkSecretUnmarshal(v string) (*NetworkSecret, error) {
 	secret := &NetworkSecret{
 		Key: data[:16],
 		Net: &net.IPNet{
-			IP: data[16:20],
+			IP:   data[16:20],
 			Mask: data[20:],
 		},
 	}
@@ -53,5 +53,5 @@ func (ns NetworkSecret) CIDR() string {
 }
 
 func (ns NetworkSecret) Encode(data []byte) []byte {
-
+	return nil
 }

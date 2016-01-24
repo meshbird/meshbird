@@ -60,7 +60,7 @@ func (nt *NetTable) processDHTIn() {
 				return
 			}
 			nt.lock.Lock()
-			_, ok := nt.blackList[host]
+			_, ok = nt.blackList[host]
 			nt.lock.Unlock()
 
 			if !ok {
@@ -71,7 +71,7 @@ func (nt *NetTable) processDHTIn() {
 }
 
 func (nt *NetTable) tryConnect(h string) {
-	rn, err := TryConnect(h, nt.localNode.NetworkKey())
+	rn, err := TryConnect(h, nt.localNode.NetworkSecret())
 	if err != nil {
 		nt.addToBlackList(h)
 		return
