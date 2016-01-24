@@ -31,6 +31,7 @@ var (
 
 	knownTypes = []uint8{
 		TypeHandshake,
+		TypeOk,
 		TypeHeartbeat,
 		TypeGone,
 		TypeTransfer,
@@ -110,7 +111,7 @@ func Decode(data []byte, sessionKey []byte) (*Packet, error) {
 
 	remainLength := int(pack.Head.Length) - 1 // minus type
 
-	if TypeHandshake != pack.Data.Type {
+	if TypeHandshake != pack.Data.Type && TypeOk != pack.Data.Type {
 		pack.Data.Vector = reader.Next(bodyVectorLen)
 		if len(pack.Data.Vector) != bodyVectorLen {
 			return nil, ErrorUnableToReadVector
@@ -126,6 +127,8 @@ func Decode(data []byte, sessionKey []byte) (*Packet, error) {
 	switch pack.Data.Type {
 	case TypeHandshake:
 		pack.Data.Msg = HandshakeMessage(message)
+	case TypeOk:
+		pack.Data.Msg = OkMessage(message)
 	}
 
 	return &pack, nil

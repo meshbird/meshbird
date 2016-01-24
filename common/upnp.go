@@ -21,7 +21,7 @@ func (d UPnPService) Name() string {
 
 func (s *UPnPService) Init(ln *LocalNode) error {
 	s.mapping = new(upnp.Upnp)
-	s.port = ln.State().ListenPort
+	s.port = ln.State().ListenPort + 1
 	return nil
 }
 

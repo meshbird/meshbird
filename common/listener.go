@@ -21,7 +21,8 @@ func (l ListenerService) Name() string {
 }
 
 func (l *ListenerService) Init(ln *LocalNode) error {
-	socket, err := utp.NewSocket("udp", fmt.Sprintf(":%d", ln.State().ListenPort+1))
+	log.Printf("Listening on port: %d", ln.State().ListenPort+1)
+	socket, err := utp.NewSocket("udp4", fmt.Sprintf("0.0.0.0:%d", ln.State().ListenPort+1))
 	if err != nil {
 		return err
 	}
@@ -46,9 +47,12 @@ func (l *ListenerService) Run() error {
 
 func (l *ListenerService) Stop() {
 	l.SetStatus(StatusStopping)
+	l.socket.Close()
 }
 
 func (l *ListenerService) process(c net.Conn) error {
+	defer c.Close()
+
 	buf := make([]byte, 1500)
 	n, errRead := c.Read(buf)
 	if errRead != nil {
@@ -65,11 +69,15 @@ func (l *ListenerService) process(c net.Conn) error {
 		return errDecode
 	}
 
-	log.Printf("Received: %v", pack)
+	log.Printf("Received: %+v", pack)
 
 	if pack.Data.Type == protocol.TypeHandshake {
+		log.Println("Handshake!!!")
+
 		msg := pack.Data.Msg.(protocol.HandshakeMessage)
 		if protocol.IsMagicValid([]byte(msg)) {
+			log.Println("Ja, ja supa magic!")
+
 			replyPack := protocol.NewOkMessage()
 			reply, errEncode := protocol.Encode(replyPack)
 			if errEncode != nil {
@@ -77,8 +85,16 @@ func (l *ListenerService) process(c net.Conn) error {
 				return nil
 			}
 
-			c.Write(reply)
+			log.Printf("Sending reply: %+v", replyPack)
+
+			if _, err := c.Write(reply); err != nil {
+				log.Printf("Erro on write: %v", err)
+			}
+		} else {
+			log.Println("Magic is not valid")
 		}
+	} else {
+		log.Printf("Expected handshake but got: %d", pack.Data.Type)
 	}
 
 	return nil

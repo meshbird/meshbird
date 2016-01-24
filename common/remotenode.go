@@ -29,7 +29,15 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 		return nil, errConvert
 	}
 
-	conn, errDial := utp.DialTimeout(fmt.Sprintf("%s:%d", host, port+1), 10*time.Second)
+	log.Printf("Trying to connection to: %s:%d", host, port+1)
+
+	s, errSocket := utp.NewSocket("udp4", ":0")
+	if errSocket != nil {
+		log.Printf("Unable to crete a socket: %s", errSocket)
+		return nil, errSocket
+	}
+
+	conn, errDial := s.DialTimeout(fmt.Sprintf("%s:%d", host, port+1), 10*time.Second)
 	if errDial != nil {
 		log.Printf("Unable to dial: %s", errDial)
 		return nil, errDial
@@ -47,7 +55,9 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 		return nil, errEncode
 	}
 
-	rn.conn.Write(data)
+	if _, err := rn.conn.Write(data); err != nil {
+		log.Printf("Error on write: %v", err)
+	}
 
 	buf := make([]byte, 1500)
 	n, errRead := rn.conn.Read(buf)
@@ -58,7 +68,10 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 		return nil, errRead
 	}
 
-	pack, errDecode := protocol.Decode(buf[:n], sessionKey)
+	buf = buf[:n]
+	log.Printf("Readed: %v", buf)
+
+	pack, errDecode := protocol.Decode(buf, sessionKey)
 	if errDecode != nil {
 		log.Printf("Unable to decode packet: %s", errDecode)
 		return nil, errDecode
