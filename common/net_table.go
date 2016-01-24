@@ -64,6 +64,10 @@ func (nt *NetTable) AddRemoteNode(rn *RemoteNode) {
 
 	go rn.listen(nt.localNode)
 	nt.peers[rn.privateIP.String()] = rn
+
+	for addr := range nt.peers {
+		log.Printf("NET-TABLE ENTRY %s", addr)
+	}
 }
 
 func (nt *NetTable) processDHTIn() {
