@@ -11,6 +11,7 @@ import (
 	"github.com/gophergala2016/meshbird/network/protocol"
 	"github.com/gophergala2016/meshbird/secure"
 	"os"
+	"io"
 )
 
 type RemoteNode struct {
@@ -37,15 +38,22 @@ func (rn *RemoteNode) SendPacket(payload []byte) error {
 }
 
 func (rn *RemoteNode) listen(ln *LocalNode) {
+	defer rn.logger.Printf("EXIT LISTEN")
+
 	iface, ok := ln.Service("iface").(*InterfaceService)
 	if !ok {
 		rn.logger.Printf("InterfaceService not found")
 		return
 	}
 
+	rn.logger.Printf("Listening...")
+
 	for {
 		pack, err := protocol.Decode(rn.conn)
 		if err != nil {
+			if err != io.EOF && err != io.ErrUnexpectedEOF {
+				rn.logger.Printf("Decode error: %v", err)
+			}
 			continue
 		}
 
