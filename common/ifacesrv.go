@@ -5,6 +5,7 @@ import (
 	"github.com/gophergala2016/meshbird/network"
 	"github.com/miolini/water"
 	"log"
+	"strconv"
 )
 
 type InterfaceService struct {
@@ -12,6 +13,7 @@ type InterfaceService struct {
 
 	localnode *LocalNode
 	instance  *water.Interface
+	netTable  *NetTable
 }
 
 func (is *InterfaceService) Name() string {
@@ -20,7 +22,10 @@ func (is *InterfaceService) Name() string {
 
 func (is *InterfaceService) Init(ln *LocalNode) (err error) {
 	is.localnode = ln
-	is.instance, err = network.CreateTunInterfaceWithIp("", ln.State().PrivateIP)
+	is.netTable = ln.Service("net-table").(*NetTable)
+	netsize, _ := ln.State().Secret.Net.Mask.Size()
+	IPAddr := fmt.Sprintf("%s/%s", ln.State().PrivateIP, strconv.Itoa(netsize))
+	is.instance, err = network.CreateTunInterfaceWithIp("", IPAddr)
 	if err != nil {
 		return fmt.Errorf("create interface %s err: %s", "", err)
 	}
@@ -32,9 +37,19 @@ func (is *InterfaceService) Run() error {
 		buf := make([]byte, 1500)
 		n, err := is.instance.Read(buf)
 		if err != nil {
+			log.Println(err)
 			return err
 		}
+		packet := buf[:n]
+
+		dst := network.IPv4Destination(packet)
+		is.netTable.SendPacket(dst, packet)
 		log.Printf("[iface] read packet %d bytes", n)
 	}
 	return nil
+}
+
+func (is *InterfaceService) WritePacket(packet []byte) {
+	fmt.Printf("[iface] WritePacket received %d bytes", len(packet))
+	is.instance.Write(packet)
 }

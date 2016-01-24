@@ -29,6 +29,10 @@ func NewRemoteNode(conn net.Conn, sessionKey []byte, privateIP net.IP) *RemoteNo
 	}
 }
 
+func (rn *RemoteNode) SendPacket(dstIP net.IP, payload []byte) error {
+	return nil
+}
+
 func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, error) {
 	host, portStr, errSplit := net.SplitHostPort(h)
 	if errSplit != nil {
@@ -41,7 +45,7 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 	}
 
 	rn := new(RemoteNode)
-	rn.publicAddress = fmt.Sprintf("%s:%d", host, port+1)
+	rn.publicAddress = fmt.Sprintf("%s:%d", host, port + 1)
 
 	log.Printf("Trying to connection to: %s", rn.publicAddress)
 
@@ -51,7 +55,7 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 		return nil, errSocket
 	}
 
-	conn, errDial := s.DialTimeout(rn.publicAddress, 10*time.Second)
+	conn, errDial := s.DialTimeout(rn.publicAddress, 10 * time.Second)
 	if errDial != nil {
 		log.Printf("Unable to dial to %s: %s", rn.publicAddress, errDial)
 		return nil, errDial

@@ -42,7 +42,7 @@ func (nt *NetTable) Stop() {
 	nt.SetStatus(StatusStopping)
 }
 
-func (nt *NetTable) GetDHTInChannel() chan<- string {
+func (nt *NetTable) GetDHTInChannel() chan <- string {
 	return nt.dhtInChan
 }
 
@@ -68,6 +68,14 @@ func (nt *NetTable) processDHTIn() {
 			}
 			nt.lock.Lock()
 			_, ok = nt.blackList[host]
+			if !ok {
+				for _, peer := range nt.peers {
+					if peer.publicAddress == host {
+						ok = true
+						break
+					}
+				}
+			}
 			nt.lock.Unlock()
 
 			if !ok {
@@ -90,4 +98,16 @@ func (nt *NetTable) addToBlackList(h string) {
 	nt.lock.Lock()
 	defer nt.lock.Unlock()
 	nt.blackList[h] = time.Now()
+}
+
+func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
+	rn := nt.RemoteNodeByIP(dstIP)
+	if rn == nil {
+		log.Printf("[net-table] destination host unreachable: %s", dstIP.String())
+		return
+	}
+	err := rn.SendPacket(dstIP, payload)
+	if err != nil {
+		log.Printf("[net-table] send packet to %s err: %s", dstIP.String(), err)
+	}
 }
