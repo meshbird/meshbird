@@ -93,6 +93,8 @@ func (nt *NetTable) tryConnect(h string) {
 		nt.addToBlackList(h)
 		return
 	}
+
+	log.Printf("Adding remote node from try connect...")
 	nt.AddRemoteNode(rn)
 }
 

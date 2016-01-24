@@ -89,6 +89,7 @@ func (l *ListenerService) process(c net.Conn) error {
 		return fmt.Errorf("net-table is nil")
 	}
 
+	log.Printf("Adding remote node from listener...")
 	netTable.AddRemoteNode(rn)
 
 	return nil
