@@ -51,4 +51,5 @@ func (is *InterfaceService) Run() error {
 
 func (is *InterfaceService) WritePacket(packet []byte) {
 	fmt.Printf("[iface] WritePacket received %d bytes", len(packet))
+	is.instance.Write(packet)
 }
