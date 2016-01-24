@@ -4,6 +4,7 @@ import (
 	"os/exec"
 
 	"github.com/miolini/water"
+	"fmt"
 )
 
 const DEFAULT_MTU = 1500
@@ -16,8 +17,14 @@ func Init() {
 
 func CreateTunInterface(iface string) (*water.Interface, error) {
 	ifce, err := water.NewTUN(iface)
+	if err != nil {
+		return fmt.Errorf("create new tun interface %s err: %s", iface, err)
+	}
 	err = UpInterface(iface)
-	return ifce, err
+	if err != nil {
+		return fmt.Errorf("tun interface %s up err: %s", iface, err)
+	}
+	return ifce, nil
 }
 
 func CreateTunInterfaceWithIp(iface string, IpAddr string) (*water.Interface, error) {
