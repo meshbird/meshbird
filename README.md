@@ -4,7 +4,7 @@ Meshbird - distributed private networking.
 
 ## Intro
 
-Meshbird create distributed private networking between servers, containers in different datacenters, different countries, different cloud providers.
+Meshbird create distributed private networking between servers, containers, virtual machines and any computers in different datacenters, different countries, different cloud providers. All traffic transmit directly to recepient peer without passing any gateways.
 
 [Twitter](https://twitter.com/meshbird)
 
