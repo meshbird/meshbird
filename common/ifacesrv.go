@@ -5,8 +5,6 @@ import (
 	"github.com/gophergala2016/meshbird/network"
 	"github.com/miolini/water"
 	"log"
-	"math/rand"
-	"net"
 )
 
 type InterfaceService struct {
@@ -21,15 +19,10 @@ func (is *InterfaceService) Name() string {
 }
 
 func (is *InterfaceService) Init(ln *LocalNode) (err error) {
-	ifaceName := "utun5"
-	ifce, _ := net.InterfaceByName(ifaceName)
-	if ifce != nil {
-		ifaceName = fmt.Sprintf("utun%d", rand.Intn(9))
-	}
 	is.localnode = ln
-	is.instance, err = network.CreateTunInterfaceWithIp(ifaceName, ln.State().PrivateIP)
+	is.instance, err = network.CreateTunInterfaceWithIp("", ln.State().PrivateIP)
 	if err != nil {
-		return fmt.Errorf("create interface %s err: %s", ifaceName, err)
+		return fmt.Errorf("create interface %s err: %s", "", err)
 	}
 	return nil
 }

@@ -3,8 +3,8 @@ package network
 import (
 	"os/exec"
 
-	"github.com/miolini/water"
 	"fmt"
+	"github.com/miolini/water"
 )
 
 const DEFAULT_MTU = 1500
@@ -20,7 +20,7 @@ func CreateTunInterface(iface string) (*water.Interface, error) {
 	if err != nil {
 		return nil, fmt.Errorf("create new tun interface %s err: %s", iface, err)
 	}
-	err = UpInterface(iface)
+	err = UpInterface(ifce.Name())
 	if err != nil {
 		return nil, fmt.Errorf("tun interface %s up err: %s", iface, err)
 	}
@@ -32,7 +32,7 @@ func CreateTunInterfaceWithIp(iface string, IpAddr string) (*water.Interface, er
 	if err != nil {
 		return nil, err
 	}
-	err = AssignIpAddress(iface, IpAddr)
+	err = AssignIpAddress(ifce.Name(), IpAddr)
 	return ifce, err
 }
 func AssignIpAddress(iface string, IpAddr string) error {
