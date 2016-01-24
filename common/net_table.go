@@ -115,10 +115,23 @@ func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
 	rn := nt.RemoteNodeByIP(dstIP)
 	if rn == nil {
 		nt.logger.Printf("Destination host unreachable: %s", dstIP.String())
+		nt.logger.Printf("Known hosts: %v", nt.knownHosts())
 		return
 	}
 
 	if err := rn.SendPacket(payload); err != nil {
 		nt.logger.Printf("Send packet to %s err: %s", dstIP.String(), err)
 	}
+}
+
+func (nt *NetTable) knownHosts() []string {
+	nt.lock.Lock()
+	defer nt.lock.Unlock()
+	ips := make([]string, len(nt.peers))
+	var i int
+	for k := range nt.peers {
+		ips[i] = k
+		i++
+	}
+	return ips
 }
