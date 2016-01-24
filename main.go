@@ -2,9 +2,9 @@ package main
 
 import (
 	"log"
-	"os"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
 
 	"github.com/codegangsta/cli"
 	"github.com/gophergala2016/meshbird/common"
