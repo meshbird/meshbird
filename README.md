@@ -17,6 +17,8 @@ Meshbird create distributed private networking between servers, containers, virt
 
 For example, user can create private network between DigitalOcean's droplets in each datacenter and link it together by executing one command. All traffic will be encrypted with strong AES-256.
 
+## Demo of ssh connection via our secure tunnel
+![SSHDemo](https://raw.githubusercontent.com/meshbird/meshbird/master/demos/ssh_demo.gif)
 ## Quick Start
 
 ### Install
