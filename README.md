@@ -2,6 +2,10 @@
 
 Meshbird - distributed private networking.
 
+[Twitter](https://twitter.com/meshbird)
+
+![MeshBird](https://avatars1.githubusercontent.com/u/16837838?v=3&s=300)
+
 ## Quick Start
 
 
