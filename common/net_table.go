@@ -97,7 +97,7 @@ func (nt *NetTable) tryConnect(h string) {
 func (nt *NetTable) addToBlackList(h string) {
 	nt.lock.Lock()
 	defer nt.lock.Unlock()
-	nt.blackList[h] = time.Now()
+	//nt.blackList[h] = time.Now()
 }
 
 func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
