@@ -68,9 +68,10 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 		return nil, errRead
 	}
 
+	buf = buf[:n]
 	log.Printf("Readed: %v", buf)
 
-	pack, errDecode := protocol.Decode(buf[:n], sessionKey)
+	pack, errDecode := protocol.Decode(buf, sessionKey)
 	if errDecode != nil {
 		log.Printf("Unable to decode packet: %s", errDecode)
 		return nil, errDecode
