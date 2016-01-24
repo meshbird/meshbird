@@ -33,6 +33,28 @@ func (rn *RemoteNode) SendPacket(payload []byte) error {
 	return protocol.WriteEncodeTransfer(rn.conn, payload)
 }
 
+func (rn *RemoteNode) listen(ln *LocalNode) {
+	iface, ok := ln.Service("iface").(*InterfaceService)
+	if !ok {
+		log.Printf("InterfaceService not found")
+		return
+	}
+
+	for {
+		pack, err := protocol.Decode(rn.conn)
+		if err != nil {
+			continue
+		}
+
+		log.Printf("Received package: %+v", pack)
+
+		switch pack.Data.Type {
+		case protocol.TypeTransfer:
+			iface.WritePacket(pack.Data.Msg.(protocol.TransferMessage).Bytes())
+		}
+	}
+}
+
 func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, error) {
 	host, portStr, errSplit := net.SplitHostPort(h)
 	if errSplit != nil {

@@ -56,6 +56,8 @@ func (nt *NetTable) AddRemoteNode(rn *RemoteNode) {
 	nt.lock.Lock()
 	defer nt.lock.Unlock()
 	log.Printf("Add remote node: %s/%s", rn.privateIP.String(), rn.publicAddress)
+
+	go rn.listen(nt.localNode)
 	nt.peers[rn.privateIP.String()] = rn
 }
 

@@ -12,8 +12,9 @@ type (
 
 func NewTransferMessage(data []byte) *Packet {
 	body := Body{
-		Type: TypeTransfer,
-		Msg:  TransferMessage(data),
+		Type:   TypeTransfer,
+		Vector: randomBytes(16),
+		Msg:    TransferMessage(data),
 	}
 	return &Packet{
 		Head: Header{
@@ -31,6 +32,10 @@ func (m TransferMessage) Len() uint16 {
 func (m TransferMessage) WriteTo(w io.Writer) (int64, error) {
 	n, err := w.Write(m)
 	return int64(n), err
+}
+
+func (m TransferMessage) Bytes() []byte {
+	return []byte(m)
 }
 
 func ReadDecodeTransfer(r io.Reader) (TransferMessage, error) {
