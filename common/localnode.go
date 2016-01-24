@@ -2,22 +2,22 @@ package common
 
 import (
 	"fmt"
+	"github.com/gophergala2016/meshbird/secure"
 	"log"
 	"sync"
-	"github.com/gophergala2016/meshbird/secure"
 )
 
 type LocalNode struct {
 	Node
 
-	secret    *secure.NetworkSecret
-	config    *Config
-	state     *State
+	secret *secure.NetworkSecret
+	config *Config
+	state  *State
 
 	mutex     sync.Mutex
 	waitGroup sync.WaitGroup
 
-	services  map[string]Service
+	services map[string]Service
 }
 
 func NewLocalNode(cfg *Config) (*LocalNode, error) {

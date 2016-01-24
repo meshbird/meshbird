@@ -6,7 +6,7 @@ import (
 	"net"
 )
 
-func GenerateIPAddress(cidr *net.IPNet) (string, error) {
+func GenerateIPAddress(cidr *net.IPNet) (net.IP, error) {
 	log.Printf("generate IP income: %v", cidr)
 	randBytes := make([]byte, 4)
 	_, err := rand.Read(randBytes)
@@ -14,5 +14,5 @@ func GenerateIPAddress(cidr *net.IPNet) (string, error) {
 		randBytes[i] = randBytes[i]&^cidr.Mask[i] | cidr.IP[i]
 	}
 	log.Printf("generate IP out: %v", net.IP(randBytes).String())
-	return net.IP(randBytes).String(), err
+	return net.IP(randBytes), err
 }

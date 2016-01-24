@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
+	"log"
 )
 
 const (
@@ -142,6 +143,29 @@ func Encode(pack *Packet) ([]byte, error) {
 	pack.Data.WriteTo(writer)
 
 	return writer.Bytes(), nil
+}
+
+func ReadAndDecode(r io.Reader, sessionKey []byte) (*Packet, error) {
+	buf := make([]byte, 1500)
+	n, errRead := r.Read(buf)
+
+	if errRead != nil {
+		if errRead != io.EOF {
+			log.Printf("Error on read from connection: %s", errRead)
+			return nil, errRead
+		}
+	}
+
+	buf = buf[:n]
+	log.Printf("Readed: %v", buf)
+
+	pack, errDecode := Decode(buf, sessionKey)
+	if errDecode != nil {
+		log.Printf("Unable to decode packet: %s", errDecode)
+		return nil, errDecode
+	}
+
+	return pack, nil
 }
 
 func isKnownType(needle uint8) bool {

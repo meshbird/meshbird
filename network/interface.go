@@ -5,6 +5,7 @@ import (
 
 	"fmt"
 	"github.com/miolini/water"
+	"net"
 )
 
 const DEFAULT_MTU = 1500
@@ -27,7 +28,7 @@ func CreateTunInterface(iface string) (*water.Interface, error) {
 	return ifce, nil
 }
 
-func CreateTunInterfaceWithIp(iface string, IpAddr string) (*water.Interface, error) {
+func CreateTunInterfaceWithIp(iface string, IpAddr net.IP) (*water.Interface, error) {
 	ifce, err := CreateTunInterface(iface)
 	if err != nil {
 		return nil, err
@@ -35,10 +36,10 @@ func CreateTunInterfaceWithIp(iface string, IpAddr string) (*water.Interface, er
 	err = AssignIpAddress(ifce.Name(), IpAddr)
 	return ifce, err
 }
-func AssignIpAddress(iface string, IpAddr string) error {
-	err := exec.Command("ifconfig", iface, IpAddr).Run()
+func AssignIpAddress(iface string, IpAddr net.IP) error {
+	err := exec.Command("ifconfig", iface, IpAddr.String()).Run()
 	if err != nil {
-		return fmt.Errorf("assign ip %s to %s err: %s", IpAddr, iface, err)
+		return fmt.Errorf("assign ip %s to %s err: %s", IpAddr.String(), iface, err)
 	}
 	return err
 }

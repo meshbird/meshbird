@@ -78,7 +78,7 @@ func (l *ListenerService) process(c net.Conn) error {
 		if protocol.IsMagicValid([]byte(msg)) {
 			log.Println("Ja, ja supa magic!")
 
-			replyPack := protocol.NewOkMessage()
+			replyPack := protocol.NewOkMessage(l.localNode.State().PrivateIP)
 			reply, errEncode := protocol.Encode(replyPack)
 			if errEncode != nil {
 				log.Printf("Error on encode: %v", errEncode)

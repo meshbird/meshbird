@@ -3,7 +3,6 @@ package common
 import (
 	"fmt"
 	"github.com/anacrolix/utp"
-	"io"
 	"log"
 	"net"
 	"strconv"
@@ -15,7 +14,10 @@ import (
 
 type RemoteNode struct {
 	Node
-	conn net.Conn
+	conn          net.Conn
+	sessionKey    []byte
+	privateIP     net.IP
+	publicAddress string
 }
 
 func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, error) {
@@ -29,7 +31,10 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 		return nil, errConvert
 	}
 
-	log.Printf("Trying to connection to: %s:%d", host, port+1)
+	rn := new(RemoteNode)
+	rn.publicAddress = fmt.Sprintf("%s:%d", host, port+1)
+
+	log.Printf("Trying to connection to: %s", rn.publicAddress)
 
 	s, errSocket := utp.NewSocket("udp4", ":0")
 	if errSocket != nil {
@@ -37,18 +42,16 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 		return nil, errSocket
 	}
 
-	conn, errDial := s.DialTimeout(fmt.Sprintf("%s:%d", host, port+1), 10*time.Second)
+	conn, errDial := s.DialTimeout(rn.publicAddress, 10*time.Second)
 	if errDial != nil {
 		log.Printf("Unable to dial: %s", errDial)
 		return nil, errDial
 	}
 
-	rn := new(RemoteNode)
 	rn.conn = conn
+	rn.sessionKey = RandomBytes(16)
 
-	sessionKey := RandomBytes(16)
-
-	pack := protocol.NewHandshakePacket(sessionKey, networkSecret)
+	pack := protocol.NewHandshakePacket(rn.sessionKey, networkSecret)
 	data, errEncode := protocol.Encode(pack)
 	if errEncode != nil {
 		log.Printf("Error on handshake generate: %s", errEncode)
@@ -57,27 +60,22 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 
 	if _, err := rn.conn.Write(data); err != nil {
 		log.Printf("Error on write: %v", err)
+		return nil, err
 	}
 
-	buf := make([]byte, 1500)
-	n, errRead := rn.conn.Read(buf)
-	if errRead != nil {
-		if errRead != io.EOF {
-			log.Printf("Error on read from connection: %s", errRead)
-		}
-		return nil, errRead
-	}
-
-	buf = buf[:n]
-	log.Printf("Readed: %v", buf)
-
-	pack, errDecode := protocol.Decode(buf, sessionKey)
+	pack, errDecode := protocol.ReadAndDecode(rn.conn, rn.sessionKey)
 	if errDecode != nil {
 		log.Printf("Unable to decode packet: %s", errDecode)
 		return nil, errDecode
 	}
 
-	log.Printf("Packet message: %v", pack.Data.Msg)
+	if pack.Data.Type == protocol.TypeOk {
+		log.Printf("Got non OK message: %+v", pack)
+		return nil, fmt.Errorf("Got non OK message")
+	}
+
+	rn.privateIP = pack.Data.Msg.(protocol.OkMessage).PrivateIP()
+	log.Printf("Packet message: %+v", pack.Data.Msg)
 
 	return rn, nil
 }

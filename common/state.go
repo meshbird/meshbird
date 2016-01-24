@@ -7,6 +7,7 @@ import (
 	"github.com/gophergala2016/meshbird/secure"
 	"io/ioutil"
 	"log"
+	"net"
 	"os"
 	"path"
 )
@@ -14,7 +15,7 @@ import (
 type State struct {
 	Secret     *secure.NetworkSecret `json:"-"`
 	ListenPort int                   `json:"port"`
-	PrivateIP  string                `json:"private_ip"`
+	PrivateIP  net.IP                `json:"private_ip"`
 }
 
 func NewState(secret *secure.NetworkSecret) *State {
@@ -29,7 +30,7 @@ func NewState(secret *secure.NetworkSecret) *State {
 		s.ListenPort = GetRandomPort()
 		save = true
 	}
-	if s.PrivateIP == "" {
+	if s.PrivateIP == nil {
 		var err error
 		if s.PrivateIP, err = network.GenerateIPAddress(secret.Net); err == nil {
 			save = true

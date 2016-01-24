@@ -1,6 +1,7 @@
 package common
 
 import (
+	"net"
 	"sync"
 	"time"
 )
@@ -14,6 +15,7 @@ type NetTable struct {
 
 	lock      sync.RWMutex
 	blackList map[string]time.Time
+	peers     map[string]*RemoteNode
 }
 
 func (nt NetTable) Name() string {
@@ -42,6 +44,12 @@ func (nt *NetTable) GetDHTInChannel() chan<- string {
 	return nt.dhtInChan
 }
 
+func (nt *NetTable) RemoteNodeByIP(ip net.IP) *RemoteNode {
+	nt.lock.Lock()
+	defer nt.lock.Unlock()
+	return nt.peers[ip.String()]
+}
+
 func (nt *NetTable) processDHTIn() {
 	for nt.Status() != StatusStopping {
 		select {
@@ -66,9 +74,9 @@ func (nt *NetTable) tryConnect(h string) {
 		nt.addToBlackList(h)
 		return
 	}
-	if rn == nil {
-		return
-	}
+	nt.lock.Lock()
+	defer nt.lock.Unlock()
+	nt.peers[rn.privateIP.String()] = rn
 }
 
 func (nt *NetTable) addToBlackList(h string) {

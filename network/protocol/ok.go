@@ -1,15 +1,22 @@
 package protocol
 
-import "io"
+import (
+	"io"
+	"net"
+)
+
+var (
+	onMessage = []byte{'O', 'K'}
+)
 
 type (
 	OkMessage []byte
 )
 
-func NewOkMessage() *Packet {
+func NewOkMessage(privateIP net.IP) *Packet {
 	body := Body{
 		Type: TypeOk,
-		Msg:  HandshakeMessage([]byte{'O', 'K'}),
+		Msg:  HandshakeMessage(append(onMessage, privateIP...)),
 	}
 	return &Packet{
 		Head: Header{
@@ -27,4 +34,8 @@ func (o OkMessage) Len() uint16 {
 func (o OkMessage) WriteTo(w io.Writer) (int64, error) {
 	n, err := w.Write(o)
 	return int64(n), err
+}
+
+func (o OkMessage) PrivateIP() net.IP {
+	return net.IP(o[2:])
 }
