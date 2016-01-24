@@ -1,12 +1,12 @@
 # Meshbird
 
-Meshbird - distributed private networking.
+Meshbird - distributed private networking. [Twitter](https://twitter.com/meshbird)
 
 ## Intro
 
 Meshbird create distributed private networking between servers, containers, virtual machines and any computers in different datacenters, different countries, different cloud providers. All traffic transmit directly to recepient peer without passing any gateways.
 
-[Twitter](https://twitter.com/meshbird)
+
 
 ![MeshBird](https://avatars1.githubusercontent.com/u/16837838?v=3&s=300)
 
