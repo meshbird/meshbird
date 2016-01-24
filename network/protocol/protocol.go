@@ -23,10 +23,6 @@ const (
 )
 
 var (
-	ErrorToShort             = errors.New("data length is too short")
-	ErrorUnableToReadLength  = errors.New("unable to read length")
-	ErrorUnableToReadVersion = errors.New("unable to read version")
-	ErrorUnableToReadType    = errors.New("unable to read type")
 	ErrorUnableToReadVector  = errors.New("unable to read vector")
 	ErrorUnableToReadMessage = errors.New("unable to read message")
 	ErrorUnknownType         = errors.New("unknown type")
@@ -102,26 +98,15 @@ func (p Packet) Len() uint16 {
 func Decode(r io.Reader) (*Packet, error) {
 	var pack Packet
 
-	log.Println("Decoding...")
-
-	if binary.Read(r, binary.BigEndian, &pack.Head.Length) != nil {
-		return nil, ErrorUnableToReadLength
+	if err := binary.Read(r, binary.BigEndian, &pack.Head.Length); err != nil {
+		return nil, err
 	}
-
-	log.Printf("Packet body length: %d", pack.Head.Length)
-
-	if binary.Read(r, binary.BigEndian, &pack.Head.Version) != nil {
-		return nil, ErrorUnableToReadVersion
+	if err := binary.Read(r, binary.BigEndian, &pack.Head.Version) err != nil {
+		return nil, err
 	}
-
-	log.Printf("Packet version: %d", pack.Head.Version)
-
-	if binary.Read(r, binary.BigEndian, &pack.Data.Type) != nil {
-		return nil, ErrorUnableToReadType
+	if err := binary.Read(r, binary.BigEndian, &pack.Data.Type) err != nil {
+		return nil, err
 	}
-
-	log.Printf("Packet type: %d (%s)", pack.Data.Type, TypeName(pack.Data.Type))
-
 	if !isKnownType(pack.Data.Type) {
 		return nil, ErrorUnknownType
 	}
@@ -129,23 +114,23 @@ func Decode(r io.Reader) (*Packet, error) {
 	remainLength := int(pack.Head.Length) - 1 // minus type
 
 	if TypeHandshake != pack.Data.Type && TypeOk != pack.Data.Type && TypePeerInfo != pack.Data.Type {
-		log.Println("Reading vector ...")
-
 		vector := make([]byte, bodyVectorLen)
 		if n, err := r.Read(vector); err != nil || n != bodyVectorLen {
-			return nil, ErrorUnableToReadVector
+			if n != bodyVectorLen {
+				err = ErrorUnableToReadVector
+			}
+			return nil, err
 		}
 		pack.Data.Vector = vector
 		remainLength -= bodyVectorLen
-
-		log.Printf("Vector: %v", pack.Data.Vector)
 	}
-
-	log.Printf("Data length: %d", remainLength)
 
 	message := make([]byte, remainLength)
 	if n, err := r.Read(message); err != nil || n != remainLength {
-		return nil, ErrorUnableToReadMessage
+		if n != remainLength {
+			err = ErrorUnableToReadMessage
+		}
+		return nil, err
 	}
 
 	switch pack.Data.Type {

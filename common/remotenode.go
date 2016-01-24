@@ -10,6 +10,7 @@ import (
 
 	"github.com/gophergala2016/meshbird/network/protocol"
 	"github.com/gophergala2016/meshbird/secure"
+	"io"
 )
 
 type RemoteNode struct {
