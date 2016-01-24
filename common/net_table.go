@@ -101,6 +101,7 @@ func (nt *NetTable) addToBlackList(h string) {
 }
 
 func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
+	log.Printf("sending to %s packet len %d", dstIP.String(), len(payload))
 	rn := nt.RemoteNodeByIP(dstIP)
 	if rn == nil {
 		log.Printf("[net-table] destination host unreachable: %s", dstIP.String())
