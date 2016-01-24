@@ -74,8 +74,8 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 		return nil, fmt.Errorf("Got non OK message")
 	}
 
-	log.Printf("Connected to node: %s/%s", rn.privateIP.String(), rn.publicAddress)
 	rn.privateIP = pack.Data.Msg.(protocol.OkMessage).PrivateIP()
+	log.Printf("Connected to node: %s/%s", rn.privateIP.String(), rn.publicAddress)
 
 	return rn, nil
 }
