@@ -1,6 +1,7 @@
 package protocol_test
 
 import (
+	"bytes"
 	"encoding/hex"
 	"github.com/gophergala2016/meshbird/network/protocol"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +18,7 @@ func TestDecodeHandShake(t *testing.T) {
 		50, 83, 122, 56, 83, 80, 77, 82, 99, 107, 80, 50, 87, 113, 107, 106,
 	}
 
-	pack, err := protocol.Decode(data)
+	pack, err := protocol.Decode(bytes.NewBuffer(data))
 	if assert.Nil(t, err) && assert.NotNil(t, pack) {
 		assert.Equal(t, uint16(33), pack.Head.Length)
 		assert.Equal(t, uint8(1), pack.Head.Version)

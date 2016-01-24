@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 )
@@ -100,23 +99,29 @@ func (p Packet) Len() uint16 {
 	return p.Head.Len() + p.Data.Len()
 }
 
-func Decode(data []byte) (*Packet, error) {
-	if len(data) < 4 { // Len(2) + Ver(1) + Type(1)
-		return nil, ErrorToShort
-	}
-
+func Decode(r io.Reader) (*Packet, error) {
 	var pack Packet
-	reader := bytes.NewBuffer(data)
 
-	if binary.Read(reader, binary.BigEndian, &pack.Head.Length) != nil {
+	log.Println("Decoding...")
+
+	if binary.Read(r, binary.BigEndian, &pack.Head.Length) != nil {
 		return nil, ErrorUnableToReadLength
 	}
-	if binary.Read(reader, binary.BigEndian, &pack.Head.Version) != nil {
+
+	log.Printf("Packet body length: %d", pack.Head.Length)
+
+	if binary.Read(r, binary.BigEndian, &pack.Head.Version) != nil {
 		return nil, ErrorUnableToReadVersion
 	}
-	if binary.Read(reader, binary.BigEndian, &pack.Data.Type) != nil {
+
+	log.Printf("Packet version: %d", pack.Head.Version)
+
+	if binary.Read(r, binary.BigEndian, &pack.Data.Type) != nil {
 		return nil, ErrorUnableToReadType
 	}
+
+	log.Printf("Packet type: %d (%s)", pack.Data.Type, TypeName(pack.Data.Type))
+
 	if !isKnownType(pack.Data.Type) {
 		return nil, ErrorUnknownType
 	}
@@ -124,15 +129,22 @@ func Decode(data []byte) (*Packet, error) {
 	remainLength := int(pack.Head.Length) - 1 // minus type
 
 	if TypeHandshake != pack.Data.Type && TypeOk != pack.Data.Type && TypePeerInfo != pack.Data.Type {
-		pack.Data.Vector = reader.Next(bodyVectorLen)
-		if len(pack.Data.Vector) != bodyVectorLen {
+		log.Println("Reading vector ...")
+
+		vector := make([]byte, bodyVectorLen)
+		if n, err := r.Read(vector); err != nil || n != bodyVectorLen {
 			return nil, ErrorUnableToReadVector
 		}
+		pack.Data.Vector = vector
 		remainLength -= bodyVectorLen
+
+		log.Printf("Vector: %v", pack.Data.Vector)
 	}
 
-	message := reader.Next(remainLength)
-	if len(message) != remainLength {
+	log.Printf("Data length: %d", remainLength)
+
+	message := make([]byte, remainLength)
+	if n, err := r.Read(message); err != nil || n != remainLength {
 		return nil, ErrorUnableToReadMessage
 	}
 
@@ -143,6 +155,8 @@ func Decode(data []byte) (*Packet, error) {
 		pack.Data.Msg = OkMessage(message)
 	case TypePeerInfo:
 		pack.Data.Msg = PeerInfoMessage(message)
+	case TypeTransfer:
+		pack.Data.Msg = TransferMessage(message)
 	}
 
 	return &pack, nil
@@ -158,27 +172,8 @@ func Encode(pack *Packet) ([]byte, error) {
 	return writer.Bytes(), nil
 }
 
-func ReadAndDecode(r io.Reader, n int) (*Packet, error) {
-	buf := make([]byte, n)
-	n, errRead := r.Read(buf)
-
-	if errRead != nil {
-		if errRead != io.EOF {
-			log.Printf("Error on read from connection: %s", errRead)
-			return nil, errRead
-		}
-
-		log.Printf("EOF but got %d bytes", n)
-
-		if n == 0 {
-			return nil, fmt.Errorf("Received 0 bytes")
-		}
-	}
-
-	buf = buf[:n]
-	log.Printf("Received %d bytes: %v", n, buf)
-
-	pack, errDecode := Decode(buf)
+func ReadAndDecode(r io.Reader) (*Packet, error) {
+	pack, errDecode := Decode(r)
 	if errDecode != nil {
 		log.Printf("Unable to decode packet: %s", errDecode)
 		return nil, errDecode

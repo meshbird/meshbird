@@ -33,6 +33,24 @@ func (m TransferMessage) WriteTo(w io.Writer) (int64, error) {
 	return int64(n), err
 }
 
+func ReadDecodeTransfer(r io.Reader) (TransferMessage, error) {
+	log.Printf("Trying to read Transfer message...")
+
+	transferPack, errDecode := ReadAndDecode(r)
+	if errDecode != nil {
+		log.Printf("Unable to decode package: %s", errDecode)
+		return nil, fmt.Errorf("Error on read Transfer package: %v", errDecode)
+	}
+
+	if transferPack.Data.Type != TypeTransfer {
+		return nil, fmt.Errorf("Got non Transfer message: %+v", transferPack)
+	}
+
+	log.Printf("Readed Transfer: %+v", transferPack.Data.Msg)
+
+	return transferPack.Data.Msg.(TransferMessage), nil
+}
+
 func WriteEncodeTransfer(w io.Writer, data []byte) (err error) {
 	log.Printf("Trying to write Transfer message...")
 	if err = EncodeAndWrite(w, NewTransferMessage(data)); err != nil {
