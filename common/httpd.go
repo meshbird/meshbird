@@ -1,11 +1,11 @@
 package common
 
 import (
-	"log"
-	"os"
 	"io"
+	"log"
 	"net/http"
-//	"encoding/json"
+	"os"
+	//	"encoding/json"
 )
 
 type HttpService struct {
@@ -26,8 +26,6 @@ func (hs *HttpService) Init(ln *LocalNode) (err error) {
 	hs.netTable = ln.Service("net-table").(*NetTable)
 	return nil
 }
-
-
 
 func (hs *HttpService) Run() error {
 	http.HandleFunc("/stat", getStats)

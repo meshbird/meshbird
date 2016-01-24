@@ -147,6 +147,8 @@ func Decode(r io.Reader) (*Packet, error) {
 		pack.Data.Msg = TransferMessage(message)
 	case TypeHeartbeat:
 		pack.Data.Msg = HeartbeatMessage(message)
+	case TypeGone:
+		pack.Data.Msg = GoneMessage(message)
 	}
 
 	return &pack, nil

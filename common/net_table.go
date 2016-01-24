@@ -48,6 +48,11 @@ func (nt *NetTable) Run() error {
 
 func (nt *NetTable) Stop() {
 	nt.SetStatus(StatusStopping)
+	nt.lock.Lock()
+	defer nt.lock.Unlock()
+	for _, peer := range nt.peers {
+		peer.Close()
+	}
 }
 
 func (nt *NetTable) GetDHTInChannel() chan<- string {
