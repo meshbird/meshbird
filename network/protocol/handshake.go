@@ -17,6 +17,7 @@ type (
 )
 
 func IsMagicValid(data []byte) bool {
+	log.Printf("Trying to check magic (%v) : %v", magicKey, data)
 	return bytes.HasPrefix(data, magicKey)
 }
 
