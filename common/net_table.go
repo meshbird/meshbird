@@ -101,3 +101,7 @@ func (nt *NetTable) addToBlackList(h string) {
 	defer nt.lock.Unlock()
 	nt.blackList[h] = time.Now()
 }
+
+func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
+
+}
