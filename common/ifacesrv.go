@@ -43,7 +43,7 @@ func (is *InterfaceService) Run() error {
 		packet := buf[:n]
 
 		dst := network.IPv4Destination(packet)
-		fmt.Println(dst)
+		is.netTable.SendPacket(dst, packet)
 		log.Printf("[iface] read packet %d bytes", n)
 	}
 	return nil
