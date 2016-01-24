@@ -103,7 +103,7 @@ func actionJoin(ctx *cli.Context) {
 
 	err = node.Start()
 	if err != nil {
-		log.Printf("node start error: %s", err)
+		log.Fatalf("node start error: %s", err)
 	}
 
 	node.WaitStop()

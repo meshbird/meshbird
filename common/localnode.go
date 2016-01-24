@@ -1,9 +1,10 @@
 package common
 
 import (
-	"github.com/gophergala2016/meshbird/secure"
+	"fmt"
 	"log"
 	"sync"
+	"github.com/gophergala2016/meshbird/secure"
 )
 
 type LocalNode struct {
@@ -60,7 +61,7 @@ func (n *LocalNode) Start() error {
 	for name, service := range n.services {
 		log.Printf("[%s] service init", name)
 		if err := service.Init(n); err != nil {
-			return err
+			return fmt.Errorf("[%s] service init err: %s", service.Name(), err)
 		}
 		n.waitGroup.Add(1)
 		go func(srv Service) {

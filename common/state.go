@@ -48,7 +48,7 @@ func NewState(secret *secure.NetworkSecret) *State {
 func (s *State) Load() {
 	if data, err := ioutil.ReadFile(s.getConfigPath()); err == nil {
 		if err = json.Unmarshal(data, s); err == nil {
-			log.Printf("State restored: %v", s)
+			log.Printf("State restored: %+v", s)
 		}
 	}
 }
