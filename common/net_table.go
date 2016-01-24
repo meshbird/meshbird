@@ -7,6 +7,7 @@ import (
 
 type NetTable struct {
 	BaseService
+
 	localNode *LocalNode
 	waitGroup sync.WaitGroup
 	dhtInChan chan string

@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	"bytes"
 	"github.com/gophergala2016/meshbird/secure"
 	"io"
 )
@@ -12,6 +13,10 @@ var (
 type (
 	HandshakeMessage []byte
 )
+
+func IsMagicValid(data []byte) bool {
+	return bytes.HasPrefix(data, magicKey)
+}
 
 func NewHandshakePacket(sessionKey []byte, networkSecret *secure.NetworkSecret) *Packet {
 	sessionKey = append(magicKey, sessionKey...)

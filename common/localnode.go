@@ -35,6 +35,7 @@ func NewLocalNode(cfg *Config) (*LocalNode, error) {
 	n.services = make(map[string]Service)
 
 	n.services[NetTable{}.Name()] = &NetTable{}
+	n.services[ListenerService{}.Name()] = &ListenerService{}
 	n.services[DiscoveryDHT{}.Name()] = &DiscoveryDHT{}
 	//n.services[STUNService{}.Name()] = &STUNService{}
 	//n.services[UPnPService{}.Name()] = &UPnPService{}

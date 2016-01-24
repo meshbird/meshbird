@@ -86,7 +86,8 @@ func (p Packet) Len() uint16 {
 	return p.Head.Len() + p.Data.Len()
 }
 
-func Decode(data []byte) (*Packet, error) {
+func Decode(data []byte, sessionKey []byte) (*Packet, error) {
+	// TODO: sessionKey
 	if len(data) < 4 { // Len(2) + Ver(1) + Type(1)
 		return nil, ErrorToShort
 	}

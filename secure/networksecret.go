@@ -53,5 +53,6 @@ func (ns NetworkSecret) CIDR() string {
 }
 
 func (ns NetworkSecret) Encode(data []byte) []byte {
-	return nil
+	// TODO: Make me happy
+	return data
 }
