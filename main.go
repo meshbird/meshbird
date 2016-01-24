@@ -19,6 +19,7 @@ const (
 var (
 	// VERSION var using for auto versioning through Go linker
 	VERSION = "dev"
+	logger  = log.New(os.Stderr, "[main] ", log.LstdFlags)
 )
 
 func main() {
@@ -50,7 +51,7 @@ func main() {
 	}
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Printf("error: %s", err)
+		logger.Printf("error: %s", err)
 	}
 }
 
@@ -62,23 +63,23 @@ func actionNew(ctx *cli.Context) {
 		keyStr := ctx.Args().First()
 		secret, err = secure.NetworkSecretUnmarshal(keyStr)
 		if err != nil {
-			log.Fatal(err)
+			logger.Fatal(err)
 		}
 	} else {
 		_, ipnet, err := net.ParseCIDR(ctx.String("CIDR"))
 		if err != nil {
-			log.Fatalf("cidr parse error: %s", err)
+			logger.Fatalf("cidr parse error: %s", err)
 		}
 		secret = secure.NewNetworkSecret(ipnet)
 	}
 	keyStr := secret.Marshal()
-	log.Printf("key: %s", keyStr)
+	logger.Printf("key: %s", keyStr)
 }
 
 func actionJoin(ctx *cli.Context) {
 	key := os.Getenv(MeshbirdKeyEnv)
 	if key == "" {
-		log.Fatalf("environment variable %s is not specified", MeshbirdKeyEnv)
+		logger.Fatalf("environment variable %s is not specified", MeshbirdKeyEnv)
 	}
 
 	nodeConfig := &common.Config{
@@ -86,7 +87,7 @@ func actionJoin(ctx *cli.Context) {
 	}
 	node, err := common.NewLocalNode(nodeConfig)
 	if err != nil {
-		log.Fatalf("local node init error: %s", err)
+		logger.Fatalf("local node init error: %s", err)
 	}
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt, os.Kill)
@@ -94,7 +95,7 @@ func actionJoin(ctx *cli.Context) {
 
 	go func() {
 		s := <-signalChan
-		log.Printf("received signal %s, stopping...", s)
+		logger.Printf("received signal %s, stopping...", s)
 		node.Stop()
 
 		time.Sleep(2 * time.Second)
@@ -103,7 +104,7 @@ func actionJoin(ctx *cli.Context) {
 
 	err = node.Start()
 	if err != nil {
-		log.Fatalf("node start error: %s", err)
+		logger.Fatalf("node start error: %s", err)
 	}
 
 	node.WaitStop()

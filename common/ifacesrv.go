@@ -5,6 +5,7 @@ import (
 	"github.com/gophergala2016/meshbird/network"
 	"github.com/miolini/water"
 	"log"
+	"os"
 	"strconv"
 )
 
@@ -14,6 +15,7 @@ type InterfaceService struct {
 	localnode *LocalNode
 	instance  *water.Interface
 	netTable  *NetTable
+	logger    *log.Logger
 }
 
 func (is *InterfaceService) Name() string {
@@ -21,6 +23,7 @@ func (is *InterfaceService) Name() string {
 }
 
 func (is *InterfaceService) Init(ln *LocalNode) (err error) {
+	is.logger = log.New(os.Stderr, "[iface] ", log.LstdFlags)
 	is.localnode = ln
 	is.netTable = ln.Service("net-table").(*NetTable)
 	netsize, _ := ln.State().Secret.Net.Mask.Size()
@@ -44,12 +47,14 @@ func (is *InterfaceService) Run() error {
 
 		dst := network.IPv4Destination(packet)
 		is.netTable.SendPacket(dst, packet)
-		log.Printf("[iface] read packet %d bytes", n)
+		is.logger.Printf("Read packet %d bytes", n)
 	}
 	return nil
 }
 
 func (is *InterfaceService) WritePacket(packet []byte) {
-	fmt.Printf("[iface] WritePacket received %d bytes", len(packet))
-	is.instance.Write(packet)
+	is.logger.Printf("Package for writing received, length %d bytes", len(packet))
+	if _, err := is.instance.Write(packet); err != nil {
+		is.logger.Printf("Error on twite packet: %v", err)
+	}
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/gophergala2016/meshbird/network/protocol"
 	"log"
 	"net"
+	"os"
 )
 
 type ListenerService struct {
@@ -13,6 +14,8 @@ type ListenerService struct {
 
 	localNode *LocalNode
 	socket    *utp.Socket
+
+	logger *log.Logger
 }
 
 func (l ListenerService) Name() string {
@@ -20,7 +23,9 @@ func (l ListenerService) Name() string {
 }
 
 func (l *ListenerService) Init(ln *LocalNode) error {
-	log.Printf("Listening on port: %d", ln.State().ListenPort+1)
+	l.logger = log.New(os.Stderr, "[listener] ", log.LstdFlags)
+
+	l.logger.Printf("Listening on port: %d", ln.State().ListenPort+1)
 	socket, err := utp.NewSocket("udp4", fmt.Sprintf("0.0.0.0:%d", ln.State().ListenPort+1))
 	if err != nil {
 		return err
@@ -38,10 +43,10 @@ func (l *ListenerService) Run() error {
 			break
 		}
 
-		log.Printf("Has new connection: %s", conn.RemoteAddr().String())
+		l.logger.Printf("Has new connection: %s", conn.RemoteAddr().String())
 
 		if err = l.process(conn); err != nil {
-			log.Printf("Error on process: %s", err)
+			l.logger.Printf("Error on process: %s", err)
 		}
 	}
 	return nil
@@ -60,13 +65,13 @@ func (l *ListenerService) process(c net.Conn) error {
 		return errHandshake
 	}
 
-	log.Println("Processing hansdhake...")
+	l.logger.Println("Processing hansdhake...")
 
 	if !protocol.IsMagicValid(handshakeMsg.Bytes()) {
 		return fmt.Errorf("Invalid magic bytes")
 	}
 
-	log.Println("Magic bytes are correct. Preparing reply...")
+	l.logger.Println("Magic bytes are correct. Preparing reply...")
 
 	if err := protocol.WriteEncodeOk(c); err != nil {
 		return err
@@ -80,7 +85,7 @@ func (l *ListenerService) process(c net.Conn) error {
 		return errPeerInfo
 	}
 
-	log.Println("Processing PeerInfo...")
+	l.logger.Println("Processing PeerInfo...")
 
 	rn := NewRemoteNode(c, handshakeMsg.SessionKey(), peerInfo.PrivateIP())
 
@@ -89,7 +94,7 @@ func (l *ListenerService) process(c net.Conn) error {
 		return fmt.Errorf("net-table is nil")
 	}
 
-	log.Printf("Adding remote node from listener...")
+	l.logger.Printf("Adding remote node from listener...")
 	netTable.AddRemoteNode(rn)
 
 	return nil

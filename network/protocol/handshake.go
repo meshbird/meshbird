@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/gophergala2016/meshbird/secure"
 	"io"
-	"log"
 )
 
 var (
@@ -17,7 +16,7 @@ type (
 )
 
 func IsMagicValid(data []byte) bool {
-	log.Printf("Trying to check magic (%v) : %v", magicKey, data)
+	logger.Printf("Trying to check magic (%v) : %v", magicKey, data)
 	return bytes.HasPrefix(data, magicKey)
 }
 
@@ -56,11 +55,11 @@ func (m HandshakeMessage) SessionKey() []byte {
 }
 
 func ReadDecodeHandshake(r io.Reader) (HandshakeMessage, error) {
-	log.Printf("Trying to read Handshake message...")
+	logger.Printf("Trying to read Handshake message...")
 
 	okPack, errDecode := ReadAndDecode(r)
 	if errDecode != nil {
-		log.Printf("Unable to decode package: %s", errDecode)
+		logger.Printf("Unable to decode package: %s", errDecode)
 		return nil, fmt.Errorf("Error on read Handshake package: %v", errDecode)
 	}
 
@@ -68,13 +67,13 @@ func ReadDecodeHandshake(r io.Reader) (HandshakeMessage, error) {
 		return nil, fmt.Errorf("Got non Handshake message: %+v", okPack)
 	}
 
-	log.Printf("Readed Handshake: %+v", okPack.Data.Msg)
+	logger.Printf("Readed Handshake: %+v", okPack.Data.Msg)
 
 	return okPack.Data.Msg.(HandshakeMessage), nil
 }
 
 func WriteEncodeHandshake(w io.Writer, sessionKey []byte, networkSecret *secure.NetworkSecret) (err error) {
-	log.Printf("Trying to write Handshake message...")
+	logger.Printf("Trying to write Handshake message...")
 	if err = EncodeAndWrite(w, NewHandshakePacket(sessionKey, networkSecret)); err != nil {
 		err = fmt.Errorf("Error on write Handshake message: %v", err)
 	}

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/nictuku/dht"
+	"os"
 )
 
 type DiscoveryDHT struct {
@@ -20,6 +21,8 @@ type DiscoveryDHT struct {
 
 	lastPeers []string
 	mutex     sync.Mutex
+
+	logger *log.Logger
 }
 
 func (d DiscoveryDHT) Name() string {
@@ -27,6 +30,7 @@ func (d DiscoveryDHT) Name() string {
 }
 
 func (d *DiscoveryDHT) Init(ln *LocalNode) error {
+	d.logger = log.New(os.Stderr, "[dht] ", log.LstdFlags)
 	d.localNode = ln
 	d.stopChan = make(chan bool)
 	return nil
@@ -65,12 +69,14 @@ func (d *DiscoveryDHT) process() {
 	defer d.waitGroup.Done()
 	t := time.NewTimer(60 * time.Second)
 	defer t.Stop()
-	log.Printf("dht request")
+
+	d.logger.Printf("Request...")
 	d.node.PeersRequest(string(d.ih), true)
+
 	for d.Status() != StatusStopping {
 		select {
 		case <-t.C:
-			log.Printf("dht request")
+			d.logger.Printf("Request...")
 			d.node.PeersRequest(string(d.ih), true)
 		case <-d.stopChan:
 			return
@@ -99,7 +105,9 @@ func (d *DiscoveryDHT) addPeer(peer string) {
 	}
 	service := d.localNode.Service("net-table")
 	netTable := service.(*NetTable)
-	log.Printf("peer: %s\n", peer)
+
+	d.logger.Printf("Reer: %s", peer)
+
 	netTable.GetDHTInChannel() <- peer
 }
 

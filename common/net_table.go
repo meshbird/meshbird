@@ -3,6 +3,7 @@ package common
 import (
 	"log"
 	"net"
+	"os"
 	"sync"
 	"time"
 )
@@ -17,6 +18,8 @@ type NetTable struct {
 	lock      sync.RWMutex
 	blackList map[string]time.Time
 	peers     map[string]*RemoteNode
+
+	logger *log.Logger
 }
 
 func (nt NetTable) Name() string {
@@ -24,6 +27,7 @@ func (nt NetTable) Name() string {
 }
 
 func (nt *NetTable) Init(ln *LocalNode) error {
+	nt.logger = log.New(os.Stderr, "[net-table] ", log.LstdFlags)
 	nt.localNode = ln
 	nt.dhtInChan = make(chan string, 10)
 	nt.blackList = make(map[string]time.Time)
@@ -55,7 +59,8 @@ func (nt *NetTable) RemoteNodeByIP(ip net.IP) *RemoteNode {
 func (nt *NetTable) AddRemoteNode(rn *RemoteNode) {
 	nt.lock.Lock()
 	defer nt.lock.Unlock()
-	log.Printf("Add remote node: %s/%s", rn.privateIP.String(), rn.publicAddress)
+
+	nt.logger.Printf("Added remote node: %s/%s", rn.privateIP.String(), rn.publicAddress)
 
 	go rn.listen(nt.localNode)
 	nt.peers[rn.privateIP.String()] = rn
@@ -94,7 +99,7 @@ func (nt *NetTable) tryConnect(h string) {
 		return
 	}
 
-	log.Printf("Adding remote node from try connect...")
+	nt.logger.Printf("Adding remote node from try connect...")
 	nt.AddRemoteNode(rn)
 }
 
@@ -105,14 +110,15 @@ func (nt *NetTable) addToBlackList(h string) {
 }
 
 func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
-	log.Printf("sending to %s packet len %d", dstIP.String(), len(payload))
+	nt.logger.Printf("Sending to %s packet len %d", dstIP.String(), len(payload))
+
 	rn := nt.RemoteNodeByIP(dstIP)
 	if rn == nil {
-		log.Printf("[net-table] destination host unreachable: %s", dstIP.String())
+		nt.logger.Printf("Destination host unreachable: %s", dstIP.String())
 		return
 	}
-	err := rn.SendPacket(payload)
-	if err != nil {
-		log.Printf("[net-table] send packet to %s err: %s", dstIP.String(), err)
+
+	if err := rn.SendPacket(payload); err != nil {
+		nt.logger.Printf("Send packet to %s err: %s", dstIP.String(), err)
 	}
 }

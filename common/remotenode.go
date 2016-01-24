@@ -10,6 +10,7 @@ import (
 
 	"github.com/gophergala2016/meshbird/network/protocol"
 	"github.com/gophergala2016/meshbird/secure"
+	"os"
 )
 
 type RemoteNode struct {
@@ -18,6 +19,7 @@ type RemoteNode struct {
 	sessionKey    []byte
 	privateIP     net.IP
 	publicAddress string
+	logger        *log.Logger
 }
 
 func NewRemoteNode(conn net.Conn, sessionKey []byte, privateIP net.IP) *RemoteNode {
@@ -26,6 +28,7 @@ func NewRemoteNode(conn net.Conn, sessionKey []byte, privateIP net.IP) *RemoteNo
 		sessionKey:    sessionKey,
 		privateIP:     privateIP,
 		publicAddress: conn.RemoteAddr().String(),
+		logger:        log.New(os.Stderr, fmt.Sprintf("[remote priv/%s] ", privateIP.To4().String()), log.LstdFlags),
 	}
 }
 
@@ -36,7 +39,7 @@ func (rn *RemoteNode) SendPacket(payload []byte) error {
 func (rn *RemoteNode) listen(ln *LocalNode) {
 	iface, ok := ln.Service("iface").(*InterfaceService)
 	if !ok {
-		log.Printf("InterfaceService not found")
+		rn.logger.Printf("InterfaceService not found")
 		return
 	}
 
@@ -46,10 +49,11 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 			continue
 		}
 
-		log.Printf("Received package: %+v", pack)
+		rn.logger.Printf("Received package: %+v", pack)
 
 		switch pack.Data.Type {
 		case protocol.TypeTransfer:
+			rn.logger.Printf("Writing to interface ... ")
 			iface.WritePacket(pack.Data.Msg.(protocol.TransferMessage).Bytes())
 		}
 	}
@@ -67,19 +71,20 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 	}
 
 	rn := new(RemoteNode)
+	rn.logger = log.New(os.Stderr, fmt.Sprintf("[remote pub/%s] ", rn.publicAddress), log.LstdFlags)
 	rn.publicAddress = fmt.Sprintf("%s:%d", host, port+1)
 
-	log.Printf("Trying to connection to: %s", rn.publicAddress)
+	rn.logger.Printf("Trying to connection to: %s", rn.publicAddress)
 
 	s, errSocket := utp.NewSocket("udp4", ":0")
 	if errSocket != nil {
-		log.Printf("Unable to crete a socket: %s", errSocket)
+		rn.logger.Printf("Unable to crete a socket: %s", errSocket)
 		return nil, errSocket
 	}
 
 	conn, errDial := s.DialTimeout(rn.publicAddress, 10*time.Second)
 	if errDial != nil {
-		log.Printf("Unable to dial to %s: %s", rn.publicAddress, errDial)
+		rn.logger.Printf("Unable to dial to %s: %s", rn.publicAddress, errDial)
 		return nil, errDial
 	}
 
@@ -99,12 +104,13 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 	}
 
 	rn.privateIP = peerInfo.PrivateIP()
+	rn.logger = log.New(os.Stderr, fmt.Sprintf("[remote priv/%s] ", rn.privateIP.To4().String()), log.LstdFlags)
 
 	if err := protocol.WriteEncodePeerInfo(rn.conn, rn.privateIP); err != nil {
 		return nil, err
 	}
 
-	log.Printf("Connected to node: %s/%s", rn.privateIP.String(), rn.publicAddress)
+	rn.logger.Printf("Connected to node: %s/%s", rn.privateIP.String(), rn.publicAddress)
 
 	return rn, nil
 }

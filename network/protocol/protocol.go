@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"log"
+	"os"
 )
 
 const (
@@ -23,6 +24,8 @@ const (
 )
 
 var (
+	logger = log.New(os.Stderr, "[proto] ", log.LstdFlags)
+
 	ErrorUnableToReadVector  = errors.New("unable to read vector")
 	ErrorUnableToReadMessage = errors.New("unable to read message")
 	ErrorUnknownType         = errors.New("unknown type")
@@ -160,35 +163,35 @@ func Encode(pack *Packet) ([]byte, error) {
 func ReadAndDecode(r io.Reader) (*Packet, error) {
 	pack, errDecode := Decode(r)
 	if errDecode != nil {
-		log.Printf("Unable to decode packet: %s", errDecode)
+		logger.Printf("Unable to decode packet: %s", errDecode)
 		return nil, errDecode
 	}
 
-	log.Printf("Received packet: %+v", pack)
+	logger.Printf("Received packet: %+v", pack)
 
 	return pack, nil
 }
 
 func EncodeAndWrite(w io.Writer, pack *Packet) error {
-	log.Printf("Encoding package: %+v", pack)
+	logger.Printf("Encoding package: %+v", pack)
 
 	typeName := TypeName(pack.Data.Type)
 
 	reply, errEncode := Encode(pack)
 	if errEncode != nil {
-		log.Printf("Error on encoding %s: %v", typeName, errEncode)
+		logger.Printf("Error on encoding %s: %v", typeName, errEncode)
 		return errEncode
 	}
 
-	log.Printf("Sending %s message %d bytes...", typeName, len(reply))
+	logger.Printf("Sending %s message %d bytes...", typeName, len(reply))
 
 	n, err := w.Write(reply)
 	if err != nil {
-		log.Printf("Error on write %s: %v", typeName, err)
+		logger.Printf("Error on write %s: %v", typeName, err)
 		return err
 	}
 
-	log.Printf("%d of %d bytes of %s message sent", n, len(reply), typeName)
+	logger.Printf("%d of %d bytes of %s message sent", n, len(reply), typeName)
 
 	return nil
 }

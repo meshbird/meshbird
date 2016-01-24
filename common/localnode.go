@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gophergala2016/meshbird/secure"
 	"log"
+	"os"
 	"sync"
 )
 
@@ -18,11 +19,14 @@ type LocalNode struct {
 	waitGroup sync.WaitGroup
 
 	services map[string]Service
+
+	logger *log.Logger
 }
 
 func NewLocalNode(cfg *Config) (*LocalNode, error) {
 	var err error
 	n := new(LocalNode)
+	n.logger = log.New(os.Stderr, "[local] ", log.LstdFlags)
 
 	n.secret, err = secure.NetworkSecretUnmarshal(cfg.SecretKey)
 	if err != nil {
@@ -59,16 +63,16 @@ func (n *LocalNode) AddService(srv Service) {
 
 func (n *LocalNode) Start() error {
 	for name, service := range n.services {
-		log.Printf("[%s] service init", name)
+		n.logger.Printf("Initializing %s...", name)
 		if err := service.Init(n); err != nil {
-			return fmt.Errorf("[%s] service init err: %s", service.Name(), err)
+			return fmt.Errorf("Initialision of %s finished with error: %s", service.Name(), err)
 		}
 		n.waitGroup.Add(1)
 		go func(srv Service) {
 			defer n.waitGroup.Done()
-			log.Printf("[%s] service run", srv.Name())
+			n.logger.Printf("[%s] service run", srv.Name())
 			if err := srv.Run(); err != nil {
-				log.Printf("[%s] error: %s", srv.Name(), err)
+				n.logger.Printf("[%s] error: %s", srv.Name(), err)
 			}
 		}(service)
 	}
@@ -78,7 +82,7 @@ func (n *LocalNode) Start() error {
 func (n *LocalNode) Service(name string) Service {
 	service, ok := n.services[name]
 	if !ok {
-		log.Panicf("service %s not found", name)
+		n.logger.Panicf("Service %s not found", name)
 	}
 	return service
 }
@@ -88,7 +92,7 @@ func (n *LocalNode) WaitStop() {
 }
 
 func (n *LocalNode) Stop() error {
-	log.Printf("closing up local node")
+	n.logger.Printf("Closing up local node")
 	for _, service := range n.services {
 		service.Stop()
 	}

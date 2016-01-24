@@ -3,7 +3,6 @@ package protocol
 import (
 	"fmt"
 	"io"
-	"log"
 	"net"
 )
 
@@ -39,11 +38,11 @@ func (m PeerInfoMessage) PrivateIP() net.IP {
 }
 
 func ReadDecodePeerInfo(r io.Reader) (PeerInfoMessage, error) {
-	log.Printf("Trying to read PeerInfo message...")
+	logger.Printf("Trying to read PeerInfo message...")
 
 	peerInfoPack, errDecode := ReadAndDecode(r)
 	if errDecode != nil {
-		log.Printf("Unable to decode package: %s", errDecode)
+		logger.Printf("Unable to decode package: %s", errDecode)
 		return nil, fmt.Errorf("Error on read PeerInfo package: %v", errDecode)
 	}
 
@@ -51,13 +50,13 @@ func ReadDecodePeerInfo(r io.Reader) (PeerInfoMessage, error) {
 		return nil, fmt.Errorf("Got non PeerInfo message: %+v", peerInfoPack)
 	}
 
-	log.Printf("Readed PeerInfo: %+v", peerInfoPack.Data.Msg)
+	logger.Printf("Readed PeerInfo: %+v", peerInfoPack.Data.Msg)
 
 	return peerInfoPack.Data.Msg.(PeerInfoMessage), nil
 }
 
 func WriteEncodePeerInfo(w io.Writer, privateIP net.IP) (err error) {
-	log.Printf("Trying to write PeerInfo message...")
+	logger.Printf("Trying to write PeerInfo message...")
 	if err = EncodeAndWrite(w, NewPeerInfoMessage(privateIP)); err != nil {
 		err = fmt.Errorf("Error on write PeerInfo message: %v", err)
 	}

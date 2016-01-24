@@ -3,7 +3,6 @@ package protocol
 import (
 	"fmt"
 	"io"
-	"log"
 )
 
 type (
@@ -39,11 +38,11 @@ func (m TransferMessage) Bytes() []byte {
 }
 
 func ReadDecodeTransfer(r io.Reader) (TransferMessage, error) {
-	log.Printf("Trying to read Transfer message...")
+	logger.Printf("Trying to read Transfer message...")
 
 	transferPack, errDecode := ReadAndDecode(r)
 	if errDecode != nil {
-		log.Printf("Unable to decode package: %s", errDecode)
+		logger.Printf("Unable to decode package: %s", errDecode)
 		return nil, fmt.Errorf("Error on read Transfer package: %v", errDecode)
 	}
 
@@ -51,13 +50,13 @@ func ReadDecodeTransfer(r io.Reader) (TransferMessage, error) {
 		return nil, fmt.Errorf("Got non Transfer message: %+v", transferPack)
 	}
 
-	log.Printf("Readed Transfer: %+v", transferPack.Data.Msg)
+	logger.Printf("Readed Transfer: %+v", transferPack.Data.Msg)
 
 	return transferPack.Data.Msg.(TransferMessage), nil
 }
 
 func WriteEncodeTransfer(w io.Writer, data []byte) (err error) {
-	log.Printf("Trying to write Transfer message...")
+	logger.Printf("Trying to write Transfer message...")
 	if err = EncodeAndWrite(w, NewTransferMessage(data)); err != nil {
 		err = fmt.Errorf("Error on write Transfer message: %v", err)
 	}
