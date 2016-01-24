@@ -88,7 +88,6 @@ func (n *LocalNode) Stop() error {
 	return nil
 }
 
-func hashSecretKey(key string) string {
-	hashBytes := sha1.Sum([]byte(key))
-	return hex.EncodeToString(hashBytes[:])
+func (n *LocalNode) NetworkSecret() *NetworkSecret {
+	return n.secret
 }

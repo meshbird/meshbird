@@ -2,14 +2,14 @@ package common
 
 import (
 	"fmt"
+	"log"
 	"github.com/anacrolix/utp"
 	"net"
 	"strconv"
 	"time"
-	"github.com/gophergala2016/meshbird/network/protocol"
-	"github.com/gophergala2016/meshbird/ecdsa"
-	"lazada_api/common/log"
 	"io"
+
+	"github.com/gophergala2016/meshbird/network/protocol"
 )
 
 type RemoteNode struct {
@@ -28,7 +28,7 @@ func TryConnect(h string, networkKey *ecdsa.Key) (*RemoteNode, error) {
 		return nil, nil
 	}
 
-	conn, err := utp.DialTimeout(fmt.Sprintf("%s:%d", host, port+1), 10*time.Second)
+	conn, err := utp.DialTimeout(fmt.Sprintf("%s:%d", host, port + 1), 10 * time.Second)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,6 @@ func TryConnect(h string, networkKey *ecdsa.Key) (*RemoteNode, error) {
 
 	buf = buf[:n]
 	pack, err := protocol.Decode(buf, sessionKey)
-
 
 	return rn, nil
 }

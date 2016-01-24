@@ -2,7 +2,6 @@ package protocol
 
 import (
 	"io"
-"github.com/gophergala2016/meshbird/ecdsa"
 )
 
 var (
@@ -13,7 +12,7 @@ type (
 	HandshakeMessage []byte
 )
 
-func NewHandshakePacket(sessionKey []byte, networkKey *ecdsa.Key) *Packet {
+func NewHandshakePacket(sessionKey []byte, networkSecret *secure.NetworkSecret) *Packet {
 	sessionKey = append(magicKey, sessionKey...)
 	data := networkKey.Encrypt(sessionKey)
 

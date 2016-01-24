@@ -51,3 +51,7 @@ func (ns NetworkSecret) InfoHash() string {
 func (ns NetworkSecret) CIDR() string {
 	return ns.Net.String()
 }
+
+func (ns NetworkSecret) Encode(data []byte) []byte {
+
+}

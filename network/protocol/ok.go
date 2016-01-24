@@ -1,4 +1,5 @@
 package protocol
+
 import "io"
 
 type (
