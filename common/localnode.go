@@ -9,14 +9,14 @@ import (
 type LocalNode struct {
 	Node
 
-	secret *secure.NetworkSecret
-	config *Config
-	state  *State
+	secret    *secure.NetworkSecret
+	config    *Config
+	state     *State
 
 	mutex     sync.Mutex
 	waitGroup sync.WaitGroup
 
-	services map[string]Service
+	services  map[string]Service
 }
 
 func NewLocalNode(cfg *Config) (*LocalNode, error) {
@@ -34,11 +34,13 @@ func NewLocalNode(cfg *Config) (*LocalNode, error) {
 
 	n.services = make(map[string]Service)
 
-	n.services[NetTable{}.Name()] = &NetTable{}
-	n.services[ListenerService{}.Name()] = &ListenerService{}
-	n.services[DiscoveryDHT{}.Name()] = &DiscoveryDHT{}
-	//n.services[STUNService{}.Name()] = &STUNService{}
-	//n.services[UPnPService{}.Name()] = &UPnPService{}
+	n.AddService(&NetTable{})
+	n.AddService(&ListenerService{})
+	n.AddService(&DiscoveryDHT{})
+	n.AddService(&InterfaceService{})
+	n.AddService(&STUNService{})
+	n.AddService(&UPnPService{})
+
 	return n, nil
 }
 
@@ -48,6 +50,10 @@ func (n *LocalNode) Config() Config {
 
 func (n *LocalNode) State() State {
 	return *n.state
+}
+
+func (n *LocalNode) AddService(srv Service) {
+	n.services[srv.Name()] = srv
 }
 
 func (n *LocalNode) Start() error {

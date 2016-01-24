@@ -3,7 +3,7 @@ package network
 import (
 	"os/exec"
 
-	"github.com/hsheth2/water"
+	"github.com/miolini/water"
 )
 
 const DEFAULT_MTU = 1500
@@ -28,7 +28,7 @@ func CreateTunInterfaceWithIp(iface string, IpAddr string) (*water.Interface, er
 	return ifce, err
 }
 func AssignIpAddress(iface string, IpAddr string) error {
-	err := exec.Command("ip", "addr", "add", IpAddr, "dev", iface).Run()
+	err := exec.Command("ifconfig", iface, IpAddr).Run()
 	return err
 }
 
