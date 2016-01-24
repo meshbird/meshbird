@@ -5,6 +5,7 @@ import (
 
 	"github.com/gophergala2016/meshbird/network"
 	"github.com/miolini/water"
+	"fmt"
 )
 
 type InterfaceService struct {
@@ -19,9 +20,10 @@ func (is *InterfaceService) Name() string {
 }
 
 func (is *InterfaceService) Init(ln *LocalNode) (err error) {
-	is.instance, err = network.CreateTunInterface("meshbird0")
+	ifaceName := "meshbird0"
+	is.instance, err = network.CreateTunInterface(ifaceName)
 	if err != nil {
-		return
+		return fmt.Errorf("create interface %s err: %s", ifaceName, err)
 	}
 	return nil
 }
