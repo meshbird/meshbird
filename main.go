@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"time"
+	"fmt"
 )
 
 const (
@@ -47,11 +48,31 @@ func main() {
 			Usage:   "join network",
 			Action:  actionJoin,
 		},
+		{
+			Name:      "ip",
+			Aliases:   []string{"i"},
+			Usage:     "init state",
+			Action:    actionGetIP,
+			ArgsUsage: "<key>",
+		},
 	}
 	err := app.Run(os.Args)
 	if err != nil {
 		logger.Printf("error: %s", err)
 	}
+}
+
+func actionGetIP(ctx *cli.Context) {
+	keyStr := os.Getenv(MeshbirdKeyEnv)
+	if keyStr == "" {
+		logger.Fatalf("environment variable %s is not specified", MeshbirdKeyEnv)
+	}
+	secret, err := secure.NetworkSecretUnmarshal(keyStr)
+	if err != nil {
+		logger.Fatal(err)
+	}
+	state := common.NewState(secret)
+	fmt.Println(state.PrivateIP)
 }
 
 func actionNew(ctx *cli.Context) {
