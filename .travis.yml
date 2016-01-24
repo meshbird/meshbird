@@ -4,3 +4,6 @@ sudo: false
 
 go: 
 - 1.5.3
+- 1.4
+
+script:
