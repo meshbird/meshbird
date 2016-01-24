@@ -41,7 +41,9 @@ func (is *InterfaceService) Run() error {
 			return err
 		}
 		packet := buf[:n]
-		fmt.Println(len(packet))
+
+		dst := network.IPv4Destination(packet)
+		is.netTable.SendPacket(dst, packet)
 		log.Printf("[iface] read packet %d bytes", n)
 	}
 	return nil

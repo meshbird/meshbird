@@ -5,6 +5,8 @@ import (
 
 	"fmt"
 	"github.com/miolini/water"
+	"github.com/hsheth2/water/waterutil"
+	"net"
 )
 
 const DEFAULT_MTU = 1500
@@ -60,4 +62,9 @@ func NextNetworkPacket(iface *water.Interface) ([]byte, error) {
 
 	_, err := iface.Read(raw_data)
 	return raw_data, err
+}
+
+func IPv4Destination(packet []byte) net.IP {
+	return waterutil.IPv4Destination(packet)
+
 }
