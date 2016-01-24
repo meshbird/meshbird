@@ -30,7 +30,14 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 	}
 
 	log.Printf("Trying to connection to: %s:%d", host, port+1)
-	conn, errDial := utp.DialTimeout(fmt.Sprintf("%s:%d", host, port+1), 10*time.Second)
+
+	s, errSocket := utp.NewSocket("udp4", ":0")
+	if errSocket != nil {
+		log.Printf("Unable to crete a socket: %s", errSocket)
+		return nil, errSocket
+	}
+
+	conn, errDial := s.DialTimeout(fmt.Sprintf("%s:%d", host, port+1), 10*time.Second)
 	if errDial != nil {
 		log.Printf("Unable to dial: %s", errDial)
 		return nil, errDial
