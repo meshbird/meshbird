@@ -35,8 +35,12 @@ func (l *ListenerService) Run() error {
 	for {
 		conn, err := l.socket.Accept()
 		if err != nil {
+			log.Printf("Error on accept connection: %v", err)
 			continue
 		}
+
+		log.Printf("Has new connection: %s", conn.RemoteAddr().String())
+
 		if err = l.process(conn); err != nil {
 			log.Printf("Error on process: %s", err)
 		}

@@ -4,8 +4,8 @@ import (
 	"os/exec"
 
 	"fmt"
-	"github.com/miolini/water"
 	"github.com/hsheth2/water/waterutil"
+	"github.com/miolini/water"
 	"net"
 )
 

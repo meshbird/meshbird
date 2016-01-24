@@ -42,7 +42,7 @@ func (nt *NetTable) Stop() {
 	nt.SetStatus(StatusStopping)
 }
 
-func (nt *NetTable) GetDHTInChannel() chan <- string {
+func (nt *NetTable) GetDHTInChannel() chan<- string {
 	return nt.dhtInChan
 }
 
