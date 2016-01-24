@@ -2,14 +2,12 @@ package main
 
 import (
 	"log"
-	"net/http"
 	_ "net/http/pprof"
 	"os"
-
+	"net"
 	"github.com/codegangsta/cli"
 	"github.com/gophergala2016/meshbird/common"
 	"github.com/gophergala2016/meshbird/secure"
-	"net"
 	"os/signal"
 	"time"
 )
@@ -25,8 +23,6 @@ var (
 )
 
 func main() {
-	go http.ListenAndServe("0.0.0.0:15080", nil)
-
 	app := cli.NewApp()
 	app.Name = "meshbird"
 	app.Usage = "distributed overlay private networking"
