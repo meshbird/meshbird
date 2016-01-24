@@ -20,7 +20,7 @@
   file: path={{ mongodb_dbPath }} state=directory mode=0755 owner={{ mongodb_user }} group={{ mongodb_group }}
   when: mongodb_dbPath is defined
   tags:
-    - packages
+    - configuration
 
 - name: Write mongod.conf
   template: src=mongod.conf.j2 dest=/etc/mongod.conf owner={{ mongodb_user }} group={{ mongodb_group }} mode=0644
