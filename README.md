@@ -19,6 +19,7 @@ For example, user can create private network between DigitalOcean's droplets in 
 
 ## Demo of ssh connection via our secure tunnel
 ![SSHDemo](https://raw.githubusercontent.com/meshbird/meshbird/master/demos/ssh_demo.gif)
+##### Full video can be found at https://www.youtube.com/watch?v=sW5ZIcfX7w8
 ## Quick Start
 
 ### Install
