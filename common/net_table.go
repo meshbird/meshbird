@@ -99,6 +99,11 @@ func (nt *NetTable) tryConnect(h string) {
 		return
 	}
 
+	if nt.localNode.State().PrivateIP.Equal(rn.privateIP) {
+		nt.logger.Printf("Found myself ;)")
+		return
+	}
+
 	nt.logger.Printf("Adding remote node from try connect...")
 	nt.AddRemoteNode(rn)
 }
