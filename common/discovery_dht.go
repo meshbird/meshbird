@@ -17,6 +17,9 @@ type DiscoveryDHT struct {
 	localNode *LocalNode
 	waitGroup sync.WaitGroup
 	stopChan  chan bool
+
+	lastPeers []string
+	mutex     sync.Mutex
 }
 
 func (d DiscoveryDHT) Name() string {
@@ -75,6 +78,31 @@ func (d *DiscoveryDHT) process() {
 	}
 }
 
+func (d *DiscoveryDHT) addPeer(peer string) {
+	d.mutex.Lock()
+	exists := false
+	for _, lastPeer := range d.lastPeers {
+		if lastPeer == peer {
+			exists = true
+			break
+		}
+	}
+	if !exists {
+		d.lastPeers = append(d.lastPeers, peer)
+		if len(d.lastPeers) > 1000 {
+			d.lastPeers = d.lastPeers[1:]
+		}
+	}
+	d.mutex.Unlock()
+	if exists {
+		return
+	}
+	service := d.localNode.Service("net-table")
+	netTable := service.(*NetTable)
+	log.Printf("peer: %s\n", peer)
+	netTable.GetDHTInChannel() <- peer
+}
+
 func (d *DiscoveryDHT) awaitPeers() {
 	defer d.waitGroup.Done()
 	ticker := time.NewTicker(time.Second)
@@ -83,13 +111,10 @@ func (d *DiscoveryDHT) awaitPeers() {
 	for d.Status() != StatusStopping {
 		select {
 		case r := <-d.node.PeersRequestResults:
-			service := d.localNode.Service("net-table")
-			netTable := service.(*NetTable)
 			for _, peers := range r {
 				for _, x := range peers {
 					host := dht.DecodePeerAddress(x)
-					log.Printf("peer: %s\n", host)
-					netTable.GetDHTInChannel() <- host
+					d.addPeer(host)
 				}
 			}
 		case <-ticker.C:
