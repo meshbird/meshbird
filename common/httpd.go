@@ -4,8 +4,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
-	//	"encoding/json"
 )
 
 type HttpService struct {
