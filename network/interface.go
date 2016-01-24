@@ -18,11 +18,11 @@ func Init() {
 func CreateTunInterface(iface string) (*water.Interface, error) {
 	ifce, err := water.NewTUN(iface)
 	if err != nil {
-		return fmt.Errorf("create new tun interface %s err: %s", iface, err)
+		return nil, fmt.Errorf("create new tun interface %s err: %s", iface, err)
 	}
 	err = UpInterface(iface)
 	if err != nil {
-		return fmt.Errorf("tun interface %s up err: %s", iface, err)
+		return nil, fmt.Errorf("tun interface %s up err: %s", iface, err)
 	}
 	return ifce, nil
 }
