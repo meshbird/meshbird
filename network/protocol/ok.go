@@ -17,7 +17,7 @@ type (
 func NewOkMessage() *Packet {
 	body := Body{
 		Type: TypeOk,
-		Msg:  HandshakeMessage(onMessage),
+		Msg:  OkMessage(onMessage),
 	}
 	return &Packet{
 		Head: Header{

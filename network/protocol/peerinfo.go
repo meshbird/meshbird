@@ -14,7 +14,7 @@ type (
 func NewPeerInfoMessage(privateIP net.IP) *Packet {
 	body := Body{
 		Type: TypePeerInfo,
-		Msg:  PeerInfoMessage(privateIP),
+		Msg:  PeerInfoMessage([]byte(privateIP)),
 	}
 	return &Packet{
 		Head: Header{
