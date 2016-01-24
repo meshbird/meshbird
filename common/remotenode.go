@@ -39,7 +39,13 @@ func (rn *RemoteNode) SendPacket(payload []byte) error {
 
 func (rn *RemoteNode) listen(ln *LocalNode) {
 	defer rn.logger.Printf("EXIT LISTEN")
-
+	defer func() {
+		netTable, ok := ln.Service("net-table").(*NetTable)
+		if !ok || netTable == nil {
+			return
+		}
+		netTable.RemoveRemoteNode(rn.privateIP)
+	}()
 	iface, ok := ln.Service("iface").(*InterfaceService)
 	if !ok {
 		rn.logger.Printf("InterfaceService not found")
@@ -53,6 +59,7 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 		if err != nil {
 			if err != io.EOF && err != io.ErrUnexpectedEOF {
 				rn.logger.Printf("Decode error: %v", err)
+				break
 			}
 			continue
 		}

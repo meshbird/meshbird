@@ -73,6 +73,12 @@ func (nt *NetTable) AddRemoteNode(rn *RemoteNode) {
 	nt.peers[rn.privateIP.To4().String()] = rn
 }
 
+func (nt *NetTable) RemoveRemoteNode(ip net.IP) {
+	nt.lock.Lock()
+	defer nt.lock.Unlock()
+	delete(nt.peers, ip.String())
+}
+
 func (nt *NetTable) processDHTIn() {
 	for nt.Status() != StatusStopping {
 		select {
