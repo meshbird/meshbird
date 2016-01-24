@@ -21,7 +21,8 @@ func (l ListenerService) Name() string {
 }
 
 func (l *ListenerService) Init(ln *LocalNode) error {
-	socket, err := utp.NewSocket("udp", fmt.Sprintf(":%d", ln.State().ListenPort+1))
+	log.Printf("Listening on port: %d", ln.State().ListenPort+1)
+	socket, err := utp.NewSocket("udp", fmt.Sprintf("0.0.0.0:%d", ln.State().ListenPort+1))
 	if err != nil {
 		return err
 	}
@@ -46,9 +47,12 @@ func (l *ListenerService) Run() error {
 
 func (l *ListenerService) Stop() {
 	l.SetStatus(StatusStopping)
+	l.socket.Close()
 }
 
 func (l *ListenerService) process(c net.Conn) error {
+	defer c.Close()
+
 	buf := make([]byte, 1500)
 	n, errRead := c.Read(buf)
 	if errRead != nil {
