@@ -1,6 +1,12 @@
 package main
 
 import (
+<<<<<<< HEAD
+=======
+	"log"
+	"os"
+	"net"
+>>>>>>> Moved pprof to httpd
 	"github.com/codegangsta/cli"
 	"github.com/gophergala2016/meshbird/common"
 	"github.com/gophergala2016/meshbird/secure"
@@ -24,8 +30,8 @@ var (
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "meshbird"
-	app.Usage = "distributed overlay private networking"
+	app.Name = "MeshBird"
+	app.Usage = "distributed private networking"
 	app.Version = VERSION
 	app.Commands = []cli.Command{
 		{
@@ -37,7 +43,7 @@ func main() {
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "CIDR",
-					Value: "192.168.137.1/24",
+					Value: "10.7.0.0/16",
 					Usage: "Define custom CIDR",
 				},
 			},
