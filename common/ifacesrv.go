@@ -20,8 +20,9 @@ func (is *InterfaceService) Name() string {
 }
 
 func (is *InterfaceService) Init(ln *LocalNode) (err error) {
-	ifaceName := "meshbird0"
-	is.instance, err = network.CreateTunInterface(ifaceName)
+	ifaceName := "utun5"
+	is.localnode = ln
+	is.instance, err = network.CreateTunInterfaceWithIp(ifaceName, ln.State().PrivateIP)
 	if err != nil {
 		return fmt.Errorf("create interface %s err: %s", ifaceName, err)
 	}

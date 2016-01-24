@@ -29,13 +29,17 @@ func CreateTunInterface(iface string) (*water.Interface, error) {
 
 func CreateTunInterfaceWithIp(iface string, IpAddr string) (*water.Interface, error) {
 	ifce, err := CreateTunInterface(iface)
-	if err == nil {
-		err = AssignIpAddress(iface, IpAddr)
+	if err != nil {
+		return nil, err
 	}
+	err = AssignIpAddress(iface, IpAddr)
 	return ifce, err
 }
 func AssignIpAddress(iface string, IpAddr string) error {
 	err := exec.Command("ifconfig", iface, IpAddr).Run()
+	if err != nil {
+		return fmt.Errorf("assign ip %s to %s err: %s", IpAddr, iface, err)
+	}
 	return err
 }
 
