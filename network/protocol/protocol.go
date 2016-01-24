@@ -100,8 +100,7 @@ func (p Packet) Len() uint16 {
 	return p.Head.Len() + p.Data.Len()
 }
 
-func Decode(data []byte, sessionKey []byte) (*Packet, error) {
-	// TODO: sessionKey
+func Decode(data []byte) (*Packet, error) {
 	if len(data) < 4 { // Len(2) + Ver(1) + Type(1)
 		return nil, ErrorToShort
 	}
@@ -159,7 +158,7 @@ func Encode(pack *Packet) ([]byte, error) {
 	return writer.Bytes(), nil
 }
 
-func ReadAndDecode(r io.Reader, n int, sessionKey []byte) (*Packet, error) {
+func ReadAndDecode(r io.Reader, n int) (*Packet, error) {
 	buf := make([]byte, n)
 	n, errRead := r.Read(buf)
 
@@ -179,7 +178,7 @@ func ReadAndDecode(r io.Reader, n int, sessionKey []byte) (*Packet, error) {
 	buf = buf[:n]
 	log.Printf("Received %d bytes: %v", n, buf)
 
-	pack, errDecode := Decode(buf, sessionKey)
+	pack, errDecode := Decode(buf)
 	if errDecode != nil {
 		log.Printf("Unable to decode packet: %s", errDecode)
 		return nil, errDecode

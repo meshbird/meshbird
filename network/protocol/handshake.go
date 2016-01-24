@@ -55,10 +55,10 @@ func (m HandshakeMessage) SessionKey() []byte {
 	return m[len(magicKey):]
 }
 
-func ReadDecodeHandshake(r io.Reader, sessionKey []byte) (HandshakeMessage, error) {
+func ReadDecodeHandshake(r io.Reader) (HandshakeMessage, error) {
 	log.Printf("Trying to read Handshake message...")
 
-	okPack, errDecode := ReadAndDecode(r, 28, sessionKey)
+	okPack, errDecode := ReadAndDecode(r, 28)
 	if errDecode != nil {
 		log.Printf("Unable to decode package: %s", errDecode)
 		return nil, fmt.Errorf("Error on read Handshake package: %v", errDecode)

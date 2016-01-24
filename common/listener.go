@@ -55,7 +55,7 @@ func (l *ListenerService) Stop() {
 func (l *ListenerService) process(c net.Conn) error {
 	defer c.Close()
 
-	handshakeMsg, errHandshake := protocol.ReadDecodeHandshake(c, nil)
+	handshakeMsg, errHandshake := protocol.ReadDecodeHandshake(c)
 	if errHandshake != nil {
 		return errHandshake
 	}
@@ -75,7 +75,7 @@ func (l *ListenerService) process(c net.Conn) error {
 		return err
 	}
 
-	peerInfo, errPeerInfo := protocol.ReadDecodePeerInfo(c, nil)
+	peerInfo, errPeerInfo := protocol.ReadDecodePeerInfo(c)
 	if errPeerInfo != nil {
 		return errPeerInfo
 	}

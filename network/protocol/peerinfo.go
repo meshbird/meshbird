@@ -38,10 +38,10 @@ func (m PeerInfoMessage) PrivateIP() net.IP {
 	return net.IP(m)
 }
 
-func ReadDecodePeerInfo(r io.Reader, sessionKey []byte) (PeerInfoMessage, error) {
+func ReadDecodePeerInfo(r io.Reader) (PeerInfoMessage, error) {
 	log.Printf("Trying to read PeerInfo message...")
 
-	peerInfoPack, errDecode := ReadAndDecode(r, 8, sessionKey)
+	peerInfoPack, errDecode := ReadAndDecode(r, 8)
 	if errDecode != nil {
 		log.Printf("Unable to decode package: %s", errDecode)
 		return nil, fmt.Errorf("Error on read PeerInfo package: %v", errDecode)

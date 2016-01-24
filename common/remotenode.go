@@ -30,7 +30,7 @@ func NewRemoteNode(conn net.Conn, sessionKey []byte, privateIP net.IP) *RemoteNo
 }
 
 func (rn *RemoteNode) SendPacket(dstIP net.IP, payload []byte) error {
-	return nil
+	return protocol.WriteEncodeTransfer(rn.conn, payload)
 }
 
 func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, error) {
@@ -67,11 +67,11 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 	if err := protocol.WriteEncodeHandshake(rn.conn, rn.sessionKey, networkSecret); err != nil {
 		return nil, err
 	}
-	if _, okError := protocol.ReadDecodeOk(rn.conn, rn.sessionKey); okError != nil {
+	if _, okError := protocol.ReadDecodeOk(rn.conn); okError != nil {
 		return nil, okError
 	}
 
-	peerInfo, errPeerInfo := protocol.ReadDecodePeerInfo(rn.conn, rn.sessionKey)
+	peerInfo, errPeerInfo := protocol.ReadDecodePeerInfo(rn.conn)
 	if errPeerInfo != nil {
 		return nil, errPeerInfo
 	}

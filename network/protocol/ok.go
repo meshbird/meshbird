@@ -37,10 +37,10 @@ func (o OkMessage) WriteTo(w io.Writer) (int64, error) {
 	return int64(n), err
 }
 
-func ReadDecodeOk(r io.Reader, sessionKey []byte) (OkMessage, error) {
+func ReadDecodeOk(r io.Reader) (OkMessage, error) {
 	log.Printf("Trying to read OK message...")
 
-	okPack, errDecode := ReadAndDecode(r, 6, sessionKey)
+	okPack, errDecode := ReadAndDecode(r, 6)
 	if errDecode != nil {
 		log.Printf("Unable to decode package: %s", errDecode)
 		return nil, fmt.Errorf("Error on read OK package: %v", errDecode)
