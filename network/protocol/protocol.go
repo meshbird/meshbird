@@ -124,7 +124,7 @@ func Decode(data []byte, sessionKey []byte) (*Packet, error) {
 
 	remainLength := int(pack.Head.Length) - 1 // minus type
 
-	if TypeHandshake != pack.Data.Type && TypeOk != pack.Data.Type {
+	if TypeHandshake != pack.Data.Type && TypeOk != pack.Data.Type || TypePeerInfo != pack.Data.Type {
 		pack.Data.Vector = reader.Next(bodyVectorLen)
 		if len(pack.Data.Vector) != bodyVectorLen {
 			return nil, ErrorUnableToReadVector
@@ -207,7 +207,7 @@ func EncodeAndWrite(w io.Writer, pack *Packet) error {
 		return err
 	}
 
-	log.Printf("%d of %s bytes of %s message sent", n, len(reply), typeName)
+	log.Printf("%d of %d bytes of %s message sent", n, len(reply), typeName)
 
 	return nil
 }
