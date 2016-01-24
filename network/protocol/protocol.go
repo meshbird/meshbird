@@ -31,6 +31,7 @@ var (
 
 	knownTypes = []uint8{
 		TypeHandshake,
+		TypeOk,
 		TypeHeartbeat,
 		TypeGone,
 		TypeTransfer,
