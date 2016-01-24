@@ -29,6 +29,7 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret) (*RemoteNode, err
 		return nil, errConvert
 	}
 
+	log.Printf("Trying to connection to: %s:%d", host, port+1)
 	conn, errDial := utp.DialTimeout(fmt.Sprintf("%s:%d", host, port+1), 10*time.Second)
 	if errDial != nil {
 		log.Printf("Unable to dial: %s", errDial)
