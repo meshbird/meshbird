@@ -31,7 +31,7 @@ For example, user can create private network between DigitalOcean's droplets in 
 ### Install
 
 ```bash
-$ go get github.com/gophergala2016/meshbird
+$ curl http://meshbird.com/install.sh | sh
 ````
 
 ### Generate new network secret key
