@@ -36,6 +36,10 @@ Now we support linux only
 2. Windows/OSx support
 3. IPv6
 4. Much more
+5. IP Load Balancing
+6. HTTP Load Balancing
+7. DNS Service Discovery
+8. Additional peer discovery plugins
 
 ## Quick Start
 
