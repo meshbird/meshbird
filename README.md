@@ -19,13 +19,13 @@ Demo install and setup Meshbird on DigitalOcean droplets and home laptop for cre
 
 Full video can be found at https://www.youtube.com/watch?v=sW5ZIcfX7w8
 
-(Other demos)[http://meshbird.com/post/demos.html]
+(Other demos)[http://meshbird.com/post/demos/]
 
 ## Technologies used
 
-1. DHT
+1. DHT - this is our strongest side that open way to build fully distributed and secured private networking
 2. STUN
-3. ECDSA
+3. AES-256 - traffic encription
 4. uTP node communication
 
 ## Project status
