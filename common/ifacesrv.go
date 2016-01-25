@@ -33,12 +33,11 @@ func (is *InterfaceService) Init(ln *LocalNode) (err error) {
 	if err != nil {
 		return fmt.Errorf("create interface %s err: %s", "", err)
 	}
-	tunIface, err := net.InterfaceByName(is.instance.Name())
+	err := network.SetMTU(is.instance.Name(), 1400)
+
 	if err != nil {
 		fmt.Println(err)
 	}
-	tunIface.MTU = 1400
-
 	return nil
 }
 
