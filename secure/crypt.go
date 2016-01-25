@@ -2,8 +2,8 @@ package secure
 
 import (
 	"bytes"
-	"crypto/cipher"
 	"crypto/aes"
+	"crypto/cipher"
 )
 
 func EncryptIV(decrypted []byte, key []byte, iv []byte) ([]byte, error) {
@@ -35,7 +35,6 @@ func PKCS5Padding(src []byte, blockSize int) []byte {
 	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
 	return append(src, padtext...)
 }
-
 
 func PKCS5UnPadding(src []byte) []byte {
 	length := len(src)

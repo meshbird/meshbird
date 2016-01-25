@@ -18,4 +18,3 @@ func TestEncryptIV(t *testing.T) {
 	}
 	t.Logf("decrypted: %s", string(decrypted2))
 }
-

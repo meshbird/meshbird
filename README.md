@@ -1,15 +1,9 @@
-DISCLAIMER: I dumped a lot of code without much documentation and optimization.
-It needs to be cleaned up and better organized. Further work will be continued at
-https://github.com/meshbird/meshbird.
-
-<br>
-
 # Meshbird 
 
-Meshbird - distributed private networking. [Twitter](https://twitter.com/meshbird)
+Meshbird - distributed private networking. [Twitter](https://twitter.com/meshbird), [Website](http://meshbird.com/)
 
 
-![MeshBird](https://avatars1.githubusercontent.com/u/16837838?v=3&s=600)
+![MeshBird](https://avatars0.githubusercontent.com/u/16837838?v=3&u=dbd30ffcc7383854dba5a66425ce9fe0591b03ac&s=700)
 
 ## Intro
 
@@ -18,23 +12,34 @@ Meshbird create distributed private networking between servers, containers, virt
 For example, user can create private network between DigitalOcean's droplets in each datacenter and link it together by executing one command. All traffic will be encrypted with strong AES-256.
 
 ## Demo of ssh connection via our secure tunnel
+
+Demo install and setup Meshbird on DigitalOcean droplets and home laptop for creating distributed private network and provide access to ssh server over Meshbird network.
+
 ![SSHDemo](https://raw.githubusercontent.com/meshbird/meshbird/master/demos/ssh_demo.gif)
-##### Full video can be found at https://www.youtube.com/watch?v=sW5ZIcfX7w8
+
+Full video can be found at https://www.youtube.com/watch?v=sW5ZIcfX7w8
 
 ## Technologies used
+
 1. DHT
 2. STUN
 3. ECDSA
 4. uTP node communication
 
 ## Project status
+
 Now we support linux only
 
-## Future plans
+## Roadmap
+
 1. Better encryption
 2. Windows/OSx support
 3. IPv6
 4. Much more
+5. IP Load Balancing
+6. HTTP Load Balancing
+7. DNS Service Discovery
+8. Additional peer discovery plugins
 
 ## Quick Start
 
@@ -50,7 +55,7 @@ $ curl http://meshbird.com/install.sh | sh
 $ meshbird new
 ```
 
-### Join to the private network with interface meshbird0
+### Join to the private network with interface tunX
 
 ```bash
 $ MESHBIRD_KEY="<key>" meshbird join
