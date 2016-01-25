@@ -11,6 +11,7 @@ import (
 	"github.com/gophergala2016/meshbird/network/protocol"
 	"github.com/gophergala2016/meshbird/secure"
 	"os"
+	"io"
 )
 
 type RemoteNode struct {
@@ -68,6 +69,9 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 		pack, err := protocol.Decode(rn.conn)
 		if err != nil {
 			rn.logger.Printf("Decode error: %v", err)
+			if err == io.EOF {
+				break
+			}
 			continue
 		}
 
