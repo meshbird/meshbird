@@ -1,13 +1,10 @@
 package network
 
 import (
-	"os/exec"
-
 	"fmt"
 	"github.com/hsheth2/water/waterutil"
 	"github.com/miolini/water"
 	"net"
-	"strconv"
 )
 
 const DEFAULT_MTU = 1500
@@ -37,25 +34,6 @@ func CreateTunInterfaceWithIp(iface string, IpAddr string) (*water.Interface, er
 	}
 	err = AssignIpAddress(ifce.Name(), IpAddr)
 	return ifce, err
-}
-func AssignIpAddress(iface string, IpAddr string) error {
-	err := exec.Command("ifconfig", iface, IpAddr).Run()
-	if err != nil {
-		return fmt.Errorf("assign ip %s to %s err: %s", IpAddr, iface, err)
-	}
-	return err
-}
-
-func UpInterface(iface string) error {
-	err := exec.Command("ifconfig", iface, "up").Run()
-	return err
-}
-func SetMTU(iface string, mtu int) error {
-	err := exec.Command("ifconfig", iface, "mtu", strconv.Itoa(mtu)).Run()
-	if err != nil {
-		return fmt.Errorf("Can't set MTU %s to %s err: %s", iface, strconv.Itoa(mtu), err)
-	}
-	return nil
 }
 
 func NextNetworkPacket(iface *water.Interface) ([]byte, error) {
