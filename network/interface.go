@@ -7,6 +7,7 @@ import (
 	"github.com/hsheth2/water/waterutil"
 	"github.com/miolini/water"
 	"net"
+	"strconv"
 )
 
 const DEFAULT_MTU = 1500
@@ -52,7 +53,7 @@ func UpInterface(iface string) error {
 func SetMTU(iface string, mtu int) {
 	err := exec.Command("ifconfig", iface, "mtu", mtu).Run()
 	if err != nil {
-		return fmt.Errorf("Can't set MTU %s to %s err: %s", iface, mtu, err)
+		return fmt.Errorf("Can't set MTU %s to %s err: %s", iface, strconv.Itoa(mtu), err)
 	}
 }
 
