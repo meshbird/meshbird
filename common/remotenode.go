@@ -68,7 +68,7 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 		pack, err := protocol.Decode(rn.conn)
 		if err != nil {
 			rn.logger.Printf("Decode error: %v", err)
-			break
+			continue
 		}
 
 		rn.logger.Printf("Received package: %+v", pack)
