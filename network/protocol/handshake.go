@@ -3,7 +3,7 @@ package protocol
 import (
 	"bytes"
 	"fmt"
-	"github.com/gophergala2016/meshbird/secure"
+	"github.com/meshbird/meshbird/secure"
 	"io"
 )
 

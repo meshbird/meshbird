@@ -3,7 +3,7 @@ package protocol_test
 import (
 	"bytes"
 	"encoding/hex"
-	"github.com/gophergala2016/meshbird/network/protocol"
+	"github.com/meshbird/meshbird/network/protocol"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

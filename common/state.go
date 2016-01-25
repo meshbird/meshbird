@@ -3,8 +3,8 @@ package common
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gophergala2016/meshbird/network"
-	"github.com/gophergala2016/meshbird/secure"
+	"github.com/meshbird/meshbird/network"
+	"github.com/meshbird/meshbird/secure"
 	"io/ioutil"
 	"log"
 	"net"

@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/codegangsta/cli"
-	"github.com/gophergala2016/meshbird/common"
-	"github.com/gophergala2016/meshbird/secure"
+	"github.com/meshbird/meshbird/common"
+	"github.com/meshbird/meshbird/secure"
 	"log"
 	"net"
 	"os"

@@ -1,8 +1,8 @@
 package common
 
 import (
-	"github.com/gophergala2016/meshbird/network/protocol"
-	"github.com/gophergala2016/meshbird/secure"
+	"github.com/meshbird/meshbird/network/protocol"
+	"github.com/meshbird/meshbird/secure"
 	"log"
 	"net"
 	"os"

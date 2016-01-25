@@ -2,7 +2,7 @@ package common
 
 import (
 	"fmt"
-	"github.com/gophergala2016/meshbird/network"
+	"github.com/meshbird/meshbird/network"
 	"github.com/miolini/water"
 	"log"
 	"os"
