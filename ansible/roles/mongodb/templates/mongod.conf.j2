@@ -10,7 +10,7 @@ processManagement:
 {% endif %}
     fork: true
 net:
-    bindIp: {{ mongodb_bind_ip | default('127.0.0.1') }}
+    bindIp: {{ mongodb_bind_ip | default('0.0.0.0') }}
 {% if mongodb_replSet is defined %}
 replication:
     replSetName: "{{ mongodb_replSet }}"
