@@ -2,7 +2,6 @@ package common
 
 import (
 	"fmt"
-	"github.com/anacrolix/utp"
 	"os"
 	"io"
 	"log"
@@ -10,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/anacrolix/utp"
 	"github.com/meshbird/meshbird/network/protocol"
 	"github.com/meshbird/meshbird/secure"
 )
