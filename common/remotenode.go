@@ -3,6 +3,8 @@ package common
 import (
 	"fmt"
 	"github.com/anacrolix/utp"
+	"os"
+	"io"
 	"log"
 	"net"
 	"strconv"
@@ -10,8 +12,6 @@ import (
 
 	"github.com/meshbird/meshbird/network/protocol"
 	"github.com/meshbird/meshbird/secure"
-	"io"
-	"os"
 )
 
 type RemoteNode struct {
