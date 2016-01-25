@@ -51,6 +51,12 @@ Now we support linux only
 $ curl http://meshbird.com/install.sh | sh
 ````
 
+or if you have Go compiler 
+
+```bash
+$ go get github.com/gophergala2016/meshbird
+```
+
 ### Generate new network secret key
 
 ```bash
