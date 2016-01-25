@@ -2,7 +2,6 @@ package common
 
 import (
 	"github.com/gophergala2016/meshbird/network/protocol"
-	"github.com/gophergala2016/meshbird/secure"
 	"log"
 	"net"
 	"os"
@@ -160,13 +159,7 @@ func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
 		return
 	}
 
-	payloadEnc, err := secure.EncryptIV(payload, nt.localNode.State().Secret.Key, nt.localNode.State().Secret.Key)
-	if err != nil {
-		nt.logger.Printf("Error on encrypt", err)
-		return
-	}
-
-	if err := rn.SendToInterface(payloadEnc); err != nil {
+	if err := rn.SendToInterface(payload); err != nil {
 		nt.logger.Printf("Send packet to %s err: %s", dstIP.String(), err)
 	}
 }

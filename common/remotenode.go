@@ -76,13 +76,7 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 		switch pack.Data.Type {
 		case protocol.TypeTransfer:
 			rn.logger.Printf("Writing to interface...")
-			payloadEncrypted := pack.Data.Msg.(protocol.TransferMessage).Bytes()
-			payload, errDec := secure.DecryptIV(payloadEncrypted, ln.State().Secret.Key, ln.State().Secret.Key)
-			if errDec != nil {
-				rn.logger.Printf("Error on decrypt: %v", errDec)
-				break
-			}
-			iface.WritePacket(payload)
+			iface.WritePacket(pack.Data.Msg.(protocol.TransferMessage).Bytes())
 		case protocol.TypeHeartbeat:
 			rn.logger.Printf("Received heardbeat... %v", pack.Data.Msg)
 			rn.lastHeartbeat = time.Now()
