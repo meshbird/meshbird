@@ -1,7 +1,8 @@
 package network
 
 import (
-	"os"
+	"os/exec"
+	"fmt"
 	"strconv"
 )
 
