@@ -50,11 +50,12 @@ func UpInterface(iface string) error {
 	err := exec.Command("ifconfig", iface, "up").Run()
 	return err
 }
-func SetMTU(iface string, mtu int) {
-	err := exec.Command("ifconfig", iface, "mtu", mtu).Run()
+func SetMTU(iface string, mtu int) error {
+	err := exec.Command("ifconfig", iface, "mtu", strconv.Itoa(mtu)).Run()
 	if err != nil {
 		return fmt.Errorf("Can't set MTU %s to %s err: %s", iface, strconv.Itoa(mtu), err)
 	}
+	return nil
 }
 
 func NextNetworkPacket(iface *water.Interface) ([]byte, error) {

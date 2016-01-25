@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"net"
 )
 
 type InterfaceService struct {
@@ -33,7 +32,7 @@ func (is *InterfaceService) Init(ln *LocalNode) (err error) {
 	if err != nil {
 		return fmt.Errorf("create interface %s err: %s", "", err)
 	}
-	err := network.SetMTU(is.instance.Name(), 1400)
+	err = network.SetMTU(is.instance.Name(), 1400)
 
 	if err != nil {
 		fmt.Println(err)
