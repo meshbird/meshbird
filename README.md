@@ -27,6 +27,15 @@ For example, user can create private network between DigitalOcean's droplets in 
 3. ECDSA
 4. uTP node communication
 
+## Project status
+Now we support linux only
+
+## Future plans
+1. Better encryption
+2. Windows/OSx support
+3. IPv6
+4. Much more
+
 ## Quick Start
 
 ### Install

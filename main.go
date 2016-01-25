@@ -72,6 +72,7 @@ func actionGetIP(ctx *cli.Context) {
 		logger.Fatal(err)
 	}
 	state := common.NewState(secret)
+	state.Save()
 	fmt.Println(state.PrivateIP)
 }
 
