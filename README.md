@@ -54,7 +54,7 @@ $ curl http://meshbird.com/install.sh | sh
 or if you have Go compiler 
 
 ```bash
-$ go get github.com/gophergala2016/meshbird
+$ go get github.com/meshbird/meshbird
 ```
 
 ### Generate new network secret key
