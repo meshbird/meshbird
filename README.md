@@ -19,6 +19,8 @@ Demo install and setup Meshbird on DigitalOcean droplets and home laptop for cre
 
 Full video can be found at https://www.youtube.com/watch?v=sW5ZIcfX7w8
 
+(Other demos)[http://meshbird.com/post/demos.html]
+
 ## Technologies used
 
 1. DHT
@@ -60,3 +62,7 @@ $ meshbird new
 ```bash
 $ MESHBIRD_KEY="<key>" meshbird join
 ```
+
+## Ideas
+
+Any ideas feel free to send to email: miolini@gmail.com.
