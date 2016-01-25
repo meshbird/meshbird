@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/codegangsta/cli"
 	"github.com/gophergala2016/meshbird/common"
 	"github.com/gophergala2016/meshbird/secure"
@@ -9,7 +10,6 @@ import (
 	"os"
 	"os/signal"
 	"time"
-	"fmt"
 )
 
 const (
