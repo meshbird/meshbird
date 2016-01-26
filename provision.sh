@@ -8,8 +8,8 @@ rm -f go1.5.3.linux-amd64.tar.gz
 echo "" >> /home/vagrant/.profile
 echo "export PATH=\$PATH:/usr/local/go/bin:/home/vagrant/go/bin" >> /home/vagrant/.profile
 echo "export GOPATH=/home/vagrant/go" >> /home/vagrant/.profile
-mkdir -p /home/vagrant/go/src/github.com/gophergala2016
+mkdir -p /home/vagrant/go/src/github.com/meshbird
 mkdir -p /home/vagrant/go/pkg
 mkdir -p /home/vagrant/go/bin
-ln -s /vagrant /home/vagrant/go/src/github.com/gophergala2016/meshbird
+ln -s /vagrant /home/vagrant/go/src/github.com/meshbird/meshbird
 chown -R vagrant:vagrant /home/vagrant/go

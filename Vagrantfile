@@ -5,11 +5,10 @@ Vagrant.configure(2) do |config|
     config.vm.provision "shell", path: "provision.sh"
 
     config.vm.define "node01" do |node01|
-        #node01.vm.network "private_network", ip: "192.168.33.10"
         node01.vm.network "public_network"
     end
 
-    #config.vm.define "node02" do |node02|
-    #    node02.vm.network "private_network", ip: "192.168.33.11"
-    #end
+    config.vm.define "node02" do |node02|
+        node01.vm.network "public_network"
+    end
 end

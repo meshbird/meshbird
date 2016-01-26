@@ -1,5 +1,0 @@
----
-mongodb_version: '3.2.0'
-mongodb_user: 'mongodb'
-mongodb_group: 'mongodb'
-mongodb_dbPath: '/data/db'

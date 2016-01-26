@@ -1,7 +1,0 @@
----
-- hosts: all
-  vars:
-    MESHBIRD_KEY: 77cdb4790754e187a8e41fdcde0cee8c0a070000ffff0000
-  tasks:
-    - service: name=meshbird state=stopped
-    - shell: 'rm -rf .meshbird_*.json'

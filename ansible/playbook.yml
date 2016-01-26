@@ -1,7 +1,0 @@
----
-- hosts: all
-  vars:
-    mongodb_replSet: 'meshbird'
-  roles:
-    - golang
-    - mongodb
