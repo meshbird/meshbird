@@ -64,7 +64,7 @@ func (n *LocalNode) AddService(srv Service) {
 func (n *LocalNode) Start() error {
 	for name, service := range n.services {
 		if n.logger.IsInfo() {
-			n.logger.Info("Initializing %s...", name)
+			n.logger.Info(fmt.Sprintf("Initializing %s...", name))
 		}
 		if err := service.Init(n); err != nil {
 			return fmt.Errorf("Initialision of %s finished with error: %s", service.Name(), err)
