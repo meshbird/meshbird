@@ -8,6 +8,7 @@ import (
 	"os"
 	"sync"
 	"time"
+	"fmt"
 )
 
 type NetTable struct {
@@ -68,13 +69,11 @@ func (nt *NetTable) RemoteNodeByIP(ip net.IP) *RemoteNode {
 
 func (nt *NetTable) AddRemoteNode(rn *RemoteNode) {
 	if nt.logger.IsDebug() {
-
-		nt.logger.Debug("Trying to add node %s/%s ...", rn.privateIP.String(), rn.publicAddress)
+		nt.logger.Debug(fmt.Sprintf("Trying to add node %s/%s ...", rn.privateIP.String(), rn.publicAddress))
 	}
 
 	if nt.localNode.State().PrivateIP.Equal(rn.privateIP) {
 		if nt.logger.IsDebug() {
-
 			nt.logger.Debug("Found myself, node will not be added!")
 		}
 		return
@@ -84,8 +83,7 @@ func (nt *NetTable) AddRemoteNode(rn *RemoteNode) {
 	defer nt.lock.Unlock()
 	nt.peers[rn.privateIP.To4().String()] = rn
 	if nt.logger.IsInfo() {
-
-		nt.logger.Info("Added remote node: %s/%s", rn.privateIP.String(), rn.publicAddress)
+		nt.logger.Info(fmt.Sprintf("Added remote node: %s/%s", rn.privateIP.String(), rn.publicAddress))
 	}
 	go rn.listen(nt.localNode)
 }
@@ -134,8 +132,7 @@ func (nt *NetTable) heartbeat() {
 			nt.lock.Lock()
 			for _, peer := range nt.peers {
 				if err := peer.SendPack(protocol.NewHeartbeatMessage(nt.localNode.State().PrivateIP)); err != nil {
-
-					nt.logger.Error("Error on send heartbeat: %v", err)
+					nt.logger.Error(fmt.Sprintf("Error on send heartbeat: %v", err))
 				}
 			}
 			nt.lock.Unlock()
@@ -150,7 +147,6 @@ func (nt *NetTable) tryConnect(h string) {
 		return
 	}
 	if nt.logger.IsDebug() {
-
 		nt.logger.Debug("Adding remote node from try connect...")
 	}
 	nt.AddRemoteNode(rn)
@@ -165,14 +161,14 @@ func (nt *NetTable) addToBlackList(h string) {
 func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
 	if nt.logger.IsDebug() {
 
-		nt.logger.Debug("Sending to %s packet len %d", dstIP.String(), len(payload))
+		nt.logger.Debug(fmt.Sprintf("Sending to %s packet len %d", dstIP.String(), len(payload)))
 	}
 
 	rn := nt.RemoteNodeByIP(dstIP)
 	if rn == nil {
 		if nt.logger.IsDebug() {
-			nt.logger.Debug("Destination host unreachable: %s", dstIP.String())
-			nt.logger.Debug("Known hosts: %v", nt.knownHosts())
+			nt.logger.Debug(fmt.Sprintf("Destination host unreachable: %s", dstIP.String()))
+			nt.logger.Debug(fmt.Sprintf("Known hosts: %v", nt.knownHosts()))
 		}
 
 		return
@@ -180,12 +176,12 @@ func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
 
 	payloadEnc, err := secure.EncryptIV(payload, nt.localNode.State().Secret.Key, nt.localNode.State().Secret.Key)
 	if err != nil {
-		nt.logger.Error("Error on encrypt", err)
+		nt.logger.Error(fmt.Sprintf("Error on encrypt", err))
 		return
 	}
 
 	if err := rn.SendToInterface(payloadEnc); err != nil {
-		nt.logger.Error("Send packet to %s err: %s", dstIP.String(), err)
+		nt.logger.Error(fmt.Sprintf("Send packet to %s err: %s", dstIP.String(), err))
 	}
 }
 
