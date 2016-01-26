@@ -46,7 +46,7 @@ func (s *UPnPService) process() (err error) {
 		}
 	}()
 	if s.logger.IsInfo() {
-		s.logger.Info("UPnP port mapping: %d", s.port)
+		s.logger.Info(fmt.Sprintf("UPnP port mapping: %d", s.port))
 	}
 	if err := s.mapping.AddPortMapping(s.port, s.port, "UDP"); err == nil {
 		if s.logger.IsDebug() {

@@ -17,9 +17,9 @@ const (
 )
 
 var (
-// VERSION var using for auto versioning through Go linker
+	// VERSION var using for auto versioning through Go linker
 	VERSION = "dev"
-	logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[main] ")
+	logger  = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[main] ")
 )
 
 func main() {

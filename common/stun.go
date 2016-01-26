@@ -35,7 +35,7 @@ func (s *STUNService) Run() error {
 	for !s.IsNeedStop() {
 		err := s.process()
 		if err != nil {
-			log.Error("stun err: %s", err)
+			log.Error(fmt.Sprintf("stun err: %s", err))
 		}
 		time.Sleep(time.Minute)
 	}
