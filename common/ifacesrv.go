@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/meshbird/meshbird/network"
 	"github.com/miolini/water"
-	"log"
 	"os"
 	"strconv"
+	log "github.com/mgutz/logxi/v1"
 )
 
 type InterfaceService struct {
@@ -15,7 +15,7 @@ type InterfaceService struct {
 	localnode *LocalNode
 	instance  *water.Interface
 	netTable  *NetTable
-	logger    *log.Logger
+	logger    log.Logger
 }
 
 func (is *InterfaceService) Name() string {
@@ -23,7 +23,7 @@ func (is *InterfaceService) Name() string {
 }
 
 func (is *InterfaceService) Init(ln *LocalNode) (err error) {
-	is.logger = log.New(os.Stderr, "[iface] ", log.LstdFlags)
+	is.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[iface] ")
 	is.localnode = ln
 	is.netTable = ln.NetTable()
 	netsize, _ := ln.State().Secret.Net.Mask.Size()
@@ -35,7 +35,9 @@ func (is *InterfaceService) Init(ln *LocalNode) (err error) {
 	err = network.SetMTU(is.instance.Name(), 1400)
 
 	if err != nil {
-		fmt.Println(err)
+		if log.IsWarn(){
+			is.logger.Warn(err.Error())
+		}
 	}
 	return nil
 }
@@ -45,21 +47,26 @@ func (is *InterfaceService) Run() error {
 		buf := make([]byte, 1500)
 		n, err := is.instance.Read(buf)
 		if err != nil {
-			log.Println(err)
+			is.logger.Error(err.Error())
 			return err
 		}
 		packet := buf[:n]
 
 		dst := network.IPv4Destination(packet)
 		is.netTable.SendPacket(dst, packet)
-		is.logger.Printf("Read packet %d bytes", n)
+		if is.logger.IsDebug(){
+			is.logger.Debug("Read packet %d bytes", n)
+		}
+
 	}
 	return nil
 }
 
 func (is *InterfaceService) WritePacket(packet []byte) {
-	is.logger.Printf("Package for writing received, length %d bytes", len(packet))
+	if is.logger.IsDebug(){
+		is.logger.Debug(fmt.Sprintf("Package for writing received, length %d bytes\n", len(packet)))
+	}
 	if _, err := is.instance.Write(packet); err != nil {
-		is.logger.Printf("Error on twite packet: %v", err)
+		is.logger.Error("Error on twite packet: %v", err)
 	}
 }
