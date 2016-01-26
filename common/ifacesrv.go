@@ -55,7 +55,7 @@ func (is *InterfaceService) Run() error {
 		dst := network.IPv4Destination(packet)
 		is.netTable.SendPacket(dst, packet)
 		if is.logger.IsDebug() {
-			is.logger.Debug("Read packet %d bytes", n)
+			is.logger.Debug(fmt.Sprintf("Read packet %d bytes", n))
 		}
 
 	}
@@ -67,6 +67,6 @@ func (is *InterfaceService) WritePacket(packet []byte) {
 		is.logger.Debug(fmt.Sprintf("Package for writing received, length %d bytes\n", len(packet)))
 	}
 	if _, err := is.instance.Write(packet); err != nil {
-		is.logger.Error("Error on twite packet: %v", err)
+		is.logger.Error(fmt.Sprintf("Error on twite packet: %v", err))
 	}
 }
