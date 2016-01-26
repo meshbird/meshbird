@@ -26,7 +26,7 @@ func (l *ListenerService) Init(ln *LocalNode) error {
 	l.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[listener] ")
 
 	if l.logger.IsInfo() {
-		l.logger.Info("Listening on port: %d", ln.State().ListenPort+1)
+		l.logger.Info(fmt.Sprintf("Listening on port: %d", ln.State().ListenPort+1))
 	}
 	socket, err := utp.NewSocket("udp4", fmt.Sprintf("0.0.0.0:%d", ln.State().ListenPort+1))
 	if err != nil {

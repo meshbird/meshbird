@@ -109,7 +109,7 @@ func (d *DiscoveryDHT) addPeer(peer string) {
 	}
 
 	if d.logger.IsDebug() {
-		d.logger.Debug("Reer: %s", peer)
+		d.logger.Debug(fmt.Sprintf("Reer: %s", peer))
 	}
 
 	d.localNode.NetTable().GetDHTInChannel() <- peer

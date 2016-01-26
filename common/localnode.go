@@ -73,11 +73,10 @@ func (n *LocalNode) Start() error {
 		go func(srv Service) {
 			defer n.waitGroup.Done()
 			if n.logger.IsInfo() {
-
-				n.logger.Info("[%s] service run", srv.Name())
+				n.logger.Info(fmt.Sprintf("[%s] service run", srv.Name()))
 			}
 			if err := srv.Run(); err != nil {
-				n.logger.Error("[%s] error: %s", srv.Name(), err)
+				n.logger.Error(fmt.Sprintf("[%s] error: %s", srv.Name(), err))
 			}
 		}(service)
 	}
@@ -87,7 +86,7 @@ func (n *LocalNode) Start() error {
 func (n *LocalNode) Service(name string) Service {
 	service, ok := n.services[name]
 	if !ok {
-		n.logger.Fatal("Service %s not found", name)
+		n.logger.Fatal(fmt.Sprintf("Service %s not found", name))
 	}
 	return service
 }
