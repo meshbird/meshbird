@@ -2,17 +2,21 @@ package network
 
 import (
 	"crypto/rand"
-	"log"
+	log "github.com/mgutz/logxi/v1"
 	"net"
 )
 
 func GenerateIPAddress(cidr *net.IPNet) (net.IP, error) {
-	log.Printf("generate IP income: %v", cidr)
+	if log.IsInfo() {
+		log.Info("generate IP income: %v", cidr)
+	}
 	randBytes := make([]byte, 4)
 	_, err := rand.Read(randBytes)
 	for i := 0; i < 4; i++ {
 		randBytes[i] = randBytes[i]&^cidr.Mask[i] | cidr.IP[i]
 	}
-	log.Printf("generate IP out: %v", net.IP(randBytes).String())
+	if log.IsInfo() {
+		log.Info("generate IP out: %v", net.IP(randBytes).String())
+	}
 	return net.IP(randBytes), err
 }

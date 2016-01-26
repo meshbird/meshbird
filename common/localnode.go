@@ -3,7 +3,7 @@ package common
 import (
 	"fmt"
 	"github.com/meshbird/meshbird/secure"
-	"log"
+	log "github.com/mgutz/logxi/v1"
 	"os"
 	"sync"
 )
@@ -20,13 +20,13 @@ type LocalNode struct {
 
 	services map[string]Service
 
-	logger *log.Logger
+	logger log.Logger
 }
 
 func NewLocalNode(cfg *Config) (*LocalNode, error) {
 	var err error
 	n := new(LocalNode)
-	n.logger = log.New(os.Stderr, "[local] ", log.LstdFlags)
+	n.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[localnode] ")
 
 	n.secret, err = secure.NetworkSecretUnmarshal(cfg.SecretKey)
 	if err != nil {
@@ -63,16 +63,21 @@ func (n *LocalNode) AddService(srv Service) {
 
 func (n *LocalNode) Start() error {
 	for name, service := range n.services {
-		n.logger.Printf("Initializing %s...", name)
+		if n.logger.IsInfo() {
+			n.logger.Info("Initializing %s...", name)
+		}
 		if err := service.Init(n); err != nil {
 			return fmt.Errorf("Initialision of %s finished with error: %s", service.Name(), err)
 		}
 		n.waitGroup.Add(1)
 		go func(srv Service) {
 			defer n.waitGroup.Done()
-			n.logger.Printf("[%s] service run", srv.Name())
+			if n.logger.IsInfo() {
+
+				n.logger.Info("[%s] service run", srv.Name())
+			}
 			if err := srv.Run(); err != nil {
-				n.logger.Printf("[%s] error: %s", srv.Name(), err)
+				n.logger.Error("[%s] error: %s", srv.Name(), err)
 			}
 		}(service)
 	}
@@ -82,7 +87,7 @@ func (n *LocalNode) Start() error {
 func (n *LocalNode) Service(name string) Service {
 	service, ok := n.services[name]
 	if !ok {
-		n.logger.Panicf("Service %s not found", name)
+		n.logger.Fatal("Service %s not found", name)
 	}
 	return service
 }
@@ -92,7 +97,9 @@ func (n *LocalNode) WaitStop() {
 }
 
 func (n *LocalNode) Stop() error {
-	n.logger.Printf("Closing up local node")
+	if n.logger.IsInfo() {
+		n.logger.Info("Closing up local node")
+	}
 	for _, service := range n.services {
 		service.Stop()
 	}

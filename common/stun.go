@@ -2,9 +2,10 @@ package common
 
 import (
 	"fmt"
-	"log"
+	log "github.com/mgutz/logxi/v1"
 
 	"github.com/ccding/go-stun/stun"
+	"os"
 	"time"
 )
 
@@ -16,6 +17,7 @@ type STUNService struct {
 	BaseService
 
 	client *stun.Client
+	logger log.Logger
 }
 
 func (d STUNService) Name() string {
@@ -23,6 +25,7 @@ func (d STUNService) Name() string {
 }
 
 func (s *STUNService) Init(ln *LocalNode) error {
+	s.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[stun] ")
 	s.client = stun.NewClient()
 	s.client.SetServerAddr(STUNAddress)
 	return nil
@@ -32,7 +35,7 @@ func (s *STUNService) Run() error {
 	for !s.IsNeedStop() {
 		err := s.process()
 		if err != nil {
-			log.Printf("stun err: %s", err)
+			log.Error("stun err: %s", err)
 		}
 		time.Sleep(time.Minute)
 	}
@@ -71,7 +74,10 @@ func (s *STUNService) process() (err error) {
 	}
 
 	if host != nil {
-		log.Printf("family %d, ip %s, port %d", host.Family(), host.IP(), host.Port())
+		if s.logger.IsInfo() {
+			s.logger.Info("family %d, ip %s, port %d", host.Family(), host.IP(), host.Port())
+
+		}
 	}
 	return nil
 }

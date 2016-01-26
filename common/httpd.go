@@ -2,10 +2,8 @@ package common
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	_ "net/http/pprof"
-	"os"
 )
 
 type HttpService struct {
@@ -13,7 +11,6 @@ type HttpService struct {
 
 	localnode *LocalNode
 	iface     *InterfaceService
-	logger    *log.Logger
 }
 
 type Response struct {
@@ -27,8 +24,6 @@ func (hs *HttpService) Name() string {
 }
 
 func (hs *HttpService) Init(ln *LocalNode) (err error) {
-	hs.logger = log.New(os.Stderr, "[httpd] ", log.LstdFlags)
-	hs.iface = ln.Service("iface").(*InterfaceService)
 	hs.localnode = ln
 	return nil
 }

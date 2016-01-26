@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/anacrolix/utp"
 	"github.com/meshbird/meshbird/network/protocol"
-	"log"
+	log "github.com/mgutz/logxi/v1"
 	"net"
 	"os"
 )
@@ -15,7 +15,7 @@ type ListenerService struct {
 	localNode *LocalNode
 	socket    *utp.Socket
 
-	logger *log.Logger
+	logger log.Logger
 }
 
 func (l ListenerService) Name() string {
@@ -23,9 +23,11 @@ func (l ListenerService) Name() string {
 }
 
 func (l *ListenerService) Init(ln *LocalNode) error {
-	l.logger = log.New(os.Stderr, "[listener] ", log.LstdFlags)
+	l.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[listener] ")
 
-	l.logger.Printf("Listening on port: %d", ln.State().ListenPort+1)
+	if l.logger.IsInfo() {
+		l.logger.Info("Listening on port: %d", ln.State().ListenPort+1)
+	}
 	socket, err := utp.NewSocket("udp4", fmt.Sprintf("0.0.0.0:%d", ln.State().ListenPort+1))
 	if err != nil {
 		return err
@@ -43,10 +45,13 @@ func (l *ListenerService) Run() error {
 			break
 		}
 
-		l.logger.Printf("Has new connection: %s", conn.RemoteAddr().String())
+		if l.logger.IsDebug() {
+			l.logger.Debug("Has new connection: %s", conn.RemoteAddr().String())
+
+		}
 
 		if err = l.process(conn); err != nil {
-			l.logger.Printf("Error on process: %s", err)
+			l.logger.Error("Error on process: %s", err)
 		}
 	}
 	return nil
@@ -65,13 +70,18 @@ func (l *ListenerService) process(c net.Conn) error {
 		return errHandshake
 	}
 
-	l.logger.Println("Processing hansdhake...")
+	if l.logger.IsDebug() {
+
+		l.logger.Debug("Processing hansdhake...")
+	}
 
 	if !protocol.IsMagicValid(handshakeMsg.Bytes()) {
 		return fmt.Errorf("Invalid magic bytes")
 	}
+	if l.logger.IsDebug() {
 
-	l.logger.Println("Magic bytes are correct. Preparing reply...")
+		l.logger.Debug("Magic bytes are correct. Preparing reply...")
+	}
 
 	if err := protocol.WriteEncodeOk(c); err != nil {
 		return err
@@ -85,11 +95,17 @@ func (l *ListenerService) process(c net.Conn) error {
 		return errPeerInfo
 	}
 
-	l.logger.Println("Processing PeerInfo...")
+	if l.logger.IsDebug() {
+		l.logger.Debug("Processing PeerInfo...")
+
+	}
 
 	rn := NewRemoteNode(c, handshakeMsg.SessionKey(), peerInfo.PrivateIP())
 
-	l.logger.Printf("Adding remote node from listener...")
+	if l.logger.IsDebug() {
+		l.logger.Debug("Adding remote node from listener...")
+
+	}
 	l.localNode.NetTable().AddRemoteNode(rn)
 
 	return nil

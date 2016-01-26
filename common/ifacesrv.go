@@ -3,10 +3,10 @@ package common
 import (
 	"fmt"
 	"github.com/meshbird/meshbird/network"
+	log "github.com/mgutz/logxi/v1"
 	"github.com/miolini/water"
 	"os"
 	"strconv"
-	log "github.com/mgutz/logxi/v1"
 )
 
 type InterfaceService struct {
@@ -35,7 +35,7 @@ func (is *InterfaceService) Init(ln *LocalNode) (err error) {
 	err = network.SetMTU(is.instance.Name(), 1400)
 
 	if err != nil {
-		if log.IsWarn(){
+		if log.IsWarn() {
 			is.logger.Warn(err.Error())
 		}
 	}
@@ -54,7 +54,7 @@ func (is *InterfaceService) Run() error {
 
 		dst := network.IPv4Destination(packet)
 		is.netTable.SendPacket(dst, packet)
-		if is.logger.IsDebug(){
+		if is.logger.IsDebug() {
 			is.logger.Debug("Read packet %d bytes", n)
 		}
 
@@ -63,7 +63,7 @@ func (is *InterfaceService) Run() error {
 }
 
 func (is *InterfaceService) WritePacket(packet []byte) {
-	if is.logger.IsDebug(){
+	if is.logger.IsDebug() {
 		is.logger.Debug(fmt.Sprintf("Package for writing received, length %d bytes\n", len(packet)))
 	}
 	if _, err := is.instance.Write(packet); err != nil {

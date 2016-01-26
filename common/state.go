@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/meshbird/meshbird/network"
 	"github.com/meshbird/meshbird/secure"
+	log "github.com/mgutz/logxi/v1"
 	"io/ioutil"
-	"log"
 	"net"
 	"os"
 	"path"
@@ -16,13 +16,13 @@ type State struct {
 	Secret     *secure.NetworkSecret `json:"-"`
 	ListenPort int                   `json:"port"`
 	PrivateIP  net.IP                `json:"private_ip"`
-	logger     *log.Logger           `json:"-"`
+	logger     log.Logger            `json:"-"`
 }
 
 func NewState(secret *secure.NetworkSecret) *State {
 	s := &State{
 		Secret: secret,
-		logger: log.New(os.Stderr, "[state] ", log.LstdFlags),
+		logger: log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[state] "),
 	}
 	s.Load()
 
@@ -37,7 +37,7 @@ func NewState(secret *secure.NetworkSecret) *State {
 		if s.PrivateIP, err = network.GenerateIPAddress(secret.Net); err == nil {
 			save = true
 		} else {
-			s.logger.Printf("Error on generate IP: %s", err)
+			s.logger.Error("Error on generate IP: %s", err)
 		}
 	}
 
@@ -51,7 +51,10 @@ func NewState(secret *secure.NetworkSecret) *State {
 func (s *State) Load() {
 	if data, err := ioutil.ReadFile(s.getConfigPath()); err == nil {
 		if err = json.Unmarshal(data, s); err == nil {
-			s.logger.Printf("State restored: %+v, private IP: %x", s, s.PrivateIP)
+			if s.logger.IsInfo() {
+				s.logger.Info("State restored: %+v, private IP: %x", s, s.PrivateIP)
+
+			}
 		}
 	}
 }
@@ -59,7 +62,7 @@ func (s *State) Load() {
 func (s *State) Save() {
 	if data, err := json.Marshal(s); err == nil {
 		if err = ioutil.WriteFile(s.getConfigPath(), data, os.ModePerm); err != nil {
-			s.logger.Printf("Error on write state: %s", err)
+			s.logger.Error("Error on write state: %s", err)
 		}
 	}
 }
