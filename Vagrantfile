@@ -9,6 +9,6 @@ Vagrant.configure(2) do |config|
     end
 
     config.vm.define "node02" do |node02|
-        node01.vm.network "public_network"
+        node02.vm.network "public_network"
     end
 end
