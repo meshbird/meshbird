@@ -6,7 +6,6 @@ import (
 	"github.com/anacrolix/utp"
 	"github.com/meshbird/meshbird/network/protocol"
 	"net"
-	"os"
 )
 
 type ListenerService struct {

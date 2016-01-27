@@ -4,7 +4,6 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/meshbird/meshbird/secure"
-	"os"
 	"sync"
 )
 

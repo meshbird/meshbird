@@ -11,7 +11,6 @@ import (
 	"github.com/anacrolix/utp"
 	"github.com/meshbird/meshbird/network/protocol"
 	"github.com/meshbird/meshbird/secure"
-	"os"
 )
 
 type RemoteNode struct {

@@ -1,12 +1,10 @@
 package common
 
 import (
-	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/meshbird/meshbird/network/protocol"
 	"github.com/meshbird/meshbird/secure"
 	"net"
-	"os"
 	"sync"
 	"time"
 )
