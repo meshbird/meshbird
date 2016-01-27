@@ -109,7 +109,7 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret, ln *LocalNode) (*
 
 	// TODO: Add prefix
 	rn.logger = log.New()
-	rn.logger = ln.config.Loglevel
+	rn.logger.Level = ln.config.Loglevel
 
 	rn.logger.WithField("pub", rn.publicAddress).Debug("Trying to connection")
 
@@ -147,7 +147,7 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret, ln *LocalNode) (*
 
 	// TODO: Add prefix
 	rn.logger = log.New()
-	rn.logger = ln.config.Loglevel
+	rn.logger.Level = ln.config.Loglevel
 
 	if err := protocol.WriteEncodePeerInfo(rn.conn, ln.State().PrivateIP); err != nil {
 		return nil, err

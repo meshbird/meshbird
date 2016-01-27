@@ -24,7 +24,7 @@ func (l ListenerService) Name() string {
 func (l *ListenerService) Init(ln *LocalNode) error {
 	// TODO: Add prefix
 	l.logger = log.New()
-	l.logger = ln.config.Loglevel
+	l.logger.Level = ln.config.Loglevel
 
 	port := ln.State().ListenPort + 1
 	l.logger.WithField("port", port).Info("Listening")

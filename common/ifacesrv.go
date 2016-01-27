@@ -23,7 +23,7 @@ func (is *InterfaceService) Name() string {
 func (is *InterfaceService) Init(ln *LocalNode) (err error) {
 	// TODO: Add prefix to logs
 	is.logger = log.New()
-	is.logger = ln.config.Loglevel
+	is.logger.Level = ln.config.Loglevel
 	is.localnode = ln
 	is.netTable = ln.NetTable()
 	netsize, _ := ln.State().Secret.Net.Mask.Size()

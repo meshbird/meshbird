@@ -22,7 +22,7 @@ func (d UPnPService) Name() string {
 func (s *UPnPService) Init(ln *LocalNode) error {
 	// TODO: Add prefix
 	s.logger = log.New()
-	s.logger = ln.config.Loglevel
+	s.logger.Level = ln.config.Loglevel
 	s.mapping = new(upnp.Upnp)
 	s.port = ln.State().ListenPort + 1
 	return nil

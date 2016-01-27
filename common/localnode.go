@@ -28,7 +28,7 @@ func NewLocalNode(cfg *Config) (*LocalNode, error) {
 
 	// TODO: Add prefix
 	n.logger = log.New()
-	n.logger = cfg.Loglevel
+	n.logger.Level = cfg.Loglevel
 
 	n.secret, err = secure.NetworkSecretUnmarshal(cfg.SecretKey)
 	if err != nil {
@@ -74,7 +74,7 @@ func (n *LocalNode) Start() error {
 			defer n.waitGroup.Done()
 			n.logger.WithField("name", srv.Name()).Info("Running service...")
 			if err := srv.Run(); err != nil {
-				n.logger.WithFields(log.Fields{"name", srv.Name(), "err": err}).Error()
+				n.logger.WithFields(log.Fields{"name": srv.Name(), "err": err}).Error()
 			}
 		}(service)
 	}
