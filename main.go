@@ -107,7 +107,7 @@ func actionNew(ctx *cli.Context) {
 func actionJoin(ctx *cli.Context) {
 	logLevel, err := log.ParseLevel(Loglevel)
 	if err != nil {
-		logger.WithError(err).Fatal()
+		logLevel = log.DebugLevel
 	}
 	logger.Level = logLevel
 
