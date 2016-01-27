@@ -2,49 +2,13 @@ package secure
 
 import (
 	"testing"
-	"bytes"
-	"crypto/aes"
-	"crypto/cipher"
 	"crypto/rand"
 	"time"
 )
 
 var (
-	original = []byte("Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! ")
+	original = []byte("Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird! Hello, World from MeshBird!")
 )
-
-func TestEncryptIV(t *testing.T) {
-	key := randomBytes(16)
-	iv := randomBytes(16)
-
-	ac, err := aes.NewCipher(key)
-	if err != nil {
-		t.Fatal(err)
-	}
-	c := cipher.NewCBCEncrypter(ac, iv)
-
-	encrypted := make(chan []byte, )
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Logf("encrypted: %x", encrypted)
-
-	decrypted, err := DecryptIV(encrypted, key, iv)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(original, decrypted) {
-		t.Fatal("original payload not equals to encrypted/decrypted")
-	}
-}
-
-func TestEncryptAESGCM(t *testing.T) {
-	key := randomBytes(aes.BlockSize)
-	ac, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-}
 
 func BenchmarkEncryptAesCbc(b *testing.B) {
 	key := randomBytes(16)
