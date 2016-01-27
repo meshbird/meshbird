@@ -2,9 +2,10 @@ package network
 
 import (
 	"fmt"
-	"github.com/hsheth2/water/waterutil"
-	"github.com/miolini/water"
 	"net"
+	"os"
+
+	"github.com/hsheth2/water/waterutil"
 )
 
 const DEFAULT_MTU = 1500
@@ -15,19 +16,36 @@ func Init() {
 	MTU = 0
 }
 
-func CreateTunInterface(iface string) (*water.Interface, error) {
-	ifce, err := water.NewTUN(iface)
+type Interface struct {
+	name string
+	file *os.File
+}
+
+func (i Interface) Name() string {
+	return i.name
+}
+
+func (i *Interface) Write(data []byte) (n int, err error) {
+	return i.file.Write(data)
+}
+
+func (i *Interface) Read(data []byte) (n int, err error) {
+	return i.file.Read(data)
+}
+
+func CreateTunInterface(ifceName string) (*Interface, error) {
+	ifce, err := interfaceOpen("tun", ifceName)
 	if err != nil {
-		return nil, fmt.Errorf("create new tun interface %s err: %s", iface, err)
+		return nil, fmt.Errorf("create new tun interface %s err: %s", ifce, err)
 	}
 	err = UpInterface(ifce.Name())
 	if err != nil {
-		return nil, fmt.Errorf("tun interface %s up err: %s", iface, err)
+		return nil, fmt.Errorf("tun interface %s up err: %s", ifce.Name(), err)
 	}
 	return ifce, nil
 }
 
-func CreateTunInterfaceWithIp(iface string, IpAddr string) (*water.Interface, error) {
+func CreateTunInterfaceWithIp(iface string, IpAddr string) (*Interface, error) {
 	ifce, err := CreateTunInterface(iface)
 	if err != nil {
 		return nil, err
@@ -36,7 +54,7 @@ func CreateTunInterfaceWithIp(iface string, IpAddr string) (*water.Interface, er
 	return ifce, err
 }
 
-func NextNetworkPacket(iface *water.Interface) ([]byte, error) {
+func NextNetworkPacket(iface *Interface) ([]byte, error) {
 	if MTU == 0 {
 		MTU = DEFAULT_MTU
 	}

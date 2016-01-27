@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/meshbird/meshbird/network"
 	log "github.com/mgutz/logxi/v1"
-	"github.com/miolini/water"
 	"os"
 	"strconv"
 )
@@ -13,7 +12,7 @@ type InterfaceService struct {
 	BaseService
 
 	localnode *LocalNode
-	instance  *water.Interface
+	instance  *network.Interface
 	netTable  *NetTable
 	logger    log.Logger
 }
