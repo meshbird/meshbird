@@ -2,10 +2,9 @@ package common
 
 import (
 	"fmt"
-	log "github.com/mgutz/logxi/v1"
+	log "github.com/Sirupsen/logrus"
 	"io"
 	"net"
-	"os"
 	"strconv"
 	"time"
 
@@ -20,7 +19,7 @@ type RemoteNode struct {
 	sessionKey    []byte
 	privateIP     net.IP
 	publicAddress string
-	logger        log.Logger
+	logger        *log.Logger
 	lastHeartbeat time.Time
 }
 
@@ -30,7 +29,9 @@ func NewRemoteNode(conn net.Conn, sessionKey []byte, privateIP net.IP) *RemoteNo
 		sessionKey:    sessionKey,
 		privateIP:     privateIP,
 		publicAddress: conn.RemoteAddr().String(),
-		logger:        log.NewLogger(log.NewConcurrentWriter(os.Stderr), fmt.Sprintf("[remote priv/%s] ", privateIP.To4().String())),
+		logger:        log.New(),
+		// TODO: Fix it
+		//		logger:        log.NewLogger(log.NewConcurrentWriter(os.Stderr), fmt.Sprintf("[remote priv/%s] ", privateIP.To4().String())),
 		lastHeartbeat: time.Now(),
 	}
 }
@@ -48,15 +49,11 @@ func (rn *RemoteNode) SendPack(pack *protocol.Packet) (err error) {
 
 func (rn *RemoteNode) Close() {
 	defer rn.conn.Close()
-	if rn.logger.IsDebug() {
-		rn.logger.Debug("Closing...")
-	}
+	rn.logger.Debug("Closing...")
 }
 
 func (rn *RemoteNode) listen(ln *LocalNode) {
-	if rn.logger.IsDebug() {
-		defer rn.logger.Debug("EXIT LISTEN")
-	}
+	defer rn.logger.Debug("EXIT LISTEN")
 	defer func() {
 		ln.NetTable().RemoveRemoteNode(rn.privateIP)
 	}()
@@ -67,43 +64,31 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 		return
 	}
 
-	if rn.logger.IsInfo() {
-		rn.logger.Info("Listening...")
-	}
+	rn.logger.Info("Listening...")
 
 	for {
 		pack, err := protocol.Decode(rn.conn)
 		if err != nil {
-			if rn.logger.IsDebug() {
-				rn.logger.Debug(fmt.Sprintf("Decode error: %v", err))
-			}
+			rn.logger.Debug(fmt.Sprintf("Decode error: %v", err))
 			if err == io.EOF {
 				break
 			}
 			continue
 		}
-		if rn.logger.IsDebug() {
-			rn.logger.Debug(fmt.Sprintf("Received package: %+v", pack))
-		}
+		rn.logger.Debug(fmt.Sprintf("Received package: %+v", pack))
 
 		switch pack.Data.Type {
 		case protocol.TypeTransfer:
-			if rn.logger.IsDebug() {
-				rn.logger.Debug("Writing to interface...")
-			}
+			rn.logger.Debug("Writing to interface...")
 			payloadEncrypted := pack.Data.Msg.(protocol.TransferMessage).Bytes()
 			payload, errDec := secure.DecryptIV(payloadEncrypted, ln.State().Secret.Key, ln.State().Secret.Key)
 			if errDec != nil {
-				if rn.logger.IsDebug() {
-					rn.logger.Debug(fmt.Sprintf("Error on decrypt: %v", errDec))
-				}
+				rn.logger.Debug(fmt.Sprintf("Error on decrypt: %v", errDec))
 				break
 			}
 			iface.WritePacket(payload)
 		case protocol.TypeHeartbeat:
-			if rn.logger.IsDebug() {
-				rn.logger.Debug(fmt.Sprintf("Received heardbeat... %v", pack.Data.Msg))
-			}
+			rn.logger.Debug(fmt.Sprintf("Received heardbeat... %v", pack.Data.Msg))
 			rn.lastHeartbeat = time.Now()
 		}
 	}
@@ -123,17 +108,15 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret, ln *LocalNode) (*
 	rn := new(RemoteNode)
 	rn.lastHeartbeat = time.Now()
 	rn.publicAddress = fmt.Sprintf("%s:%d", host, port+1)
-	rn.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), fmt.Sprintf("[remote priv/%s] ", fmt.Sprintf("[remote pub/%s] ", rn.publicAddress)))
+	// TODO: Fix it
+	//rn.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), fmt.Sprintf("[remote priv/%s] ", fmt.Sprintf("[remote pub/%s] ", rn.publicAddress)))
+	rn.logger = log.New()
 
-	if rn.logger.IsDebug() {
-		rn.logger.Debug(fmt.Sprintf("Trying to connection to: %s", rn.publicAddress))
-	}
+	rn.logger.Debug(fmt.Sprintf("Trying to connection to: %s", rn.publicAddress))
 
 	s, errSocket := utp.NewSocket("udp4", ":0")
 	if errSocket != nil {
-		if rn.logger.IsDebug() {
-			rn.logger.Debug(fmt.Sprintf("Unable to crete a socket: %s", errSocket))
-		}
+		rn.logger.Debug(fmt.Sprintf("Unable to crete a socket: %s", errSocket))
 		return nil, errSocket
 	}
 
@@ -159,15 +142,13 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret, ln *LocalNode) (*
 	}
 
 	rn.privateIP = peerInfo.PrivateIP()
-
-	rn.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), fmt.Sprintf("[remote priv/%s] ", rn.privateIP.To4().String()))
-
+	// TODO: Fix ot
+	//rn.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), fmt.Sprintf("[remote priv/%s] ", rn.privateIP.To4().String()))
+	rn.logger = log.New()
 	if err := protocol.WriteEncodePeerInfo(rn.conn, ln.State().PrivateIP); err != nil {
 		return nil, err
 	}
-	if rn.logger.IsDebug() {
-		rn.logger.Debug(fmt.Sprintf("Connected to node: %s/%s", rn.privateIP.String(), rn.publicAddress))
-	}
+	rn.logger.Debug(fmt.Sprintf("Connected to node: %s/%s", rn.privateIP.String(), rn.publicAddress))
 
 	return rn, nil
 }

@@ -1,12 +1,11 @@
 package common
 
 import (
-	log "github.com/mgutz/logxi/v1"
+	log "github.com/Sirupsen/logrus"
 	"time"
 
 	"fmt"
 	"github.com/prestonTao/upnp"
-	"os"
 )
 
 type UPnPService struct {
@@ -14,7 +13,7 @@ type UPnPService struct {
 
 	mapping *upnp.Upnp
 	port    int
-	logger  log.Logger
+	logger  *log.Logger
 }
 
 func (d UPnPService) Name() string {
@@ -22,7 +21,9 @@ func (d UPnPService) Name() string {
 }
 
 func (s *UPnPService) Init(ln *LocalNode) error {
-	s.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[upnp] ")
+	// TODO: FIX IT
+	// s.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[upnp] ")
+	s.logger = log.New()
 	s.mapping = new(upnp.Upnp)
 	s.port = ln.State().ListenPort + 1
 	return nil
@@ -45,17 +46,11 @@ func (s *UPnPService) process() (err error) {
 			err = fmt.Errorf("panic: %s", r)
 		}
 	}()
-	if s.logger.IsInfo() {
-		s.logger.Info(fmt.Sprintf("UPnP port mapping: %d", s.port))
-	}
+	s.logger.Info(fmt.Sprintf("UPnP port mapping: %d", s.port))
 	if err := s.mapping.AddPortMapping(s.port, s.port, "UDP"); err == nil {
-		if s.logger.IsDebug() {
-			s.logger.Debug("port mapping passed")
-		}
+		s.logger.Debug("port mapping passed")
 	} else {
-		if s.logger.IsDebug() {
-			s.logger.Debug("port mapping fail")
-		}
+		s.logger.Debug("port mapping fail")
 	}
 	return nil
 }

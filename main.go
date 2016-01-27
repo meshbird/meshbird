@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	"github.com/meshbird/meshbird/common"
 	"github.com/meshbird/meshbird/secure"
-	log "github.com/mgutz/logxi/v1"
 	"net"
 	"os"
 	"os/signal"
@@ -19,7 +19,7 @@ const (
 var (
 	// VERSION var using for auto versioning through Go linker
 	VERSION = "dev"
-	logger  = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[main] ")
+	logger  = log.New()
 )
 
 func main() {
@@ -73,9 +73,7 @@ func actionGetIP(ctx *cli.Context) {
 	}
 	state := common.NewState(secret)
 	state.Save()
-	if logger.IsInfo() {
-		logger.Info(fmt.Sprintf("Restored private IP address %s from state", state.PrivateIP.String()))
-	}
+	logger.Info(fmt.Sprintf("Restored private IP address %s from state", state.PrivateIP.String()))
 }
 
 func actionNew(ctx *cli.Context) {
@@ -106,6 +104,7 @@ func actionJoin(ctx *cli.Context) {
 
 	nodeConfig := &common.Config{
 		SecretKey: key,
+		Loglevel:  log.DebugLevel,
 	}
 	node, err := common.NewLocalNode(nodeConfig)
 	if err != nil {
@@ -117,10 +116,7 @@ func actionJoin(ctx *cli.Context) {
 
 	go func() {
 		s := <-signalChan
-		if logger.IsInfo() {
-
-			logger.Info(fmt.Sprintf("received signal %s, stopping...", s))
-		}
+		logger.Info(fmt.Sprintf("received signal %s, stopping...", s))
 		node.Stop()
 
 		time.Sleep(2 * time.Second)

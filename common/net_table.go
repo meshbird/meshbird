@@ -2,11 +2,10 @@ package common
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/meshbird/meshbird/network/protocol"
 	"github.com/meshbird/meshbird/secure"
-	log "github.com/mgutz/logxi/v1"
 	"net"
-	"os"
 	"sync"
 	"time"
 )
@@ -24,7 +23,7 @@ type NetTable struct {
 
 	heartbeatTicker <-chan time.Time
 
-	logger log.Logger
+	logger *log.Logger
 }
 
 func (nt NetTable) Name() string {
@@ -32,7 +31,9 @@ func (nt NetTable) Name() string {
 }
 
 func (nt *NetTable) Init(ln *LocalNode) error {
-	nt.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[net-table] ")
+	// TODO: Fix it
+	//	nt.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[net-table] ")
+	nt.logger = log.New()
 	nt.localNode = ln
 	nt.dhtInChan = make(chan string, 10)
 	nt.blackList = make(map[string]time.Time)
@@ -68,23 +69,17 @@ func (nt *NetTable) RemoteNodeByIP(ip net.IP) *RemoteNode {
 }
 
 func (nt *NetTable) AddRemoteNode(rn *RemoteNode) {
-	if nt.logger.IsDebug() {
-		nt.logger.Debug(fmt.Sprintf("Trying to add node %s/%s ...", rn.privateIP.String(), rn.publicAddress))
-	}
+	nt.logger.Debug(fmt.Sprintf("Trying to add node %s/%s ...", rn.privateIP.String(), rn.publicAddress))
 
 	if nt.localNode.State().PrivateIP.Equal(rn.privateIP) {
-		if nt.logger.IsDebug() {
-			nt.logger.Debug("Found myself, node will not be added!")
-		}
+		nt.logger.Debug("Found myself, node will not be added!")
 		return
 	}
 
 	nt.lock.Lock()
 	defer nt.lock.Unlock()
 	nt.peers[rn.privateIP.To4().String()] = rn
-	if nt.logger.IsInfo() {
-		nt.logger.Info(fmt.Sprintf("Added remote node: %s/%s", rn.privateIP.String(), rn.publicAddress))
-	}
+	nt.logger.Info(fmt.Sprintf("Added remote node: %s/%s", rn.privateIP.String(), rn.publicAddress))
 	go rn.listen(nt.localNode)
 }
 
@@ -146,9 +141,7 @@ func (nt *NetTable) tryConnect(h string) {
 		nt.addToBlackList(h)
 		return
 	}
-	if nt.logger.IsDebug() {
-		nt.logger.Debug("Adding remote node from try connect...")
-	}
+	nt.logger.Debug("Adding remote node from try connect...")
 	nt.AddRemoteNode(rn)
 }
 
@@ -159,17 +152,13 @@ func (nt *NetTable) addToBlackList(h string) {
 }
 
 func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
-	if nt.logger.IsDebug() {
 
-		nt.logger.Debug(fmt.Sprintf("Sending to %s packet len %d", dstIP.String(), len(payload)))
-	}
+	nt.logger.Debug(fmt.Sprintf("Sending to %s packet len %d", dstIP.String(), len(payload)))
 
 	rn := nt.RemoteNodeByIP(dstIP)
 	if rn == nil {
-		if nt.logger.IsDebug() {
-			nt.logger.Debug(fmt.Sprintf("Destination host unreachable: %s", dstIP.String()))
-			nt.logger.Debug(fmt.Sprintf("Known hosts: %v", nt.knownHosts()))
-		}
+		nt.logger.Debug(fmt.Sprintf("Destination host unreachable: %s", dstIP.String()))
+		nt.logger.Debug(fmt.Sprintf("Known hosts: %v", nt.knownHosts()))
 
 		return
 	}
