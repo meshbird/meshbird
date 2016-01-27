@@ -95,10 +95,7 @@ func actionNew(ctx *cli.Context) {
 		}
 		secret = secure.NewNetworkSecret(ipnet)
 	}
-	keyStr := secret.Marshal()
-	if logger.IsInfo() {
-		logger.Info(fmt.Sprintf("key: %s", keyStr))
-	}
+	fmt.Println(secret.Marshal())
 }
 
 func actionJoin(ctx *cli.Context) {
