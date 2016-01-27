@@ -25,11 +25,11 @@ func (l ListenerService) Name() string {
 func (l *ListenerService) Init(ln *LocalNode) error {
 	// TODO: Add prefix
 	l.logger = log.New()
-	log.SetOutput(os.Stderr)
-	log.SetLevel(ln.config.Loglevel)
+	l.logger = ln.config.Loglevel
 
-	l.logger.Info(fmt.Sprintf("Listening on port: %d", ln.State().ListenPort+1))
-	socket, err := utp.NewSocket("udp4", fmt.Sprintf("0.0.0.0:%d", ln.State().ListenPort+1))
+	port := ln.State().ListenPort + 1
+	l.logger.WithField("port", port).Info("Listening")
+	socket, err := utp.NewSocket("udp4", fmt.Sprintf("0.0.0.0:%d", port))
 	if err != nil {
 		return err
 	}
@@ -46,10 +46,10 @@ func (l *ListenerService) Run() error {
 			break
 		}
 
-		l.logger.Debug("Has new connection: %s", conn.RemoteAddr().String())
+		l.logger.WithField("addr", conn.RemoteAddr().String()).Debug("Has new connection")
 
 		if err = l.process(conn); err != nil {
-			l.logger.Error("Error on process: %s", err)
+			l.logger.WithError(err).Error("Error on process")
 		}
 	}
 	return nil

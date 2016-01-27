@@ -37,11 +37,11 @@ func (o OkMessage) WriteTo(w io.Writer) (int64, error) {
 }
 
 func ReadDecodeOk(r io.Reader) (OkMessage, error) {
-	logger.Printf("Trying to read OK message...")
+	logger.Debug("Trying to read OK message...")
 
 	okPack, errDecode := ReadAndDecode(r)
 	if errDecode != nil {
-		logger.Printf("Unable to decode package: %s", errDecode)
+		logger.WithError(errDecode).Error("Unable to decode package")
 		return nil, fmt.Errorf("Error on read OK package: %v", errDecode)
 	}
 
@@ -49,13 +49,13 @@ func ReadDecodeOk(r io.Reader) (OkMessage, error) {
 		return nil, fmt.Errorf("Got non OK message: %+v", okPack)
 	}
 
-	logger.Printf("Readed OK: %+v", okPack.Data.Msg)
+	logger.WithField("msg", okPack.Data.Msg).Debug("Readed OK")
 
 	return okPack.Data.Msg.(OkMessage), nil
 }
 
 func WriteEncodeOk(w io.Writer) (err error) {
-	logger.Printf("Trying to write OK message...")
+	logger.Debug("Trying to write OK message...")
 	if err = EncodeAndWrite(w, NewOkMessage()); err != nil {
 		err = fmt.Errorf("Error on write OK message: %v", err)
 	}

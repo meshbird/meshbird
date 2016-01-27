@@ -3,10 +3,8 @@ package common
 import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
-
 	"github.com/ccding/go-stun/stun"
 	"time"
-	"os"
 )
 
 const (
@@ -27,8 +25,7 @@ func (d STUNService) Name() string {
 func (s *STUNService) Init(ln *LocalNode) error {
 	// TODO: Add prefix
 	s.logger = log.New()
-	log.SetOutput(os.Stderr)
-	log.SetLevel(ln.config.Loglevel)
+	s.logger.Level = ln.config.Loglevel
 	s.client = stun.NewClient()
 	s.client.SetServerAddr(STUNAddress)
 	return nil
@@ -38,7 +35,7 @@ func (s *STUNService) Run() error {
 	for !s.IsNeedStop() {
 		err := s.process()
 		if err != nil {
-			log.Error(fmt.Sprintf("stun err: %s", err))
+			s.logger.WithError(err).Error()
 		}
 		time.Sleep(time.Minute)
 	}
@@ -77,7 +74,11 @@ func (s *STUNService) process() (err error) {
 	}
 
 	if host != nil {
-		s.logger.Info("family %d, ip %s, port %d", host.Family(), host.IP(), host.Port())
+		s.logger.WithFields(log.Fields{
+			"family": host.Family(),
+			"ip":     host.IP(),
+			"port":   host.Port(),
+		}).Info("Process")
 	}
 	return nil
 }

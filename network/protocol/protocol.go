@@ -4,9 +4,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	log "github.com/Sirupsen/logrus"
 	"io"
-	"log"
-	"os"
 )
 
 const (
@@ -24,7 +23,7 @@ const (
 )
 
 var (
-	logger = log.New(os.Stderr, "[proto] ", log.LstdFlags)
+	logger = log.New()
 
 	ErrorUnableToReadVector  = errors.New("unable to read vector")
 	ErrorUnableToReadMessage = errors.New("unable to read message")
@@ -168,35 +167,48 @@ func Encode(pack *Packet) ([]byte, error) {
 func ReadAndDecode(r io.Reader) (*Packet, error) {
 	pack, errDecode := Decode(r)
 	if errDecode != nil {
-		logger.Printf("Unable to decode packet: %s", errDecode)
+		logger.WithError(errDecode).Error("Unable to decode packet")
 		return nil, errDecode
 	}
 
-	logger.Printf("Received packet: %+v", pack)
+	logger.WithField("pack", pack).Debug("Received packet")
 
 	return pack, nil
 }
 
 func EncodeAndWrite(w io.Writer, pack *Packet) error {
-	logger.Printf("Encoding package: %+v", pack)
+	logger.WithField("pack", pack).Debug("Encoding package")
 
 	typeName := TypeName(pack.Data.Type)
 
 	reply, errEncode := Encode(pack)
 	if errEncode != nil {
-		logger.Printf("Error on encoding %s: %v", typeName, errEncode)
+		logger.WithFields(log.Fields{
+			"type": typeName,
+			"err":  errEncode,
+		}).Error("Error on encoding")
 		return errEncode
 	}
 
-	logger.Printf("Sending %s message %d bytes...", typeName, len(reply))
+	logger.WithFields(log.Fields{
+		"type": typeName,
+		"len":  len(reply),
+	}).Debug("Sending message ...")
 
 	n, err := w.Write(reply)
 	if err != nil {
-		logger.Printf("Error on write %s: %v", typeName, err)
+		logger.WithFields(log.Fields{
+			"type": typeName,
+			"err":  err,
+		}).Error("Error on write")
 		return err
 	}
 
-	logger.Printf("%d of %d bytes of %s message sent", n, len(reply), typeName)
+	logger.WithFields(log.Fields{
+		"type":       typeName,
+		"len_sent":   n,
+		"len_actual": len(reply),
+	}).Debug("Message sent")
 
 	return nil
 }

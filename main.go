@@ -18,8 +18,8 @@ const (
 
 var (
 	// VERSION var using for auto versioning through Go linker
-	VERSION = "dev"
-	logger  = log.New()
+	VERSION  = "dev"
+	logger   = log.New()
 	Loglevel = ""
 )
 
@@ -57,31 +57,31 @@ func main() {
 			ArgsUsage: "<key>",
 		},
 	}
-	app.Flags = []cli.Flag {
+	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name: "loglevel",
-			Usage: "log level",
+			Name:        "loglevel",
+			Usage:       "log level",
 			Destination: &Loglevel,
 		},
 	}
 	err := app.Run(os.Args)
 	if err != nil {
-		logger.Error("error: %s", err)
+		logger.WithError(err).Fatal()
 	}
 }
 
 func actionGetIP(ctx *cli.Context) {
 	keyStr := os.Getenv(MeshbirdKeyEnv)
 	if keyStr == "" {
-		logger.Fatal(fmt.Sprintf("environment variable %s is not specified", MeshbirdKeyEnv))
+		logger.Fatalf("environment variable %s is not specified", MeshbirdKeyEnv)
 	}
 	secret, err := secure.NetworkSecretUnmarshal(keyStr)
 	if err != nil {
-		logger.Fatal(err.Error())
+		logger.WithError(err).Fatal()
 	}
 	state := common.NewState(secret)
 	state.Save()
-	logger.Info(fmt.Sprintf("Restored private IP address %s from state", state.PrivateIP.String()))
+	logger.Info("Restored private IP address %s from state", state.PrivateIP.String())
 }
 
 func actionNew(ctx *cli.Context) {
@@ -92,12 +92,12 @@ func actionNew(ctx *cli.Context) {
 		keyStr := ctx.Args().First()
 		secret, err = secure.NetworkSecretUnmarshal(keyStr)
 		if err != nil {
-			logger.Fatal(err.Error())
+			logger.WithError(err).Fatal()
 		}
 	} else {
 		_, ipnet, err := net.ParseCIDR(ctx.String("CIDR"))
 		if err != nil {
-			logger.Fatal(fmt.Sprintf("cidr parse error: %s", err))
+			logger.WithError(err).Fatal("cidr parse error")
 		}
 		secret = secure.NewNetworkSecret(ipnet)
 	}
@@ -105,23 +105,24 @@ func actionNew(ctx *cli.Context) {
 }
 
 func actionJoin(ctx *cli.Context) {
-	loglevel, err := log.ParseLevel(Loglevel)
+	logLevel, err := log.ParseLevel(Loglevel)
 	if err != nil {
-		logger.Fatal(err)
+		logger.WithError(err).Fatal()
 	}
+	logger.Level = logLevel
+
 	key := os.Getenv(MeshbirdKeyEnv)
-	log.SetLevel(loglevel)
 	if key == "" {
-		logger.Fatal(fmt.Sprintf("environment variable %s is not specified", MeshbirdKeyEnv))
+		logger.Fatalf("environment variable %s is not specified", MeshbirdKeyEnv)
 	}
 
 	nodeConfig := &common.Config{
 		SecretKey: key,
-		Loglevel:  loglevel,
+		Loglevel:  logLevel,
 	}
 	node, err := common.NewLocalNode(nodeConfig)
 	if err != nil {
-		logger.Fatal(fmt.Sprintf("local node init error: %s", err))
+		logger.WithError(err).Fatal("local node init error")
 	}
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt, os.Kill)
@@ -129,7 +130,7 @@ func actionJoin(ctx *cli.Context) {
 
 	go func() {
 		s := <-signalChan
-		logger.Info(fmt.Sprintf("received signal %s, stopping...", s))
+		logger.WithField("signal", s).Info("signal received, stopping...")
 		node.Stop()
 
 		time.Sleep(2 * time.Second)
@@ -138,7 +139,7 @@ func actionJoin(ctx *cli.Context) {
 
 	err = node.Start()
 	if err != nil {
-		logger.Fatal(fmt.Sprintf("node start error: %s", err))
+		logger.WithError(err).Fatal("node start error")
 	}
 
 	node.WaitStop()

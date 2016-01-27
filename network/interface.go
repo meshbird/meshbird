@@ -12,7 +12,7 @@ const DEFAULT_MTU = 1500
 
 var MTU int
 
-func Init() {
+func init() {
 	MTU = 0
 }
 

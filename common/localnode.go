@@ -4,8 +4,8 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/meshbird/meshbird/secure"
-	"sync"
 	"os"
+	"sync"
 )
 
 type LocalNode struct {
@@ -26,10 +26,10 @@ type LocalNode struct {
 func NewLocalNode(cfg *Config) (*LocalNode, error) {
 	var err error
 	n := new(LocalNode)
+
 	// TODO: Add prefix
 	n.logger = log.New()
-	log.SetOutput(os.Stderr)
-	log.SetLevel(cfg.Loglevel)
+	n.logger = cfg.Loglevel
 
 	n.secret, err = secure.NetworkSecretUnmarshal(cfg.SecretKey)
 	if err != nil {
@@ -65,17 +65,17 @@ func (n *LocalNode) AddService(srv Service) {
 }
 
 func (n *LocalNode) Start() error {
-	for name, service := range n.services {
-		n.logger.Info(fmt.Sprintf("Initializing %s...", name))
+	for _, service := range n.services {
+		n.logger.WithField("name", service.Name()).Info("Initializing service...")
 		if err := service.Init(n); err != nil {
 			return fmt.Errorf("Initialision of %s finished with error: %s", service.Name(), err)
 		}
 		n.waitGroup.Add(1)
 		go func(srv Service) {
 			defer n.waitGroup.Done()
-			n.logger.Info(fmt.Sprintf("[%s] service run", srv.Name()))
+			n.logger.WithField("name", srv.Name()).Info("Running service...")
 			if err := srv.Run(); err != nil {
-				n.logger.Error(fmt.Sprintf("[%s] error: %s", srv.Name(), err))
+				n.logger.WithFields(log.Fields{"name", srv.Name(), "err": err}).Error()
 			}
 		}(service)
 	}
@@ -85,7 +85,7 @@ func (n *LocalNode) Start() error {
 func (n *LocalNode) Service(name string) Service {
 	service, ok := n.services[name]
 	if !ok {
-		n.logger.Fatal(fmt.Sprintf("Service %s not found", name))
+		n.logger.WithField("name", name).Fatal("Service not found")
 	}
 	return service
 }

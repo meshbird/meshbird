@@ -4,9 +4,9 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/nictuku/dht"
+	"os"
 	"sync"
 	"time"
-	"os"
 )
 
 type DiscoveryDHT struct {
@@ -31,8 +31,7 @@ func (d DiscoveryDHT) Name() string {
 func (d *DiscoveryDHT) Init(ln *LocalNode) error {
 	// TODO: Add prefix
 	d.logger = log.New()
-	log.SetOutput(os.Stderr)
-	log.SetLevel(ln.config.Loglevel)
+	d.logger.Level = ln.config.Loglevel
 	d.localNode = ln
 	d.stopChan = make(chan bool)
 	return nil
@@ -72,18 +71,21 @@ func (d *DiscoveryDHT) process() {
 	t := time.NewTimer(60 * time.Second)
 	defer t.Stop()
 
-	d.logger.Debug("Request...")
-	d.node.PeersRequest(string(d.ih), true)
+	d.request()
 
 	for d.Status() != StatusStopping {
 		select {
 		case <-t.C:
-			d.logger.Debug("Request...")
-			d.node.PeersRequest(string(d.ih), true)
+			d.request()
 		case <-d.stopChan:
 			return
 		}
 	}
+}
+
+func (d *DiscoveryDHT) request() {
+	d.logger.Debug("Request...")
+	d.node.PeersRequest(string(d.ih), true)
 }
 
 func (d *DiscoveryDHT) addPeer(peer string) {
@@ -106,8 +108,7 @@ func (d *DiscoveryDHT) addPeer(peer string) {
 		return
 	}
 
-	d.logger.Debug("Reer: %s", peer)
-
+	d.logger.WithField("peer", peer).Debug("New peer received")
 	d.localNode.NetTable().GetDHTInChannel() <- peer
 }
 

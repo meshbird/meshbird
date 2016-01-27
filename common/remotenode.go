@@ -52,7 +52,7 @@ func (rn *RemoteNode) Close() {
 }
 
 func (rn *RemoteNode) listen(ln *LocalNode) {
-	defer rn.logger.Debug("EXIT LISTEN")
+	defer rn.logger.Debug("Exiting from listener...")
 	defer func() {
 		ln.NetTable().RemoveRemoteNode(rn.privateIP)
 	}()
@@ -68,13 +68,13 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 	for {
 		pack, err := protocol.Decode(rn.conn)
 		if err != nil {
-			rn.logger.Debug(fmt.Sprintf("Decode error: %v", err))
+			rn.logger.WithError(err).Error("Decode error")
 			if err == io.EOF {
 				break
 			}
 			continue
 		}
-		rn.logger.Debug(fmt.Sprintf("Received package: %+v", pack))
+		rn.logger.WithField("pack", pack).Debug("Received package")
 
 		switch pack.Data.Type {
 		case protocol.TypeTransfer:
@@ -82,12 +82,12 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 			payloadEncrypted := pack.Data.Msg.(protocol.TransferMessage).Bytes()
 			payload, errDec := secure.DecryptIV(payloadEncrypted, ln.State().Secret.Key, ln.State().Secret.Key)
 			if errDec != nil {
-				rn.logger.Debug(fmt.Sprintf("Error on decrypt: %v", errDec))
+				rn.logger.WithError(errDec).Error("Error on decrypt")
 				break
 			}
 			iface.WritePacket(payload)
 		case protocol.TypeHeartbeat:
-			rn.logger.Debug(fmt.Sprintf("Received heardbeat... %v", pack.Data.Msg))
+			rn.logger.WithField("msg", pack.Data.Msg).Debug("Received heardbeat")
 			rn.lastHeartbeat = time.Now()
 		}
 	}
@@ -107,22 +107,25 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret, ln *LocalNode) (*
 	rn := new(RemoteNode)
 	rn.lastHeartbeat = time.Now()
 	rn.publicAddress = fmt.Sprintf("%s:%d", host, port+1)
+
 	// TODO: Add prefix
 	rn.logger = log.New()
-	log.SetOutput(os.Stderr)
-	log.SetLevel(ln.config.Loglevel)
+	rn.logger = ln.config.Loglevel
 
-	rn.logger.Debug(fmt.Sprintf("Trying to connection to: %s", rn.publicAddress))
+	rn.logger.WithField("pub", rn.publicAddress).Debug("Trying to connection")
 
 	s, errSocket := utp.NewSocket("udp4", ":0")
 	if errSocket != nil {
-		rn.logger.Debug(fmt.Sprintf("Unable to crete a socket: %s", errSocket))
+		rn.logger.WithError(errSocket).Error("Unable to crete a socket")
 		return nil, errSocket
 	}
 
 	conn, errDial := s.DialTimeout(rn.publicAddress, 10*time.Second)
 	if errDial != nil {
-		rn.logger.Error(fmt.Sprintf("Unable to dial to %s: %s", rn.publicAddress, errDial))
+		rn.logger.WithFields(log.Fields{
+			"pub": rn.publicAddress,
+			"err": errDial,
+		}).Error("Unable to dial")
 		return nil, errDial
 	}
 
@@ -142,14 +145,19 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret, ln *LocalNode) (*
 	}
 
 	rn.privateIP = peerInfo.PrivateIP()
+
 	// TODO: Add prefix
 	rn.logger = log.New()
-	log.SetOutput(os.Stderr)
-	log.SetLevel(ln.config.Loglevel)
+	rn.logger = ln.config.Loglevel
+
 	if err := protocol.WriteEncodePeerInfo(rn.conn, ln.State().PrivateIP); err != nil {
 		return nil, err
 	}
-	rn.logger.Debug(fmt.Sprintf("Connected to node: %s/%s", rn.privateIP.String(), rn.publicAddress))
+
+	rn.logger.WithFields(log.Fields{
+		"priv": rn.privateIP.String(),
+		"pub":  rn.publicAddress,
+	}).Info("Connected to node")
 
 	return rn, nil
 }

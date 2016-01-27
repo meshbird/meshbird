@@ -1,12 +1,10 @@
 package common
 
 import (
-	log "github.com/Sirupsen/logrus"
-	"time"
-
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/prestonTao/upnp"
-	"os"
+	"time"
 )
 
 type UPnPService struct {
@@ -24,8 +22,7 @@ func (d UPnPService) Name() string {
 func (s *UPnPService) Init(ln *LocalNode) error {
 	// TODO: Add prefix
 	s.logger = log.New()
-	log.SetLevel(ln.config.Loglevel)
-	log.SetOutput(os.Stderr)
+	s.logger = ln.config.Loglevel
 	s.mapping = new(upnp.Upnp)
 	s.port = ln.State().ListenPort + 1
 	return nil
@@ -35,7 +32,7 @@ func (s *UPnPService) Run() error {
 	for !s.IsNeedStop() {
 		err := s.process()
 		if err != nil {
-			log.Error("upnp err: %s", err)
+			s.logger.WithError(err).Error()
 		}
 		time.Sleep(time.Minute)
 	}
@@ -48,11 +45,11 @@ func (s *UPnPService) process() (err error) {
 			err = fmt.Errorf("panic: %s", r)
 		}
 	}()
-	s.logger.Info(fmt.Sprintf("UPnP port mapping: %d", s.port))
+	s.logger.WithField("port", s.port).Info("UPnP port mapping")
 	if err := s.mapping.AddPortMapping(s.port, s.port, "UDP"); err == nil {
 		s.logger.Debug("port mapping passed")
 	} else {
-		s.logger.Debug("port mapping fail")
+		s.logger.WithError(err).Error("port mapping fail")
 	}
 	return nil
 }
