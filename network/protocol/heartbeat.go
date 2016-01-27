@@ -34,11 +34,11 @@ func (m HeartbeatMessage) WriteTo(w io.Writer) (int64, error) {
 }
 
 func ReadDecodeHeartbeat(r io.Reader) (HeartbeatMessage, error) {
-	logger.Printf("Trying to read Heartbeat message...")
+	logger.Debug("Trying to read Heartbeat message...")
 
 	heartbeatPack, errDecode := ReadAndDecode(r)
 	if errDecode != nil {
-		logger.Printf("Unable to decode package: %s", errDecode)
+		logger.WithError(errDecode).Error("Unable to decode package")
 		return nil, fmt.Errorf("Error on read Heartbeat package: %v", errDecode)
 	}
 
@@ -46,13 +46,13 @@ func ReadDecodeHeartbeat(r io.Reader) (HeartbeatMessage, error) {
 		return nil, fmt.Errorf("Got non Heartbeat message: %+v", heartbeatPack)
 	}
 
-	logger.Printf("Readed Heartbeat: %+v", heartbeatPack.Data.Msg)
+	logger.WithField("msg", heartbeatPack.Data.Msg).Debug("Readed Heartbeat")
 
 	return heartbeatPack.Data.Msg.(HeartbeatMessage), nil
 }
 
 func WriteEncodeHeartbeat(w io.Writer, data []byte) (err error) {
-	logger.Printf("Trying to write Heartbeat message...")
+	logger.Debug("Trying to write Heartbeat message...")
 	if err = EncodeAndWrite(w, NewHeartbeatMessage(data)); err != nil {
 		err = fmt.Errorf("Error on write Heartbeat message: %v", err)
 	}

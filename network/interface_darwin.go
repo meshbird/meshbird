@@ -1,10 +1,12 @@
+// +build darwin
+
 package network
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
-	"os"
 )
 
 func interfaceOpen(ifType, ifName string) (*Interface, error) {

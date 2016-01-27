@@ -2,9 +2,9 @@ package common
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/anacrolix/utp"
 	"github.com/meshbird/meshbird/network/protocol"
-	log "github.com/mgutz/logxi/v1"
 	"net"
 	"os"
 )
@@ -15,7 +15,7 @@ type ListenerService struct {
 	localNode *LocalNode
 	socket    *utp.Socket
 
-	logger log.Logger
+	logger *log.Logger
 }
 
 func (l ListenerService) Name() string {
@@ -23,12 +23,13 @@ func (l ListenerService) Name() string {
 }
 
 func (l *ListenerService) Init(ln *LocalNode) error {
-	l.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[listener] ")
+	// TODO: Add prefix
+	l.logger = log.New()
+	l.logger = ln.config.Loglevel
 
-	if l.logger.IsInfo() {
-		l.logger.Info(fmt.Sprintf("Listening on port: %d", ln.State().ListenPort+1))
-	}
-	socket, err := utp.NewSocket("udp4", fmt.Sprintf("0.0.0.0:%d", ln.State().ListenPort+1))
+	port := ln.State().ListenPort + 1
+	l.logger.WithField("port", port).Info("Listening")
+	socket, err := utp.NewSocket("udp4", fmt.Sprintf("0.0.0.0:%d", port))
 	if err != nil {
 		return err
 	}
@@ -45,13 +46,10 @@ func (l *ListenerService) Run() error {
 			break
 		}
 
-		if l.logger.IsDebug() {
-			l.logger.Debug("Has new connection: %s", conn.RemoteAddr().String())
-
-		}
+		l.logger.WithField("addr", conn.RemoteAddr().String()).Debug("Has new connection")
 
 		if err = l.process(conn); err != nil {
-			l.logger.Error("Error on process: %s", err)
+			l.logger.WithError(err).Error("Error on process")
 		}
 	}
 	return nil
@@ -70,18 +68,13 @@ func (l *ListenerService) process(c net.Conn) error {
 		return errHandshake
 	}
 
-	if l.logger.IsDebug() {
-
-		l.logger.Debug("Processing hansdhake...")
-	}
+	l.logger.Debug("Processing hansdhake...")
 
 	if !protocol.IsMagicValid(handshakeMsg.Bytes()) {
 		return fmt.Errorf("Invalid magic bytes")
 	}
-	if l.logger.IsDebug() {
 
-		l.logger.Debug("Magic bytes are correct. Preparing reply...")
-	}
+	l.logger.Debug("Magic bytes are correct. Preparing reply...")
 
 	if err := protocol.WriteEncodeOk(c); err != nil {
 		return err
@@ -95,17 +88,12 @@ func (l *ListenerService) process(c net.Conn) error {
 		return errPeerInfo
 	}
 
-	if l.logger.IsDebug() {
-		l.logger.Debug("Processing PeerInfo...")
-
-	}
+	l.logger.Debug("Processing PeerInfo...")
 
 	rn := NewRemoteNode(c, handshakeMsg.SessionKey(), peerInfo.PrivateIP())
 
-	if l.logger.IsDebug() {
-		l.logger.Debug("Adding remote node from listener...")
+	l.logger.Debug("Adding remote node from listener...")
 
-	}
 	l.localNode.NetTable().AddRemoteNode(rn)
 
 	return nil

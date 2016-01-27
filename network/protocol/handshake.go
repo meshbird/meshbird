@@ -3,6 +3,7 @@ package protocol
 import (
 	"bytes"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/meshbird/meshbird/secure"
 	"io"
 )
@@ -16,7 +17,10 @@ type (
 )
 
 func IsMagicValid(data []byte) bool {
-	logger.Printf("Trying to check magic (%v) : %v", magicKey, data)
+	logger.WithFields(log.Fields{
+		"magic": magicKey,
+		"data":  data,
+	}).Debug("Trying to check magic")
 	return bytes.HasPrefix(data, magicKey)
 }
 
@@ -55,11 +59,11 @@ func (m HandshakeMessage) SessionKey() []byte {
 }
 
 func ReadDecodeHandshake(r io.Reader) (HandshakeMessage, error) {
-	logger.Printf("Trying to read Handshake message...")
+	logger.Debug("Trying to read Handshake message...")
 
 	okPack, errDecode := ReadAndDecode(r)
 	if errDecode != nil {
-		logger.Printf("Unable to decode package: %s", errDecode)
+		logger.WithError(errDecode).Error("Unable to decode package")
 		return nil, fmt.Errorf("Error on read Handshake package: %v", errDecode)
 	}
 
@@ -67,13 +71,13 @@ func ReadDecodeHandshake(r io.Reader) (HandshakeMessage, error) {
 		return nil, fmt.Errorf("Got non Handshake message: %+v", okPack)
 	}
 
-	logger.Printf("Readed Handshake: %+v", okPack.Data.Msg)
+	logger.WithField("msg", okPack.Data.Msg).Debug("Readed Handshake")
 
 	return okPack.Data.Msg.(HandshakeMessage), nil
 }
 
 func WriteEncodeHandshake(w io.Writer, sessionKey []byte, networkSecret *secure.NetworkSecret) (err error) {
-	logger.Printf("Trying to write Handshake message...")
+	logger.Debug("Trying to write Handshake message...")
 	if err = EncodeAndWrite(w, NewHandshakePacket(sessionKey, networkSecret)); err != nil {
 		err = fmt.Errorf("Error on write Handshake message: %v", err)
 	}

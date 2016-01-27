@@ -3,9 +3,9 @@ package common
 import (
 	"encoding/json"
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/meshbird/meshbird/network"
 	"github.com/meshbird/meshbird/secure"
-	log "github.com/mgutz/logxi/v1"
 	"io/ioutil"
 	"net"
 	"os"
@@ -16,14 +16,16 @@ type State struct {
 	Secret     *secure.NetworkSecret `json:"-"`
 	ListenPort int                   `json:"port"`
 	PrivateIP  net.IP                `json:"private_ip"`
-	logger     log.Logger            `json:"-"`
+	logger     *log.Logger           `json:"-"`
 }
 
 func NewState(secret *secure.NetworkSecret) *State {
+	// TODO Add prefix
 	s := &State{
 		Secret: secret,
-		logger: log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[state] "),
+		logger: log.New(),
 	}
+
 	s.Load()
 
 	var save bool
@@ -37,7 +39,7 @@ func NewState(secret *secure.NetworkSecret) *State {
 		if s.PrivateIP, err = network.GenerateIPAddress(secret.Net); err == nil {
 			save = true
 		} else {
-			s.logger.Error("Error on generate IP: %s", err)
+			s.logger.WithError(err).Error("Error on generate IP")
 		}
 	}
 
@@ -51,10 +53,7 @@ func NewState(secret *secure.NetworkSecret) *State {
 func (s *State) Load() {
 	if data, err := ioutil.ReadFile(s.getConfigPath()); err == nil {
 		if err = json.Unmarshal(data, s); err == nil {
-			if s.logger.IsInfo() {
-				s.logger.Info("State restored: %+v, private IP: %x", s, s.PrivateIP)
-
-			}
+			s.logger.WithField("state", s).Info("State restored")
 		}
 	}
 }
@@ -62,7 +61,7 @@ func (s *State) Load() {
 func (s *State) Save() {
 	if data, err := json.Marshal(s); err == nil {
 		if err = ioutil.WriteFile(s.getConfigPath(), data, os.ModePerm); err != nil {
-			s.logger.Error("Error on write state: %s", err)
+			s.logger.WithError(err).Error("Error on write state")
 		}
 	}
 }

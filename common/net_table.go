@@ -1,14 +1,14 @@
 package common
 
 import (
+	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/meshbird/meshbird/network/protocol"
 	"github.com/meshbird/meshbird/secure"
-	log "github.com/mgutz/logxi/v1"
 	"net"
 	"os"
 	"sync"
 	"time"
-	"fmt"
 )
 
 type NetTable struct {
@@ -24,7 +24,7 @@ type NetTable struct {
 
 	heartbeatTicker <-chan time.Time
 
-	logger log.Logger
+	logger *log.Logger
 }
 
 func (nt NetTable) Name() string {
@@ -32,7 +32,9 @@ func (nt NetTable) Name() string {
 }
 
 func (nt *NetTable) Init(ln *LocalNode) error {
-	nt.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[net-table] ")
+	// TODO: Add prefix
+	nt.logger = log.New()
+	nt.logger.Level = ln.config.Loglevel
 	nt.localNode = ln
 	nt.dhtInChan = make(chan string, 10)
 	nt.blackList = make(map[string]time.Time)
@@ -68,23 +70,23 @@ func (nt *NetTable) RemoteNodeByIP(ip net.IP) *RemoteNode {
 }
 
 func (nt *NetTable) AddRemoteNode(rn *RemoteNode) {
-	if nt.logger.IsDebug() {
-		nt.logger.Debug(fmt.Sprintf("Trying to add node %s/%s ...", rn.privateIP.String(), rn.publicAddress))
-	}
+	nt.logger.WithFields(log.Fields{
+		"priv": rn.privateIP.String(),
+		"pub":  rn.publicAddress,
+	}).Debug("Trying to add node ...")
 
 	if nt.localNode.State().PrivateIP.Equal(rn.privateIP) {
-		if nt.logger.IsDebug() {
-			nt.logger.Debug("Found myself, node will not be added!")
-		}
+		nt.logger.Debug("Found myself, node will not be added!")
 		return
 	}
 
 	nt.lock.Lock()
 	defer nt.lock.Unlock()
 	nt.peers[rn.privateIP.To4().String()] = rn
-	if nt.logger.IsInfo() {
-		nt.logger.Info(fmt.Sprintf("Added remote node: %s/%s", rn.privateIP.String(), rn.publicAddress))
-	}
+	nt.logger.WithFields(log.Fields{
+		"priv": rn.privateIP.String(),
+		"pub":  rn.publicAddress,
+	}).Info("Added remote node")
 	go rn.listen(nt.localNode)
 }
 
@@ -132,7 +134,7 @@ func (nt *NetTable) heartbeat() {
 			nt.lock.Lock()
 			for _, peer := range nt.peers {
 				if err := peer.SendPack(protocol.NewHeartbeatMessage(nt.localNode.State().PrivateIP)); err != nil {
-					nt.logger.Error(fmt.Sprintf("Error on send heartbeat: %v", err))
+					nt.logger.WithError(err).Error("Error on send heartbeat")
 				}
 			}
 			nt.lock.Unlock()
@@ -146,9 +148,7 @@ func (nt *NetTable) tryConnect(h string) {
 		nt.addToBlackList(h)
 		return
 	}
-	if nt.logger.IsDebug() {
-		nt.logger.Debug("Adding remote node from try connect...")
-	}
+	nt.logger.Debug("Adding remote node from try connect...")
 	nt.AddRemoteNode(rn)
 }
 
@@ -159,29 +159,31 @@ func (nt *NetTable) addToBlackList(h string) {
 }
 
 func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
-	if nt.logger.IsDebug() {
 
-		nt.logger.Debug(fmt.Sprintf("Sending to %s packet len %d", dstIP.String(), len(payload)))
-	}
+	nt.logger.WithFields(log.Fields{
+		"len": len(payload),
+		"dst": dstIP.String(),
+	}).Debug("Sending packet....")
 
 	rn := nt.RemoteNodeByIP(dstIP)
 	if rn == nil {
-		if nt.logger.IsDebug() {
-			nt.logger.Debug(fmt.Sprintf("Destination host unreachable: %s", dstIP.String()))
-			nt.logger.Debug(fmt.Sprintf("Known hosts: %v", nt.knownHosts()))
-		}
+		nt.logger.WithField("dst", dstIP.String()).Debug("Destination host unreachable")
+		nt.logger.WithField("known", nt.knownHosts()).Debug("Known hosts")
 
 		return
 	}
 
 	payloadEnc, err := secure.EncryptIV(payload, nt.localNode.State().Secret.Key, nt.localNode.State().Secret.Key)
 	if err != nil {
-		nt.logger.Error(fmt.Sprintf("Error on encrypt", err))
+		nt.logger.WithError(err).Error("Error on encrypt")
 		return
 	}
 
 	if err := rn.SendToInterface(payloadEnc); err != nil {
-		nt.logger.Error(fmt.Sprintf("Send packet to %s err: %s", dstIP.String(), err))
+		nt.logger.WithFields(log.Fields{
+			"dst": dstIP.String(),
+			"err": err,
+		}).Error("Error on sending packet")
 	}
 }
 

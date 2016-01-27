@@ -2,10 +2,8 @@ package common
 
 import (
 	"fmt"
-	log "github.com/mgutz/logxi/v1"
-
+	log "github.com/Sirupsen/logrus"
 	"github.com/ccding/go-stun/stun"
-	"os"
 	"time"
 )
 
@@ -17,7 +15,7 @@ type STUNService struct {
 	BaseService
 
 	client *stun.Client
-	logger log.Logger
+	logger *log.Logger
 }
 
 func (d STUNService) Name() string {
@@ -25,7 +23,9 @@ func (d STUNService) Name() string {
 }
 
 func (s *STUNService) Init(ln *LocalNode) error {
-	s.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[stun] ")
+	// TODO: Add prefix
+	s.logger = log.New()
+	s.logger.Level = ln.config.Loglevel
 	s.client = stun.NewClient()
 	s.client.SetServerAddr(STUNAddress)
 	return nil
@@ -35,7 +35,7 @@ func (s *STUNService) Run() error {
 	for !s.IsNeedStop() {
 		err := s.process()
 		if err != nil {
-			log.Error(fmt.Sprintf("stun err: %s", err))
+			s.logger.WithError(err).Error()
 		}
 		time.Sleep(time.Minute)
 	}
@@ -74,10 +74,11 @@ func (s *STUNService) process() (err error) {
 	}
 
 	if host != nil {
-		if s.logger.IsInfo() {
-			s.logger.Info("family %d, ip %s, port %d", host.Family(), host.IP(), host.Port())
-
-		}
+		s.logger.WithFields(log.Fields{
+			"family": host.Family(),
+			"ip":     host.IP(),
+			"port":   host.Port(),
+		}).Info("Process")
 	}
 	return nil
 }

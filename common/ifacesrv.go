@@ -2,8 +2,8 @@ package common
 
 import (
 	"fmt"
+	log "github.com/Sirupsen/logrus"
 	"github.com/meshbird/meshbird/network"
-	log "github.com/mgutz/logxi/v1"
 	"os"
 	"strconv"
 )
@@ -14,7 +14,7 @@ type InterfaceService struct {
 	localnode *LocalNode
 	instance  *network.Interface
 	netTable  *NetTable
-	logger    log.Logger
+	logger    *log.Logger
 }
 
 func (is *InterfaceService) Name() string {
@@ -22,7 +22,9 @@ func (is *InterfaceService) Name() string {
 }
 
 func (is *InterfaceService) Init(ln *LocalNode) (err error) {
-	is.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[iface] ")
+	// TODO: Add prefix to logs
+	is.logger = log.New()
+	is.logger = ln.config.Loglevel
 	is.localnode = ln
 	is.netTable = ln.NetTable()
 	netsize, _ := ln.State().Secret.Net.Mask.Size()
@@ -34,9 +36,7 @@ func (is *InterfaceService) Init(ln *LocalNode) (err error) {
 	err = network.SetMTU(is.instance.Name(), 1400)
 
 	if err != nil {
-		if log.IsWarn() {
-			is.logger.Warn(err.Error())
-		}
+		is.logger.WithError(err).Warn()
 	}
 	return nil
 }
@@ -46,25 +46,21 @@ func (is *InterfaceService) Run() error {
 		buf := make([]byte, 1500)
 		n, err := is.instance.Read(buf)
 		if err != nil {
-			is.logger.Error(err.Error())
+			is.logger.WithError(err).Error()
 			return err
 		}
 		packet := buf[:n]
 
 		dst := network.IPv4Destination(packet)
 		is.netTable.SendPacket(dst, packet)
-		if is.logger.IsDebug() {
-			is.logger.Debug(fmt.Sprintf("Read packet %d bytes", n))
-		}
+		is.logger.WithField("len", n).Debug("Read packet")
 	}
 	return nil
 }
 
 func (is *InterfaceService) WritePacket(packet []byte) {
-	if is.logger.IsDebug() {
-		is.logger.Debug(fmt.Sprintf("Package for writing received, length %d bytes\n", len(packet)))
-	}
+	is.logger.WithField("len", len(packet)).Debug("Package for writing received")
 	if _, err := is.instance.Write(packet); err != nil {
-		is.logger.Error(fmt.Sprintf("Error on twite packet: %v", err))
+		is.logger.WithError(err).Error("Error on twite packet")
 	}
 }
