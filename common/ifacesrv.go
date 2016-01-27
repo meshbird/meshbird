@@ -5,6 +5,7 @@ import (
 	"github.com/meshbird/meshbird/network"
 	log "github.com/Sirupsen/logrus"
 	"strconv"
+	"os"
 )
 
 type InterfaceService struct {
@@ -21,8 +22,11 @@ func (is *InterfaceService) Name() string {
 }
 
 func (is *InterfaceService) Init(ln *LocalNode) (err error) {
+	// TODO: Add prefix to logs
 	is.logger = log.New()
+	log.SetOutput(os.Stderr)
 	is.localnode = ln
+	log.SetLevel(ln.config.Loglevel)
 	is.netTable = ln.NetTable()
 	netsize, _ := ln.State().Secret.Net.Mask.Size()
 	IPAddr := fmt.Sprintf("%s/%s", ln.State().PrivateIP, strconv.Itoa(netsize))

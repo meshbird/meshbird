@@ -20,6 +20,7 @@ var (
 	// VERSION var using for auto versioning through Go linker
 	VERSION = "dev"
 	logger  = log.New()
+	Loglevel = ""
 )
 
 func main() {
@@ -54,6 +55,13 @@ func main() {
 			Usage:     "init state",
 			Action:    actionGetIP,
 			ArgsUsage: "<key>",
+		},
+	}
+	app.Flags = []cli.Flag {
+		cli.StringFlag{
+			Name: "loglevel",
+			Usage: "log level",
+			Destination: &Loglevel,
 		},
 	}
 	err := app.Run(os.Args)
@@ -97,14 +105,19 @@ func actionNew(ctx *cli.Context) {
 }
 
 func actionJoin(ctx *cli.Context) {
+	loglevel, err := log.ParseLevel(Loglevel)
+	if err != nil {
+		logger.Fatal(err)
+	}
 	key := os.Getenv(MeshbirdKeyEnv)
+	log.SetLevel(loglevel)
 	if key == "" {
 		logger.Fatal(fmt.Sprintf("environment variable %s is not specified", MeshbirdKeyEnv))
 	}
 
 	nodeConfig := &common.Config{
 		SecretKey: key,
-		Loglevel:  log.DebugLevel,
+		Loglevel:  loglevel,
 	}
 	node, err := common.NewLocalNode(nodeConfig)
 	if err != nil {

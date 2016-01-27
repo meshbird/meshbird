@@ -5,6 +5,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/meshbird/meshbird/secure"
 	"sync"
+	"os"
 )
 
 type LocalNode struct {
@@ -25,9 +26,10 @@ type LocalNode struct {
 func NewLocalNode(cfg *Config) (*LocalNode, error) {
 	var err error
 	n := new(LocalNode)
-	// TODO: Fix it
-	//	n.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[localnode] ")
+	// TODO: Add prefix
 	n.logger = log.New()
+	log.SetOutput(os.Stderr)
+	log.SetLevel(cfg.Loglevel)
 
 	n.secret, err = secure.NetworkSecretUnmarshal(cfg.SecretKey)
 	if err != nil {

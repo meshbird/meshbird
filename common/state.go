@@ -20,11 +20,12 @@ type State struct {
 }
 
 func NewState(secret *secure.NetworkSecret) *State {
-	// TODO name of logger
+	// TODO Add prefix
 	s := &State{
 		Secret: secret,
 		logger: log.New(),
 	}
+
 	s.Load()
 
 	var save bool

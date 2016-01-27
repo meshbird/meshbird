@@ -11,6 +11,7 @@ import (
 	"github.com/anacrolix/utp"
 	"github.com/meshbird/meshbird/network/protocol"
 	"github.com/meshbird/meshbird/secure"
+	"os"
 )
 
 type RemoteNode struct {
@@ -30,8 +31,6 @@ func NewRemoteNode(conn net.Conn, sessionKey []byte, privateIP net.IP) *RemoteNo
 		privateIP:     privateIP,
 		publicAddress: conn.RemoteAddr().String(),
 		logger:        log.New(),
-		// TODO: Fix it
-		//		logger:        log.NewLogger(log.NewConcurrentWriter(os.Stderr), fmt.Sprintf("[remote priv/%s] ", privateIP.To4().String())),
 		lastHeartbeat: time.Now(),
 	}
 }
@@ -108,9 +107,10 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret, ln *LocalNode) (*
 	rn := new(RemoteNode)
 	rn.lastHeartbeat = time.Now()
 	rn.publicAddress = fmt.Sprintf("%s:%d", host, port+1)
-	// TODO: Fix it
-	//rn.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), fmt.Sprintf("[remote priv/%s] ", fmt.Sprintf("[remote pub/%s] ", rn.publicAddress)))
+	// TODO: Add prefix
 	rn.logger = log.New()
+	log.SetOutput(os.Stderr)
+	log.SetLevel(ln.config.Loglevel)
 
 	rn.logger.Debug(fmt.Sprintf("Trying to connection to: %s", rn.publicAddress))
 
@@ -142,9 +142,10 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret, ln *LocalNode) (*
 	}
 
 	rn.privateIP = peerInfo.PrivateIP()
-	// TODO: Fix ot
-	//rn.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), fmt.Sprintf("[remote priv/%s] ", rn.privateIP.To4().String()))
+	// TODO: Add prefix
 	rn.logger = log.New()
+	log.SetOutput(os.Stderr)
+	log.SetLevel(ln.config.Loglevel)
 	if err := protocol.WriteEncodePeerInfo(rn.conn, ln.State().PrivateIP); err != nil {
 		return nil, err
 	}

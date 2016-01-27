@@ -6,6 +6,7 @@ import (
 
 	"github.com/ccding/go-stun/stun"
 	"time"
+	"os"
 )
 
 const (
@@ -24,9 +25,10 @@ func (d STUNService) Name() string {
 }
 
 func (s *STUNService) Init(ln *LocalNode) error {
-	// TODO: Fix it
-	//s.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[stun] ")
+	// TODO: Add prefix
 	s.logger = log.New()
+	log.SetOutput(os.Stderr)
+	log.SetLevel(ln.config.Loglevel)
 	s.client = stun.NewClient()
 	s.client.SetServerAddr(STUNAddress)
 	return nil

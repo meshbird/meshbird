@@ -6,6 +6,7 @@ import (
 
 	"fmt"
 	"github.com/prestonTao/upnp"
+	"os"
 )
 
 type UPnPService struct {
@@ -21,9 +22,10 @@ func (d UPnPService) Name() string {
 }
 
 func (s *UPnPService) Init(ln *LocalNode) error {
-	// TODO: FIX IT
-	// s.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[upnp] ")
+	// TODO: Add prefix
 	s.logger = log.New()
+	log.SetLevel(ln.config.Loglevel)
+	log.SetOutput(os.Stderr)
 	s.mapping = new(upnp.Upnp)
 	s.port = ln.State().ListenPort + 1
 	return nil

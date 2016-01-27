@@ -6,6 +6,7 @@ import (
 	"github.com/anacrolix/utp"
 	"github.com/meshbird/meshbird/network/protocol"
 	"net"
+	"os"
 )
 
 type ListenerService struct {
@@ -22,9 +23,10 @@ func (l ListenerService) Name() string {
 }
 
 func (l *ListenerService) Init(ln *LocalNode) error {
-	// TODO: Fix it
+	// TODO: Add prefix
 	l.logger = log.New()
-	//	l.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[listener] ")
+	log.SetOutput(os.Stderr)
+	log.SetLevel(ln.config.Loglevel)
 
 	l.logger.Info(fmt.Sprintf("Listening on port: %d", ln.State().ListenPort+1))
 	socket, err := utp.NewSocket("udp4", fmt.Sprintf("0.0.0.0:%d", ln.State().ListenPort+1))

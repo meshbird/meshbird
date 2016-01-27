@@ -8,6 +8,7 @@ import (
 	"net"
 	"sync"
 	"time"
+	"os"
 )
 
 type NetTable struct {
@@ -31,9 +32,10 @@ func (nt NetTable) Name() string {
 }
 
 func (nt *NetTable) Init(ln *LocalNode) error {
-	// TODO: Fix it
-	//	nt.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[net-table] ")
+	// TODO: Add prefix
 	nt.logger = log.New()
+	log.SetOutput(os.Stderr)
+	log.SetLevel(ln.config.Loglevel)
 	nt.localNode = ln
 	nt.dhtInChan = make(chan string, 10)
 	nt.blackList = make(map[string]time.Time)

@@ -6,6 +6,7 @@ import (
 	"github.com/nictuku/dht"
 	"sync"
 	"time"
+	"os"
 )
 
 type DiscoveryDHT struct {
@@ -28,9 +29,11 @@ func (d DiscoveryDHT) Name() string {
 }
 
 func (d *DiscoveryDHT) Init(ln *LocalNode) error {
+	// TODO: Add prefix
 	d.logger = log.New()
+	log.SetOutput(os.Stderr)
+	log.SetLevel(ln.config.Loglevel)
 	d.localNode = ln
-	log.SetLevel(ln.Config().Loglevel)
 	d.stopChan = make(chan bool)
 	return nil
 }
@@ -103,7 +106,7 @@ func (d *DiscoveryDHT) addPeer(peer string) {
 		return
 	}
 
-	d.logger.Debug(fmt.Sprintf("Reer: %s", peer))
+	d.logger.Debug("Reer: %s", peer)
 
 	d.localNode.NetTable().GetDHTInChannel() <- peer
 }
