@@ -95,7 +95,7 @@ func actionNew(ctx *cli.Context) {
 		}
 		secret = secure.NewNetworkSecret(ipnet)
 	}
-	fmt.Printf("key: %s\n", secret.Marshal())
+	fmt.Println(secret.Marshal())
 }
 
 func actionJoin(ctx *cli.Context) {
