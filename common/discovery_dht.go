@@ -2,12 +2,10 @@ package common
 
 import (
 	"fmt"
-	log "github.com/mgutz/logxi/v1"
+	log "github.com/Sirupsen/logrus"
+	"github.com/nictuku/dht"
 	"sync"
 	"time"
-
-	"github.com/nictuku/dht"
-	"os"
 )
 
 type DiscoveryDHT struct {
@@ -22,7 +20,7 @@ type DiscoveryDHT struct {
 	lastPeers []string
 	mutex     sync.Mutex
 
-	logger log.Logger
+	logger *log.Logger
 }
 
 func (d DiscoveryDHT) Name() string {
@@ -30,8 +28,9 @@ func (d DiscoveryDHT) Name() string {
 }
 
 func (d *DiscoveryDHT) Init(ln *LocalNode) error {
-	d.logger = log.NewLogger(log.NewConcurrentWriter(os.Stderr), "[discovery] dht")
+	d.logger = log.New()
 	d.localNode = ln
+	log.SetLevel(ln.Config().Loglevel)
 	d.stopChan = make(chan bool)
 	return nil
 }
@@ -70,17 +69,13 @@ func (d *DiscoveryDHT) process() {
 	t := time.NewTimer(60 * time.Second)
 	defer t.Stop()
 
-	if d.logger.IsDebug() {
-		d.logger.Debug("Request...")
-	}
+	d.logger.Debug("Request...")
 	d.node.PeersRequest(string(d.ih), true)
 
 	for d.Status() != StatusStopping {
 		select {
 		case <-t.C:
-			if d.logger.IsDebug() {
-				d.logger.Debug("Request...")
-			}
+			d.logger.Debug("Request...")
 			d.node.PeersRequest(string(d.ih), true)
 		case <-d.stopChan:
 			return
@@ -108,9 +103,7 @@ func (d *DiscoveryDHT) addPeer(peer string) {
 		return
 	}
 
-	if d.logger.IsDebug() {
-		d.logger.Debug(fmt.Sprintf("Reer: %s", peer))
-	}
+	d.logger.Debug(fmt.Sprintf("Reer: %s", peer))
 
 	d.localNode.NetTable().GetDHTInChannel() <- peer
 }

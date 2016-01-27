@@ -1,6 +1,7 @@
 package common
 
 import (
+	"fmt"
 	"github.com/meshbird/meshbird/network/protocol"
 	"github.com/meshbird/meshbird/secure"
 	log "github.com/mgutz/logxi/v1"
@@ -8,7 +9,6 @@ import (
 	"os"
 	"sync"
 	"time"
-	"fmt"
 )
 
 type NetTable struct {
