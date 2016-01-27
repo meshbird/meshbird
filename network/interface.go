@@ -17,6 +17,7 @@ func init() {
 }
 
 type Interface struct {
+	isTAP bool
 	name string
 	file *os.File
 }
