@@ -56,7 +56,6 @@ func (is *InterfaceService) Run() error {
 		if is.logger.IsDebug() {
 			is.logger.Debug(fmt.Sprintf("Read packet %d bytes", n))
 		}
-
 	}
 	return nil
 }
