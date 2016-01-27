@@ -30,20 +30,6 @@ func DecryptIV(encrypted []byte, key []byte, iv []byte) ([]byte, error) {
 	return decrypted, nil
 }
 
-func EncryptIVCipher(c string, encrypted, decrypted []byte, key []byte, iv []byte) ([]byte, error) {
-	decrypted = PKCS5Padding(decrypted, ac.BlockSize())
-	encrypted := make([]byte, len(decrypted))
-	c.CryptBlocks(encrypted, decrypted)
-	return encrypted, nil
-}
-
-func DecryptIV(decrypted, encrypted []byte, key []byte, iv []byte) ([]byte, error) {
-	decrypted := make([]byte, len(encrypted))
-	c.CryptBlocks(decrypted, encrypted)
-	decrypted = PKCS5UnPadding(decrypted)
-	return decrypted, nil
-}
-
 func PKCS5Padding(src []byte, blockSize int) []byte {
 	padding := blockSize - len(src)%blockSize
 	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
