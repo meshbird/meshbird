@@ -3,6 +3,8 @@ package secure
 import (
 	"testing"
 	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/rand"
 	"time"
 )
@@ -14,7 +16,14 @@ var (
 func TestEncryptIV(t *testing.T) {
 	key := randomBytes(16)
 	iv := randomBytes(16)
-	encrypted, err := EncryptIV(original, key, iv)
+
+	ac, err := aes.NewCipher(key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	c := cipher.NewCBCEncrypter(ac, iv)
+
+	encrypted := make(chan []byte, )
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,6 +35,14 @@ func TestEncryptIV(t *testing.T) {
 	}
 	if !bytes.Equal(original, decrypted) {
 		t.Fatal("original payload not equals to encrypted/decrypted")
+	}
+}
+
+func TestEncryptAESGCM(t *testing.T) {
+	key := randomBytes(aes.BlockSize)
+	ac, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
 	}
 }
 
@@ -49,7 +66,7 @@ func BenchmarkEncryptAesCbc(b *testing.B) {
 	}
 	b.StopTimer()
 	ts := time.Since(t)
-	b.Logf("encryption speed: %.2f Mbit/s", float64(counter) * 8 / ts.Seconds() / 1024 / 1024 )
+	b.Logf("encryption speed: %.2f Mbit/s", float64(counter) * 8 / ts.Seconds() / 1024 / 1024)
 }
 
 func BenchmarkDescryptAesCbc(b *testing.B) {
@@ -72,5 +89,5 @@ func BenchmarkDescryptAesCbc(b *testing.B) {
 	}
 	b.StopTimer()
 	ts := time.Since(t)
-	b.Logf("decryption speed: %.2f Mbit/s", float64(counter) * 8 / ts.Seconds() / 1024 / 1024 )
+	b.Logf("decryption speed: %.2f Mbit/s", float64(counter) * 8 / ts.Seconds() / 1024 / 1024)
 }
