@@ -2,7 +2,7 @@ package common
 
 import (
 	"fmt"
-	log "github.com/Sirupsen/logrus"
+	"github.com/meshbird/meshbird/log"
 	"github.com/nictuku/dht"
 	"sync"
 	"time"
@@ -20,7 +20,7 @@ type DiscoveryDHT struct {
 	lastPeers []string
 	mutex     sync.Mutex
 
-	logger *log.Logger
+	logger log.Logger
 }
 
 func (d DiscoveryDHT) Name() string {
@@ -28,9 +28,7 @@ func (d DiscoveryDHT) Name() string {
 }
 
 func (d *DiscoveryDHT) Init(ln *LocalNode) error {
-	// TODO: Add prefix
-	d.logger = log.New()
-	d.logger.Level = ln.config.Loglevel
+	d.logger = log.L(d.Name())
 	d.localNode = ln
 	d.stopChan = make(chan bool)
 	return nil
@@ -83,7 +81,7 @@ func (d *DiscoveryDHT) process() {
 }
 
 func (d *DiscoveryDHT) request() {
-	d.logger.Debug("Request...")
+	d.logger.Debug("sending request...")
 	d.node.PeersRequest(string(d.ih), true)
 }
 
@@ -107,7 +105,7 @@ func (d *DiscoveryDHT) addPeer(peer string) {
 		return
 	}
 
-	d.logger.WithField("peer", peer).Debug("New peer received")
+	d.logger.Debug("new peer %q received", peer)
 	d.localNode.NetTable().GetDHTInChannel() <- peer
 }
 

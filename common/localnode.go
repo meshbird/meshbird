@@ -2,7 +2,7 @@ package common
 
 import (
 	"fmt"
-	log "github.com/Sirupsen/logrus"
+	"github.com/meshbird/meshbird/log"
 	"github.com/meshbird/meshbird/secure"
 	"sync"
 )
@@ -19,16 +19,13 @@ type LocalNode struct {
 
 	services map[string]Service
 
-	logger *log.Logger
+	logger log.Logger
 }
 
 func NewLocalNode(cfg *Config) (*LocalNode, error) {
 	var err error
 	n := new(LocalNode)
-
-	// TODO: Add prefix
-	n.logger = log.New()
-	n.logger.Level = cfg.Loglevel
+	n.logger = log.L("local")
 
 	n.secret, err = secure.NetworkSecretUnmarshal(cfg.SecretKey)
 	if err != nil {
@@ -65,16 +62,17 @@ func (n *LocalNode) AddService(srv Service) {
 
 func (n *LocalNode) Start() error {
 	for _, service := range n.services {
-		n.logger.WithField("name", service.Name()).Info("Initializing service...")
+		n.logger.Info("initializing %s service", service.Name())
 		if err := service.Init(n); err != nil {
-			return fmt.Errorf("Initialision of %s finished with error: %s", service.Name(), err)
+			return fmt.Errorf("initialization of %q finished with error: %v", service.Name(), err)
 		}
 		n.waitGroup.Add(1)
+
 		go func(srv Service) {
 			defer n.waitGroup.Done()
-			n.logger.WithField("name", srv.Name()).Info("Running service...")
+			n.logger.Info("running %q service", srv.Name())
 			if err := srv.Run(); err != nil {
-				n.logger.WithFields(log.Fields{"name": srv.Name(), "err": err}).Error()
+				n.logger.Error("error on run %q service, %v", srv.Name(), err)
 			}
 		}(service)
 	}
@@ -84,7 +82,7 @@ func (n *LocalNode) Start() error {
 func (n *LocalNode) Service(name string) Service {
 	service, ok := n.services[name]
 	if !ok {
-		n.logger.WithField("name", name).Fatal("Service not found")
+		n.logger.Fatal("service %q not found", name)
 	}
 	return service
 }
@@ -94,7 +92,7 @@ func (n *LocalNode) WaitStop() {
 }
 
 func (n *LocalNode) Stop() error {
-	n.logger.Info("Closing up local node")
+	n.logger.Info("stopping...")
 	for _, service := range n.services {
 		service.Stop()
 	}
@@ -108,7 +106,7 @@ func (n *LocalNode) NetworkSecret() *secure.NetworkSecret {
 func (n *LocalNode) NetTable() *NetTable {
 	service, ok := n.services["net-table"]
 	if !ok {
-		panic("net-table not found")
+		n.logger.Panic("net-table not found")
 	}
 	return service.(*NetTable)
 }

@@ -2,10 +2,9 @@ package network
 
 import (
 	"fmt"
+	"github.com/hsheth2/water/waterutil"
 	"net"
 	"os"
-
-	"github.com/hsheth2/water/waterutil"
 )
 
 const DEFAULT_MTU = 1500
@@ -18,8 +17,8 @@ func init() {
 
 type Interface struct {
 	isTAP bool
-	name string
-	file *os.File
+	name  string
+	file  *os.File
 }
 
 func (i Interface) Name() string {

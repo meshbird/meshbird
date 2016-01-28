@@ -37,28 +37,10 @@ func (m TransferMessage) Bytes() []byte {
 	return []byte(m)
 }
 
-func ReadDecodeTransfer(r io.Reader) (TransferMessage, error) {
-	logger.Debug("Trying to read Transfer message...")
-
-	transferPack, errDecode := ReadAndDecode(r)
-	if errDecode != nil {
-		logger.WithError(errDecode).Error("Unable to decode package")
-		return nil, fmt.Errorf("Error on read Transfer package: %v", errDecode)
-	}
-
-	if transferPack.Data.Type != TypeTransfer {
-		return nil, fmt.Errorf("Got non Transfer message: %+v", transferPack)
-	}
-
-	logger.WithField("msg", transferPack.Data.Msg).Debug("Readed Transfer")
-
-	return transferPack.Data.Msg.(TransferMessage), nil
-}
-
 func WriteEncodeTransfer(w io.Writer, data []byte) (err error) {
-	logger.Debug("Trying to write Transfer message...")
+	logger.Debug("writing transfer message...")
 	if err = EncodeAndWrite(w, NewTransferMessage(data)); err != nil {
-		err = fmt.Errorf("Error on write Transfer message: %v", err)
+		err = fmt.Errorf("error on write transfer message, %v", err)
 	}
 	return
 }

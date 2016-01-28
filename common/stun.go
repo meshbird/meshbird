@@ -2,8 +2,8 @@ package common
 
 import (
 	"fmt"
-	log "github.com/Sirupsen/logrus"
 	"github.com/ccding/go-stun/stun"
+	"github.com/meshbird/meshbird/log"
 	"time"
 )
 
@@ -15,7 +15,7 @@ type STUNService struct {
 	BaseService
 
 	client *stun.Client
-	logger *log.Logger
+	logger log.Logger
 }
 
 func (d STUNService) Name() string {
@@ -23,9 +23,7 @@ func (d STUNService) Name() string {
 }
 
 func (s *STUNService) Init(ln *LocalNode) error {
-	// TODO: Add prefix
-	s.logger = log.New()
-	s.logger.Level = ln.config.Loglevel
+	s.logger = log.L(s.Name())
 	s.client = stun.NewClient()
 	s.client.SetServerAddr(STUNAddress)
 	return nil
@@ -35,7 +33,7 @@ func (s *STUNService) Run() error {
 	for !s.IsNeedStop() {
 		err := s.process()
 		if err != nil {
-			s.logger.WithError(err).Error()
+			s.logger.Error("error on process, %v", err)
 		}
 		time.Sleep(time.Minute)
 	}
@@ -54,31 +52,27 @@ func (s *STUNService) process() (err error) {
 	}
 	switch nat {
 	case stun.NAT_ERROR:
-		return fmt.Errorf("Test failed")
+		return fmt.Errorf("test failed")
 	case stun.NAT_UNKNOWN:
-		return fmt.Errorf("Unexpected response from the STUN server")
+		return fmt.Errorf("unexpected response from the STUN server")
 	case stun.NAT_BLOCKED:
 		return fmt.Errorf("UDP is blocked")
 	case stun.NAT_FULL:
-		return fmt.Errorf("Full cone NAT")
+		return fmt.Errorf("full cone NAT")
 	case stun.NAT_SYMETRIC:
-		return fmt.Errorf("Symetric NAT")
+		return fmt.Errorf("symetric NAT")
 	case stun.NAT_RESTRICTED:
-		return fmt.Errorf("Restricted NAT")
+		return fmt.Errorf("restricted NAT")
 	case stun.NAT_PORT_RESTRICTED:
-		return fmt.Errorf("Port restricted NAT")
+		return fmt.Errorf("port restricted NAT")
 	case stun.NAT_NONE:
-		return fmt.Errorf("Not behind a NAT")
+		return fmt.Errorf("not behind a NAT")
 	case stun.NAT_SYMETRIC_UDP_FIREWALL:
-		return fmt.Errorf("Symetric UDP firewall")
+		return fmt.Errorf("symetric UDP firewall")
 	}
 
 	if host != nil {
-		s.logger.WithFields(log.Fields{
-			"family": host.Family(),
-			"ip":     host.IP(),
-			"port":   host.Port(),
-		}).Info("Process")
+		s.logger.Info("processed, family %d, host %q, port %d", host.Family(), host.IP(), host.Port())
 	}
 	return nil
 }

@@ -13,6 +13,12 @@ func L(name string) Logger {
 	return log
 }
 
+func RemoveLogger(name string) {
+	me.Lock()
+	defer me.Unlock()
+	delete(channels, name)
+}
+
 func Panic(format string, v ...interface{}) {
 	logger.Panic(format, v...)
 }

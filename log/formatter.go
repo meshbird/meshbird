@@ -12,7 +12,7 @@ type (
 )
 
 var (
-	chLeft = []byte{' ', '['}
+	chLeft  = []byte{' ', '['}
 	chRight = []byte{']', ' '}
 )
 

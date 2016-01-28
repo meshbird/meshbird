@@ -38,27 +38,26 @@ func (m PeerInfoMessage) PrivateIP() net.IP {
 }
 
 func ReadDecodePeerInfo(r io.Reader) (PeerInfoMessage, error) {
-	logger.Debug("Trying to read PeerInfo message...")
+	logger.Debug("reading peer info message...")
 
 	peerInfoPack, errDecode := ReadAndDecode(r)
 	if errDecode != nil {
-		logger.WithError(errDecode).Error("Unable to decode package")
-		return nil, fmt.Errorf("Error on read PeerInfo package: %v", errDecode)
+		logger.Error("error on package decode, %v", errDecode)
+		return nil, fmt.Errorf("error on read peer info package, %v", errDecode)
 	}
 
 	if peerInfoPack.Data.Type != TypePeerInfo {
-		return nil, fmt.Errorf("Got non PeerInfo message: %+v", peerInfoPack)
+		return nil, fmt.Errorf("non peer info message received, %+v", peerInfoPack)
 	}
 
-	logger.WithField("msg", peerInfoPack.Data.Msg).Debug("Readed PeerInfo")
-
+	logger.Debug("message, %v", peerInfoPack.Data.Msg)
 	return peerInfoPack.Data.Msg.(PeerInfoMessage), nil
 }
 
 func WriteEncodePeerInfo(w io.Writer, privateIP net.IP) (err error) {
-	logger.Debug("Trying to write PeerInfo message...")
+	logger.Debug("writing peer info message...")
 	if err = EncodeAndWrite(w, NewPeerInfoMessage(privateIP)); err != nil {
-		err = fmt.Errorf("Error on write PeerInfo message: %v", err)
+		err = fmt.Errorf("error on write peer info message, %v", err)
 	}
 	return
 }

@@ -1,10 +1,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 	"github.com/meshbird/meshbird/common"
+	"github.com/meshbird/meshbird/log"
 	"github.com/meshbird/meshbird/secure"
 	"net"
 	"os"
@@ -12,22 +13,19 @@ import (
 	"time"
 )
 
-const (
-	MeshbirdKeyEnv = "MESHBIRD_KEY"
-)
-
 var (
-	// VERSION var using for auto versioning through Go linker
-	VERSION  = "dev"
-	logger   = log.New()
-	Loglevel = ""
+	Version    = "dev"
+	NetworkKey string
+	LogLevel   string
+
+	keyNotSetError = errors.New("please, set environment variable \"MESHBIRD_KEY\" or specify a flag \"key\"")
 )
 
 func main() {
 	app := cli.NewApp()
 	app.Name = "MeshBird"
 	app.Usage = "distributed private networking"
-	app.Version = VERSION
+	app.Version = Version
 	app.Commands = []cli.Command{
 		{
 			Name:      "new",
@@ -57,31 +55,43 @@ func main() {
 			ArgsUsage: "<key>",
 		},
 	}
+
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
+			Name:        "key",
+			Usage:       "set network key",
+			Destination: &NetworkKey,
+			EnvVar:      "MESHBIRD_KEY",
+		},
+		cli.StringFlag{
 			Name:        "loglevel",
-			Usage:       "log level",
-			Destination: &Loglevel,
+			Value:       "warning",
+			Usage:       "set log level",
+			Destination: &LogLevel,
+			EnvVar:      "MESHBIRD_LOG_LEVEL",
 		},
 	}
-	err := app.Run(os.Args)
-	if err != nil {
-		logger.WithError(err).Fatal()
+
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal("error on run app, %v", err)
 	}
 }
 
 func actionGetIP(ctx *cli.Context) {
-	keyStr := os.Getenv(MeshbirdKeyEnv)
-	if keyStr == "" {
-		logger.Fatalf("environment variable %s is not specified", MeshbirdKeyEnv)
+	if NetworkKey == "" {
+		log.Fatal(keyNotSetError.Error())
 	}
-	secret, err := secure.NetworkSecretUnmarshal(keyStr)
+
+	secret, err := secure.NetworkSecretUnmarshal(NetworkKey)
 	if err != nil {
-		logger.WithError(err).Fatal()
+		log.Fatal("error on decode network key, %v", err)
 	}
+
 	state := common.NewState(secret)
 	state.Save()
-	logger.Info("Restored private IP address %s from state", state.PrivateIP.String())
+
+	fmt.Println(state.PrivateIP.String())
+	log.Info("private IP %q restored successfully", state.PrivateIP.String())
 }
 
 func actionNew(ctx *cli.Context) {
@@ -92,45 +102,35 @@ func actionNew(ctx *cli.Context) {
 		keyStr := ctx.Args().First()
 		secret, err = secure.NetworkSecretUnmarshal(keyStr)
 		if err != nil {
-			logger.WithError(err).Fatal()
+			log.Fatal("error on decode network key, %v", err)
 		}
 	} else {
-		_, ipnet, err := net.ParseCIDR(ctx.String("CIDR"))
+		_, ipNet, err := net.ParseCIDR(ctx.String("CIDR"))
 		if err != nil {
-			logger.WithError(err).Fatal("cidr parse error")
+			log.Fatal("cidr parse error, %v", err)
 		}
-		secret = secure.NewNetworkSecret(ipnet)
+		secret = secure.NewNetworkSecret(ipNet)
 	}
 	fmt.Println(secret.Marshal())
 }
 
 func actionJoin(ctx *cli.Context) {
-	logLevel, err := log.ParseLevel(Loglevel)
-	if err != nil {
-		logLevel = log.DebugLevel
-	}
-	logger.Level = logLevel
-
-	key := os.Getenv(MeshbirdKeyEnv)
-	if key == "" {
-		logger.Fatalf("environment variable %s is not specified", MeshbirdKeyEnv)
+	if NetworkKey == "" {
+		log.Fatal(keyNotSetError.Error())
 	}
 
-	nodeConfig := &common.Config{
-		SecretKey: key,
-		Loglevel:  logLevel,
-	}
-	node, err := common.NewLocalNode(nodeConfig)
+	node, err := common.NewLocalNode(&common.Config{SecretKey: NetworkKey})
 	if err != nil {
-		logger.WithError(err).Fatal("local node init error")
+		log.Fatal("error on setup local node, %v", err)
 	}
+
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt, os.Kill)
 	defer signal.Stop(signalChan)
 
 	go func() {
-		s := <-signalChan
-		logger.WithField("signal", s).Info("signal received, stopping...")
+		<-signalChan
+		log.Debug("signal received, stopping...")
 		node.Stop()
 
 		time.Sleep(2 * time.Second)
@@ -139,7 +139,7 @@ func actionJoin(ctx *cli.Context) {
 
 	err = node.Start()
 	if err != nil {
-		logger.WithError(err).Fatal("node start error")
+		log.Fatal("error on local node start, %v", err)
 	}
 
 	node.WaitStop()

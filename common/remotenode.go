@@ -2,15 +2,18 @@ package common
 
 import (
 	"fmt"
-	log "github.com/Sirupsen/logrus"
+	"github.com/anacrolix/utp"
+	"github.com/meshbird/meshbird/log"
+	"github.com/meshbird/meshbird/network/protocol"
+	"github.com/meshbird/meshbird/secure"
 	"io"
 	"net"
 	"strconv"
 	"time"
+)
 
-	"github.com/anacrolix/utp"
-	"github.com/meshbird/meshbird/network/protocol"
-	"github.com/meshbird/meshbird/secure"
+var (
+	rnLoggerFormat = "remote %s"
 )
 
 type RemoteNode struct {
@@ -19,7 +22,7 @@ type RemoteNode struct {
 	sessionKey    []byte
 	privateIP     net.IP
 	publicAddress string
-	logger        *log.Logger
+	logger        log.Logger
 	lastHeartbeat time.Time
 }
 
@@ -29,7 +32,7 @@ func NewRemoteNode(conn net.Conn, sessionKey []byte, privateIP net.IP) *RemoteNo
 		sessionKey:    sessionKey,
 		privateIP:     privateIP,
 		publicAddress: conn.RemoteAddr().String(),
-		logger:        log.New(),
+		logger:        log.L(fmt.Sprintf(rnLoggerFormat, privateIP.String())),
 		lastHeartbeat: time.Now(),
 	}
 }
@@ -40,40 +43,40 @@ func (rn *RemoteNode) SendToInterface(payload []byte) error {
 
 func (rn *RemoteNode) SendPack(pack *protocol.Packet) (err error) {
 	if err = protocol.EncodeAndWrite(rn.conn, pack); err != nil {
-		err = fmt.Errorf("Error on write Transfer message: %v", err)
+		err = fmt.Errorf("error on write transfer message, %v", err)
 	}
 	return
 }
 
 func (rn *RemoteNode) Close() {
 	defer rn.conn.Close()
-	rn.logger.Debug("Closing...")
+	rn.logger.Debug("closing...")
 }
 
 func (rn *RemoteNode) listen(ln *LocalNode) {
-	defer rn.logger.Debug("Exiting from listener...")
+	defer rn.logger.Debug("listener stopped...")
 	defer func() {
 		ln.NetTable().RemoveRemoteNode(rn.privateIP)
 	}()
 
 	iface, ok := ln.Service("iface").(*InterfaceService)
 	if !ok {
-		rn.logger.Error("InterfaceService not found")
+		rn.logger.Error("interface service not found")
 		return
 	}
 
-	rn.logger.Info("Listening...")
+	rn.logger.Debug("listening...")
 
 	for {
 		pack, err := protocol.Decode(rn.conn)
 		if err != nil {
-			rn.logger.WithError(err).Error("Decode error")
+			rn.logger.Error("decode error, %v", err)
 			if err == io.EOF {
 				break
 			}
 			continue
 		}
-		rn.logger.WithField("pack", pack).Debug("Received package")
+		rn.logger.Debug("received, %+v", pack)
 
 		switch pack.Data.Type {
 		case protocol.TypeTransfer:
@@ -81,12 +84,12 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 			payloadEncrypted := pack.Data.Msg.(protocol.TransferMessage).Bytes()
 			payload, errDec := secure.DecryptIV(payloadEncrypted, ln.State().Secret.Key, ln.State().Secret.Key)
 			if errDec != nil {
-				rn.logger.WithError(errDec).Error("Error on decrypt")
+				rn.logger.Error("error on decrypt, %v", err)
 				break
 			}
 			iface.WritePacket(payload)
 		case protocol.TypeHeartbeat:
-			rn.logger.WithField("msg", pack.Data.Msg).Debug("Received heardbeat")
+			rn.logger.Debug("heardbeat received, %v", pack.Data.Msg)
 			rn.lastHeartbeat = time.Now()
 		}
 	}
@@ -107,24 +110,18 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret, ln *LocalNode) (*
 	rn.lastHeartbeat = time.Now()
 	rn.publicAddress = fmt.Sprintf("%s:%d", host, port+1)
 
-	// TODO: Add prefix
-	rn.logger = log.New()
-	rn.logger.Level = ln.config.Loglevel
-
-	rn.logger.WithField("pub", rn.publicAddress).Debug("Trying to connection")
+	rn.logger = log.L(fmt.Sprintf("public %s", rn.publicAddress))
+	rn.logger.Debug("trying to connect...")
 
 	s, errSocket := utp.NewSocket("udp4", ":0")
 	if errSocket != nil {
-		rn.logger.WithError(errSocket).Error("Unable to crete a socket")
+		rn.logger.Error("unable to crete a socket, %v", errSocket)
 		return nil, errSocket
 	}
 
 	conn, errDial := s.DialTimeout(rn.publicAddress, 10*time.Second)
 	if errDial != nil {
-		rn.logger.WithFields(log.Fields{
-			"pub": rn.publicAddress,
-			"err": errDial,
-		}).Error("Unable to dial")
+		rn.logger.Error("unable to dial, %v", errDial)
 		return nil, errDial
 	}
 
@@ -145,18 +142,14 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret, ln *LocalNode) (*
 
 	rn.privateIP = peerInfo.PrivateIP()
 
-	// TODO: Add prefix
-	rn.logger = log.New()
-	rn.logger.Level = ln.config.Loglevel
+	// create new logger
+	log.RemoveLogger(rn.logger.Name())
+	rn.logger = log.L(fmt.Sprintf(rnLoggerFormat, rn.privateIP.String()))
 
 	if err := protocol.WriteEncodePeerInfo(rn.conn, ln.State().PrivateIP); err != nil {
 		return nil, err
 	}
 
-	rn.logger.WithFields(log.Fields{
-		"priv": rn.privateIP.String(),
-		"pub":  rn.publicAddress,
-	}).Info("Connected to node")
-
+	rn.logger.Info("connected, with public address %q", rn.publicAddress)
 	return rn, nil
 }

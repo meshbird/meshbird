@@ -4,12 +4,12 @@ package network
 
 import (
 	"fmt"
-        "os"
+	"os"
 	"os/exec"
 	"strconv"
-"syscall"
-"unsafe"
-"strings"
+	"strings"
+	"syscall"
+	"unsafe"
 )
 
 const (

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	log "github.com/Sirupsen/logrus"
+	"github.com/meshbird/meshbird/log"
 	"io"
 )
 
@@ -12,7 +12,6 @@ const (
 	TypeHandshake uint8 = iota
 	TypeOk
 	TypeHeartbeat
-	TypeGone
 	TypeTransfer
 	TypePeerInfo
 )
@@ -23,7 +22,7 @@ const (
 )
 
 var (
-	logger = log.New()
+	logger = log.L("proto")
 
 	ErrorUnableToReadVector  = errors.New("unable to read vector")
 	ErrorUnableToReadMessage = errors.New("unable to read message")
@@ -33,18 +32,8 @@ var (
 		TypeHandshake,
 		TypeOk,
 		TypeHeartbeat,
-		TypeGone,
 		TypeTransfer,
 		TypePeerInfo,
-	}
-
-	typeNames = map[uint8]string{
-		TypeHandshake: "Handshake",
-		TypeOk:        "Ok",
-		TypeHeartbeat: "Heartbeat",
-		TypeGone:      "Gone",
-		TypeTransfer:  "Transfer",
-		TypePeerInfo:  "PeerInfo",
 	}
 )
 
@@ -147,8 +136,6 @@ func Decode(r io.Reader) (*Packet, error) {
 		pack.Data.Msg = TransferMessage(message)
 	case TypeHeartbeat:
 		pack.Data.Msg = HeartbeatMessage(message)
-	case TypeGone:
-		pack.Data.Msg = GoneMessage(message)
 	}
 
 	return &pack, nil
@@ -167,54 +154,33 @@ func Encode(pack *Packet) ([]byte, error) {
 func ReadAndDecode(r io.Reader) (*Packet, error) {
 	pack, errDecode := Decode(r)
 	if errDecode != nil {
-		logger.WithError(errDecode).Error("Unable to decode packet")
+		logger.Error("nable to decode packet, %v", errDecode)
 		return nil, errDecode
 	}
 
-	logger.WithField("pack", pack).Debug("Received packet")
-
+	logger.Debug("received packet: %+v", pack)
 	return pack, nil
 }
 
 func EncodeAndWrite(w io.Writer, pack *Packet) error {
-	logger.WithField("pack", pack).Debug("Encoding package")
-
-	typeName := TypeName(pack.Data.Type)
+	logger.Debug("encoding package: %+v", pack)
 
 	reply, errEncode := Encode(pack)
 	if errEncode != nil {
-		logger.WithFields(log.Fields{
-			"type": typeName,
-			"err":  errEncode,
-		}).Error("Error on encoding")
+		logger.Error("error on encoding, %v", errEncode)
 		return errEncode
 	}
 
-	logger.WithFields(log.Fields{
-		"type": typeName,
-		"len":  len(reply),
-	}).Debug("Sending message ...")
+	logger.Debug("sending message...")
 
 	n, err := w.Write(reply)
 	if err != nil {
-		logger.WithFields(log.Fields{
-			"type": typeName,
-			"err":  err,
-		}).Error("Error on write")
+		logger.Error("error on write, %v", err)
 		return err
 	}
 
-	logger.WithFields(log.Fields{
-		"type":       typeName,
-		"len_sent":   n,
-		"len_actual": len(reply),
-	}).Debug("Message sent")
-
+	logger.Debug("message sent, %d of %d bytes", n, len(reply))
 	return nil
-}
-
-func TypeName(t uint8) string {
-	return typeNames[t]
 }
 
 func isKnownType(needle uint8) bool {
