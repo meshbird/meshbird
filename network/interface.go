@@ -34,7 +34,7 @@ func (i *Interface) Read(data []byte) (n int, err error) {
 }
 
 func CreateTunInterface(ifceName string) (*Interface, error) {
-	ifce, err := interfaceOpen("tun", ifceName)
+	ifce, err := newTUN(ifceName)
 	if err != nil {
 		return nil, fmt.Errorf("create new tun interface %s err: %s", ifce, err)
 	}
