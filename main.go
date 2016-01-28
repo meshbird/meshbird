@@ -55,6 +55,10 @@ func main() {
 			ArgsUsage: "<key>",
 		},
 	}
+	app.Before = func(context *cli.Context) error {
+		log.SetLevel(log.MustParseLevel(LogLevel))
+		return nil
+	}
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
