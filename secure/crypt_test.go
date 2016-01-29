@@ -70,7 +70,7 @@ func BenchmarkEncryptAESGCM(b *testing.B) {
 	benchmarkAEAD(b, c)
 }
 
-const benchSize = 1024 * 1024
+const benchSize = 1500
 
 func benchmarkAEAD(b *testing.B, c cipher.AEAD) {
 	b.SetBytes(benchSize)
