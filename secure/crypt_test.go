@@ -1,9 +1,10 @@
 package secure
 
 import (
-	"crypto/rand"
 	"testing"
 	"time"
+	"crypto/aes"
+	"crypto/cipher"
 )
 
 var (
@@ -14,23 +15,23 @@ func BenchmarkEncryptAesCbc(b *testing.B) {
 	key := randomBytes(16)
 	iv := make([]byte, 16)
 	counter := 0
-	dataLen := len(original)
+	aesCipher, err := aes.NewCipher(key)
+	if err != nil {
+		b.Fatal(err)
+	}
+	enc := cipher.NewCBCEncrypter(aesCipher, iv)
+	decrypted := PKCS5Padding(original, aes.BlockSize)
+	dataLen := len(decrypted)
+	encrypted := make([]byte, len(decrypted))
 	t := time.Now()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := rand.Read(iv)
-		if err != nil {
-			b.Fatal(err)
-		}
-		_, err = EncryptIV(original, key, iv)
-		if err != nil {
-			b.Fatal(err)
-		}
+		enc.CryptBlocks(encrypted, decrypted)
 		counter += dataLen
 	}
 	b.StopTimer()
 	ts := time.Since(t)
-	b.Logf("encryption speed: %.2f Mbit/s", float64(counter)*8/ts.Seconds()/1024/1024)
+	b.Logf("encryption speed: %.2f Mbit/s", float64(counter) * 8 / ts.Seconds() / 1024 / 1024)
 }
 
 func BenchmarkDescryptAesCbc(b *testing.B) {
@@ -42,16 +43,20 @@ func BenchmarkDescryptAesCbc(b *testing.B) {
 	}
 	counter := 0
 	dataLen := len(encrypted)
+
+	aesCipher, err := aes.NewCipher(key)
+	if err != nil {
+		b.Fatal(err)
+	}
+	dec := cipher.NewCBCDecrypter(aesCipher, iv)
 	t := time.Now()
+	decrypted := make([]byte, len(encrypted))
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := DecryptIV(encrypted, key, iv)
-		if err != nil {
-			b.Fatal(err)
-		}
+		dec.CryptBlocks(decrypted, encrypted)
 		counter += dataLen
 	}
 	b.StopTimer()
 	ts := time.Since(t)
-	b.Logf("decryption speed: %.2f Mbit/s", float64(counter)*8/ts.Seconds()/1024/1024)
+	b.Logf("decryption speed: %.2f Mbit/s", float64(counter) * 8 / ts.Seconds() / 1024 / 1024)
 }
