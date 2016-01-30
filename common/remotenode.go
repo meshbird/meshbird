@@ -87,8 +87,8 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 				rn.logger.Error("error on decrypt, %v", err)
 				break
 			}
-			srcAddr := net.IPAddr(payload[12:16])
-			dstAddr := net.IPAddr(payload[16:20])
+			srcAddr := net.IP(payload[12:16])
+			dstAddr := net.IP(payload[16:20])
 			rn.logger.Debug("received packet from %s to %s", srcAddr.String(), dstAddr.String())
 			iface.WritePacket(payload)
 		case protocol.TypeHeartbeat:
