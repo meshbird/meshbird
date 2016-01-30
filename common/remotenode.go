@@ -89,7 +89,7 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 			}
 			srcAddr := net.IP(payload[12:16])
 			dstAddr := net.IP(payload[16:20])
-			rn.logger.Debug("received packet from %s to %s", srcAddr.String(), dstAddr.String())
+			rn.logger.Info("received packet from %s to %s", srcAddr.String(), dstAddr.String())
 			iface.WritePacket(payload)
 		case protocol.TypeHeartbeat:
 			rn.logger.Debug("heardbeat received, %v", pack.Data.Msg)
