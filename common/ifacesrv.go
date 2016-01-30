@@ -57,7 +57,7 @@ func (is *InterfaceService) Run() error {
 func (is *InterfaceService) WritePacket(packet []byte) error {
 	is.logger.Debug("ready to write %d bytes", len(packet))
 	if _, err := is.instance.Write(packet); err != nil {
-		is.logger.Error("error on write, %v", err)
 		return err
 	}
+	return nil
 }
