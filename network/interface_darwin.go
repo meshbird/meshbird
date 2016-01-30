@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	//	"syscall"
+	"net"
 )
 
 const (
@@ -36,16 +38,31 @@ func newTAP(ifName string) (ifce *Interface, err error) {
 }
 
 func newTUN(ifName string) (ifce *Interface, err error) {
-	file, err := os.OpenFile("/dev/net/tun", os.O_RDWR, 0)
+	ifce, err = interfaceOpen("tun", "")
 	if err != nil {
 		return nil, err
 	}
-	name, err := createInterface(file.Fd(), ifName, cIFF_TUN|cIFF_NO_PI)
-	if err != nil {
-		return nil, err
-	}
-	ifce = &Interface{isTAP: false, file: file, name: name}
+	return ifce, nil
+}
+
+func createInterface(fd uintptr, ifName string, flags uint16) (createdIFName string, err error) {
+	var req ifReq
+	req.Flags = flags
+	copy(req.Name[:], ifName)
+	createdIFName = strings.Trim(string(req.Name[:]), "\x00")
 	return
+}
+
+func setPersistent(fd uintptr, persistent bool) error {
+	//	var val uintptr = 0
+	//	if persistent {
+	//		val = 1
+	//	}
+	//	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TUNSETPERSIST), val)
+	//	if errno != 0 {
+	//		return errno
+	//	}
+	return nil
 }
 
 func interfaceOpen(ifType, ifName string) (*Interface, error) {
@@ -54,44 +71,33 @@ func interfaceOpen(ifType, ifName string) (*Interface, error) {
 		return nil, fmt.Errorf("unknown interface type: %s", ifType)
 	}
 	ifce := new(Interface)
-	for i := 0; i < 256; i++ {
-		ifPath := fmt.Sprintf("/dev/%s%d", ifType, ifName)
-		ifce.file, err = os.OpenFile(ifPath, os.O_RDWR, 0644)
+	for i := 0; i < 10; i++ {
+		ifPath := fmt.Sprintf("/dev/%s%d", ifType, i)
+		fmt.Println(ifPath)
+		ifce.file, err = os.OpenFile(ifPath, os.O_RDWR, 0)
 		if err != nil {
 			continue
 		}
-		ifce.name = ifName
-	}
-	if ifce.file == nil {
-		return nil, fmt.Errorf("can't create network interface")
+		ifce.name = fmt.Sprintf("%s%d", ifType, i)
+		break
 	}
 	return ifce, err
 }
 
-func createInterface(fd uintptr, ifName string, flags uint16) (createdIFName string, err error) {
-	var req ifReq
-	req.Flags = flags
-	copy(req.Name[:], ifName)
-	// TODO: Need support for darwin
-	//	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TUNSETIFF), uintptr(unsafe.Pointer(&req)))
-	//	if errno != 0 {
-	//		err = errno
-	//		return
-	//	}
-	createdIFName = strings.Trim(string(req.Name[:]), "\x00")
-	return
-}
-
 func AssignIpAddress(iface string, IpAddr string) error {
-	err := exec.Command("ifconfig", iface, IpAddr).Run()
+	ip, ipnet, _ := net.ParseCIDR(IpAddr)
+	err := exec.Command("ipconfig", "set", iface, "MANUAL", ip.To4().String(), fmt.Sprintf("0x%s", ipnet.Mask.String())).Run()
 	if err != nil {
 		return fmt.Errorf("assign ip %s to %s err: %s", IpAddr, iface, err)
 	}
-	return err
+	return nil
 }
 
 func UpInterface(iface string) error {
 	err := exec.Command("ifconfig", iface, "up").Run()
+	if err != nil {
+		return fmt.Errorf("up interface %s err: %s", iface, err)
+	}
 	return err
 }
 

@@ -12,17 +12,17 @@ import (
 type NetTable struct {
 	BaseService
 
-	localNode *LocalNode
-	waitGroup sync.WaitGroup
-	dhtInChan chan string
+	localNode       *LocalNode
+	waitGroup       sync.WaitGroup
+	dhtInChan       chan string
 
-	lock      sync.RWMutex
-	blackList map[string]time.Time
-	peers     map[string]*RemoteNode
+	lock            sync.RWMutex
+	blackList       map[string]time.Time
+	peers           map[string]*RemoteNode
 
 	heartbeatTicker <-chan time.Time
 
-	logger log.Logger
+	logger          log.Logger
 }
 
 func (nt NetTable) Name() string {
@@ -55,7 +55,7 @@ func (nt *NetTable) Stop() {
 	}
 }
 
-func (nt *NetTable) GetDHTInChannel() chan<- string {
+func (nt *NetTable) GetDHTInChannel() chan <- string {
 	return nt.dhtInChan
 }
 
@@ -107,7 +107,9 @@ func (nt *NetTable) processDHTIn() {
 			nt.lock.Unlock()
 
 			if !ok {
-				nt.tryConnect(host)
+				if err := nt.tryConnect(host); err != nil {
+					nt.logger.Info("unable connect %s err: %s", host, err)
+				}
 			}
 		}
 	}
@@ -133,14 +135,15 @@ func (nt *NetTable) heartbeat() {
 	}
 }
 
-func (nt *NetTable) tryConnect(h string) {
+func (nt *NetTable) tryConnect(h string) error {
 	rn, err := TryConnect(h, nt.localNode.NetworkSecret(), nt.localNode)
 	if err != nil {
 		nt.addToBlackList(h)
-		return
+		return err
 	}
 	nt.logger.Debug("adding remote node...")
 	nt.AddRemoteNode(rn)
+	return nil
 }
 
 func (nt *NetTable) addToBlackList(h string) {
@@ -150,13 +153,14 @@ func (nt *NetTable) addToBlackList(h string) {
 }
 
 func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
-	nt.logger.Debug("sending packet %d bytes to %q", len(payload), dstIP.String())
+	srcAddr := net.IP(payload[12:16])
+	dstAddr := net.IP(payload[16:20])
+	nt.logger.Info("sending packet to %s, len %d bytes", srcAddr.String(), dstAddr.String(), len(payload))
 
 	rn := nt.RemoteNodeByIP(dstIP)
 	if rn == nil {
-		nt.logger.Error("destination host %q unreachable", dstIP.String())
+		nt.logger.Debug("destination host %q unreachable", dstIP.String())
 		nt.logger.Debug("known hosts, %v", nt.knownHosts())
-
 		return
 	}
 

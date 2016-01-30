@@ -42,7 +42,7 @@ func NewLocalNode(cfg *Config) (*LocalNode, error) {
 	n.AddService(&ListenerService{})
 	n.AddService(&DiscoveryDHT{})
 	n.AddService(&InterfaceService{})
-	n.AddService(&STUNService{})
+	//n.AddService(&STUNService{})
 	n.AddService(&UPnPService{})
 	n.AddService(&HttpService{})
 	return n, nil
