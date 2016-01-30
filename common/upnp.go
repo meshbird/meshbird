@@ -43,11 +43,11 @@ func (s *UPnPService) process() (err error) {
 			err = fmt.Errorf("panic: %s", r)
 		}
 	}()
-	s.logger.Info("trying to map port %d...", s.port)
+	s.logger.Debug("trying to map port %d...", s.port)
 	if err := s.mapping.AddPortMapping(s.port, s.port, "UDP"); err == nil {
 		s.logger.Debug("port mapping passed")
 	} else {
-		s.logger.Error("port mapping fail, %v", err)
+		s.logger.Debug("port mapping fail, %v", err)
 	}
 	return nil
 }
