@@ -1,6 +1,9 @@
 package log
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 const (
 	LevelPanic int = iota
@@ -31,7 +34,7 @@ var (
 )
 
 func ParseLevel(s string) (int, error) {
-	level, ok := levelNames[s]
+	level, ok := levelNames[strings.ToLower(s)]
 	if !ok {
 		return 0, fmt.Errorf("unknown level %q", s)
 	}

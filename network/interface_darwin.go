@@ -9,11 +9,13 @@ import (
 	"strconv"
 	"strings"
 )
+
 const (
-	cIFF_TUN = 0x0001
-	cIFF_TAP = 0x0002
+	cIFF_TUN   = 0x0001
+	cIFF_TAP   = 0x0002
 	cIFF_NO_PI = 0x1000
 )
+
 type ifReq struct {
 	Name  [0x10]byte
 	Flags uint16
@@ -25,7 +27,7 @@ func newTAP(ifName string) (ifce *Interface, err error) {
 	if err != nil {
 		return nil, err
 	}
-	name, err := createInterface(file.Fd(), ifName, cIFF_TAP | cIFF_NO_PI)
+	name, err := createInterface(file.Fd(), ifName, cIFF_TAP|cIFF_NO_PI)
 	if err != nil {
 		return nil, err
 	}
@@ -34,15 +36,15 @@ func newTAP(ifName string) (ifce *Interface, err error) {
 }
 
 func newTUN(ifName string) (ifce *Interface, err error) {
-	file, err := os.OpenFile("/dev/tun0", os.O_RDWR, 0)
+	file, err := os.OpenFile("/dev/net/tun", os.O_RDWR, 0)
 	if err != nil {
-		return nil, fmt.Errorf("can't open: %s", err)
+		return nil, err
 	}
-	//name, err := createInterface(file.Fd(), ifName, cIFF_TUN | cIFF_NO_PI)
-	//if err != nil {
-	//	return nil, err
-	//}
-	ifce = &Interface{isTAP: false, file: file, name: ifName}
+	name, err := createInterface(file.Fd(), ifName, cIFF_TUN|cIFF_NO_PI)
+	if err != nil {
+		return nil, err
+	}
+	ifce = &Interface{isTAP: false, file: file, name: name}
 	return
 }
 
@@ -71,11 +73,11 @@ func createInterface(fd uintptr, ifName string, flags uint16) (createdIFName str
 	req.Flags = flags
 	copy(req.Name[:], ifName)
 	// TODO: Need support for darwin
-//	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TUNSETIFF), uintptr(unsafe.Pointer(&req)))
-//	if errno != 0 {
-//		err = errno
-//		return
-//	}
+	//	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TUNSETIFF), uintptr(unsafe.Pointer(&req)))
+	//	if errno != 0 {
+	//		err = errno
+	//		return
+	//	}
 	createdIFName = strings.Trim(string(req.Name[:]), "\x00")
 	return
 }
