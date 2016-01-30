@@ -41,7 +41,10 @@ func (hs *HttpService) Run() error {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(data)
+		err = w.Write(data)
+		if err != nil {
+			return
+		}
 	})
 	http.ListenAndServe(":15080", nil)
 	return nil
