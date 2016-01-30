@@ -38,27 +38,17 @@ func newTAP(ifName string) (ifce *Interface, err error) {
 }
 
 func newTUN(ifName string) (ifce *Interface, err error) {
-	file, err := os.OpenFile("/dev/tun0", os.O_RDWR, 0)
+	ifce, err = interfaceOpen("tun", "")
 	if err != nil {
 		return nil, err
 	}
-	name, err := createInterface(file.Fd(), ifName, cIFF_TUN|cIFF_NO_PI)
-	if err != nil {
-		return nil, err
-	}
-	ifce = &Interface{isTAP: false, file: file, name: name}
-	return
+	return ifce, nil
 }
 
 func createInterface(fd uintptr, ifName string, flags uint16) (createdIFName string, err error) {
 	var req ifReq
 	req.Flags = flags
 	copy(req.Name[:], ifName)
-//	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TUNSETIFF), uintptr(unsafe.Pointer(&req)))
-//	if errno != 0 {
-//		err = errno
-//		return
-//	}
 	createdIFName = strings.Trim(string(req.Name[:]), "\x00")
 	return
 }
@@ -81,26 +71,22 @@ func interfaceOpen(ifType, ifName string) (*Interface, error) {
 		return nil, fmt.Errorf("unknown interface type: %s", ifType)
 	}
 	ifce := new(Interface)
-	for i := 0; i < 256; i++ {
-		ifPath := fmt.Sprintf("/dev/tun/%s%d", ifType, ifName)
-		ifce.file, err = os.OpenFile(ifPath, os.O_RDWR, 0644)
+	for i := 0; i < 10; i++ {
+		ifPath := fmt.Sprintf("/dev/%s%d", ifType, i)
+		fmt.Println(ifPath)
+		ifce.file, err = os.OpenFile(ifPath, os.O_RDWR, 0)
 		if err != nil {
 			continue
 		}
-		ifce.name = ifName
-	}
-	if ifce.file == nil {
-		return nil, fmt.Errorf("can't create network interface")
+		ifce.name = fmt.Sprintf("%s%d", ifType, i)
+		break
 	}
 	return ifce, err
 }
 
 func AssignIpAddress(iface string, IpAddr string) error {
 	ip, ipnet, _ := net.ParseCIDR(IpAddr)
-	fmt.Println(ip.To4())
-	fmt.Println(ipnet.Mask.String())
-	fmt.Println(iface)
-	err := exec.Command("ipconfig", "set", "tun0", "MANUAL", ip.To4().String(), "255.255.0.0").Run()
+	err := exec.Command("ipconfig", "set", iface, "MANUAL", ip.To4().String(), fmt.Sprintf("0x%s", ipnet.Mask.String())).Run()
 	if err != nil {
 		return fmt.Errorf("assign ip %s to %s err: %s", IpAddr, iface, err)
 	}
@@ -108,7 +94,7 @@ func AssignIpAddress(iface string, IpAddr string) error {
 }
 
 func UpInterface(iface string) error {
-	err := exec.Command("ifconfig", "tun0", "up").Run()
+	err := exec.Command("ifconfig", iface, "up").Run()
 	if err != nil {
 		return fmt.Errorf("up interface %s err: %s", iface, err)
 	}
@@ -116,7 +102,7 @@ func UpInterface(iface string) error {
 }
 
 func SetMTU(iface string, mtu int) error {
-	err := exec.Command("ip", "link", "set", "mtu", strconv.Itoa(mtu), "dev", iface).Run()
+	err := exec.Command("ifconfig", iface, "mtu", strconv.Itoa(mtu)).Run()
 	if err != nil {
 		return fmt.Errorf("Can't set MTU %s to %s err: %s", iface, strconv.Itoa(mtu), err)
 	}
