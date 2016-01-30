@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+//	"syscall"
+	"net"
 )
 
 const (
@@ -36,7 +38,7 @@ func newTAP(ifName string) (ifce *Interface, err error) {
 }
 
 func newTUN(ifName string) (ifce *Interface, err error) {
-	file, err := os.OpenFile("/dev/net/tun", os.O_RDWR, 0)
+	file, err := os.OpenFile("/dev/tun0", os.O_RDWR, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -48,6 +50,31 @@ func newTUN(ifName string) (ifce *Interface, err error) {
 	return
 }
 
+func createInterface(fd uintptr, ifName string, flags uint16) (createdIFName string, err error) {
+	var req ifReq
+	req.Flags = flags
+	copy(req.Name[:], ifName)
+//	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TUNSETIFF), uintptr(unsafe.Pointer(&req)))
+//	if errno != 0 {
+//		err = errno
+//		return
+//	}
+	createdIFName = strings.Trim(string(req.Name[:]), "\x00")
+	return
+}
+
+func setPersistent(fd uintptr, persistent bool) error {
+//	var val uintptr = 0
+//	if persistent {
+//		val = 1
+//	}
+//	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TUNSETPERSIST), val)
+//	if errno != 0 {
+//		return errno
+//	}
+	return nil
+}
+
 func interfaceOpen(ifType, ifName string) (*Interface, error) {
 	var err error
 	if ifType != "tun" && ifType != "tap" {
@@ -55,7 +82,7 @@ func interfaceOpen(ifType, ifName string) (*Interface, error) {
 	}
 	ifce := new(Interface)
 	for i := 0; i < 256; i++ {
-		ifPath := fmt.Sprintf("/dev/%s%d", ifType, ifName)
+		ifPath := fmt.Sprintf("/dev/tun/%s%d", ifType, ifName)
 		ifce.file, err = os.OpenFile(ifPath, os.O_RDWR, 0644)
 		if err != nil {
 			continue
@@ -68,35 +95,28 @@ func interfaceOpen(ifType, ifName string) (*Interface, error) {
 	return ifce, err
 }
 
-func createInterface(fd uintptr, ifName string, flags uint16) (createdIFName string, err error) {
-	var req ifReq
-	req.Flags = flags
-	copy(req.Name[:], ifName)
-	// TODO: Need support for darwin
-	//	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TUNSETIFF), uintptr(unsafe.Pointer(&req)))
-	//	if errno != 0 {
-	//		err = errno
-	//		return
-	//	}
-	createdIFName = strings.Trim(string(req.Name[:]), "\x00")
-	return
-}
-
 func AssignIpAddress(iface string, IpAddr string) error {
-	err := exec.Command("ifconfig", iface, IpAddr).Run()
+	ip, ipnet, _ := net.ParseCIDR(IpAddr)
+	fmt.Println(ip.To4())
+	fmt.Println(ipnet.Mask.String())
+	fmt.Println(iface)
+	err := exec.Command("ipconfig", "set", "tun0", "MANUAL", ip.To4().String(), "255.255.0.0").Run()
 	if err != nil {
 		return fmt.Errorf("assign ip %s to %s err: %s", IpAddr, iface, err)
+	}
+	return nil
+}
+
+func UpInterface(iface string) error {
+	err := exec.Command("ifconfig", "tun0", "up").Run()
+	if err != nil {
+		return fmt.Errorf("up interface %s err: %s", iface, err)
 	}
 	return err
 }
 
-func UpInterface(iface string) error {
-	err := exec.Command("ifconfig", iface, "up").Run()
-	return err
-}
-
 func SetMTU(iface string, mtu int) error {
-	err := exec.Command("ifconfig", iface, "mtu", strconv.Itoa(mtu)).Run()
+	err := exec.Command("ip", "link", "set", "mtu", strconv.Itoa(mtu), "dev", iface).Run()
 	if err != nil {
 		return fmt.Errorf("Can't set MTU %s to %s err: %s", iface, strconv.Itoa(mtu), err)
 	}
