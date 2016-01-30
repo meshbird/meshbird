@@ -2,7 +2,6 @@ package network
 
 import (
 	"fmt"
-	"github.com/hsheth2/water/waterutil"
 	"net"
 	"os"
 )
@@ -66,6 +65,5 @@ func NextNetworkPacket(iface *Interface) ([]byte, error) {
 }
 
 func IPv4Destination(packet []byte) net.IP {
-	return waterutil.IPv4Destination(packet)
-
+	return net.IPv4(packet[16], packet[17], packet[18], packet[19])
 }
