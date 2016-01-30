@@ -82,7 +82,7 @@ func interfaceOpen(ifType, ifName string) (*Interface, error) {
 	}
 	ifce := new(Interface)
 	for i := 0; i < 256; i++ {
-		ifPath := fmt.Sprintf("/dev/tun/%s%d", ifType, ifName)
+		ifPath := fmt.Sprintf("/dev/%s/tun%d", ifType, i)
 		ifce.file, err = os.OpenFile(ifPath, os.O_RDWR, 0644)
 		if err != nil {
 			continue
