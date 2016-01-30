@@ -25,6 +25,7 @@ func (hs *HttpService) Name() string {
 
 func (hs *HttpService) Init(ln *LocalNode) (err error) {
 	hs.localnode = ln
+	hs.iface = ln.Service("iface").(*InterfaceService)
 	return nil
 }
 
