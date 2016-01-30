@@ -153,7 +153,9 @@ func (nt *NetTable) addToBlackList(h string) {
 }
 
 func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
-	nt.logger.Debug("sending packet %d bytes to %q", len(payload), dstIP.String())
+	srcAddr := net.IP(payload[12:16])
+	dstAddr := net.IP(payload[16:20])
+	nt.logger.Info("sending packet to %s, len %d bytes", srcAddr.String(), dstAddr.String(), len(payload))
 
 	rn := nt.RemoteNodeByIP(dstIP)
 	if rn == nil {
