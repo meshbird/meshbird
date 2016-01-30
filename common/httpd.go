@@ -41,7 +41,7 @@ func (hs *HttpService) Run() error {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
-		err = w.Write(data)
+		_, err = w.Write(data)
 		if err != nil {
 			return
 		}
