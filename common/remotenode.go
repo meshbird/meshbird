@@ -113,7 +113,7 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret, ln *LocalNode) (*
 
 	rn := new(RemoteNode)
 	rn.lastHeartbeat = time.Now()
-	rn.publicAddress = fmt.Sprintf("%s:%d", host, port + 1)
+	rn.publicAddress = fmt.Sprintf("%s:%d", host, port+1)
 
 	rn.logger = log.L(fmt.Sprintf("public %s", rn.publicAddress))
 	rn.logger.Debug("trying to connect...")
@@ -124,7 +124,7 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret, ln *LocalNode) (*
 		return nil, errSocket
 	}
 
-	conn, errDial := s.DialTimeout(rn.publicAddress, 10 * time.Second)
+	conn, errDial := s.DialTimeout(rn.publicAddress, 10*time.Second)
 	if errDial != nil {
 		rn.logger.Error("unable to dial, %v", errDial)
 		return nil, errDial

@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-//	"syscall"
+	//	"syscall"
 	"net"
 )
 
@@ -54,14 +54,14 @@ func createInterface(fd uintptr, ifName string, flags uint16) (createdIFName str
 }
 
 func setPersistent(fd uintptr, persistent bool) error {
-//	var val uintptr = 0
-//	if persistent {
-//		val = 1
-//	}
-//	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TUNSETPERSIST), val)
-//	if errno != 0 {
-//		return errno
-//	}
+	//	var val uintptr = 0
+	//	if persistent {
+	//		val = 1
+	//	}
+	//	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TUNSETPERSIST), val)
+	//	if errno != 0 {
+	//		return errno
+	//	}
 	return nil
 }
 
