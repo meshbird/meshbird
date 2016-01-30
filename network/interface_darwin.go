@@ -34,15 +34,15 @@ func newTAP(ifName string) (ifce *Interface, err error) {
 }
 
 func newTUN(ifName string) (ifce *Interface, err error) {
-	file, err := os.OpenFile("/dev/net/tun", os.O_RDWR, 0)
+	file, err := os.OpenFile("/dev/tun0", os.O_RDWR, 0)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't open: %s", err)
 	}
-	name, err := createInterface(file.Fd(), ifName, cIFF_TUN | cIFF_NO_PI)
-	if err != nil {
-		return nil, err
-	}
-	ifce = &Interface{isTAP: false, file: file, name: name}
+	//name, err := createInterface(file.Fd(), ifName, cIFF_TUN | cIFF_NO_PI)
+	//if err != nil {
+	//	return nil, err
+	//}
+	ifce = &Interface{isTAP: false, file: file, name: ifName}
 	return
 }
 
