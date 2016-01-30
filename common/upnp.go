@@ -3,7 +3,7 @@ package common
 import (
 	"fmt"
 	"github.com/meshbird/meshbird/log"
-	"github.com/prestonTao/upnp"
+	"github.com/miolini/upnp"
 	"time"
 )
 
