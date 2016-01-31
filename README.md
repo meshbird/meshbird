@@ -11,6 +11,11 @@ Meshbird create distributed private networking between servers, containers, virt
 
 For example, user can create private network between DigitalOcean's droplets in each datacenter and link it together by executing one command. All traffic will be encrypted with strong AES-256.
 
+## Supported OS
+
+- Linux (386, amd64, arm)
+- Darwin (386, amd64)
+
 ## Demo of ssh connection via our secure tunnel
 
 Demo install and setup Meshbird on DigitalOcean droplets and home laptop for creating distributed private network and provide access to ssh server over Meshbird network.
@@ -27,10 +32,6 @@ Full video can be found at https://www.youtube.com/watch?v=sW5ZIcfX7w8
 2. STUN
 3. AES-256 - traffic encription
 4. uTP node communication
-
-## Project status
-
-Now we support linux only
 
 ## Roadmap
 
