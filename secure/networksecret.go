@@ -18,7 +18,7 @@ type NetworkSecret struct {
 func NewNetworkSecret(network *net.IPNet) *NetworkSecret {
 	return &NetworkSecret{
 		Net: network,
-		Key: randomBytes(16),
+		Key: randomBytes(32),
 	}
 }
 
@@ -39,10 +39,10 @@ func NetworkSecretUnmarshal(v string) (*NetworkSecret, error) {
 		return nil, fmt.Errorf("mismatch secret length: 24 != %d", len(data))
 	}
 	secret := &NetworkSecret{
-		Key: data[:16],
+		Key: data[:32],
 		Net: &net.IPNet{
-			IP:   data[16:20],
-			Mask: data[20:],
+			IP:   data[32:36],
+			Mask: data[36:],
 		},
 	}
 	return secret, nil
