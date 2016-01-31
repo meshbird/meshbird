@@ -50,7 +50,7 @@ Full video can be found at https://www.youtube.com/watch?v=sW5ZIcfX7w8
 
 ```bash
 $ curl http://meshbird.com/install.sh | sh
-````
+```
 
 or if you have Go compiler 
 
