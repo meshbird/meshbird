@@ -57,7 +57,7 @@ func (ns NetworkSecret) CIDR() string {
 	return ns.Net.String()
 }
 
-func (ns NetworkSecret) Encode(dst []byte, data []byte, nonce []byte) (error) {
+func (ns NetworkSecret) Encode(dst []byte, data []byte, nonce []byte) error {
 	aesCipher, err := aes.NewCipher(ns.Key)
 	if err != nil {
 		return err
@@ -67,5 +67,18 @@ func (ns NetworkSecret) Encode(dst []byte, data []byte, nonce []byte) (error) {
 		return err
 	}
 	c.Seal(dst, nonce, dst, nil)
+	return nil
+}
+
+func (ns NetworkSecret) Decode(dst []byte, data []byte, nonce []byte) error {
+	aesCipher, err := aes.NewCipher(ns.Key)
+	if err != nil {
+		return err
+	}
+	c, err := cipher.NewGCM(aesCipher)
+	if err != nil {
+		return err
+	}
+	c.Open(dst, nonce, data, nil)
 	return nil
 }
