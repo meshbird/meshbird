@@ -35,8 +35,8 @@ func NetworkSecretUnmarshal(v string) (*NetworkSecret, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(data) != 24 {
-		return nil, fmt.Errorf("mismatch secret length: 24 != %d", len(data))
+	if len(data) != 40 {
+		return nil, fmt.Errorf("mismatch secret length: 40 != %d", len(data))
 	}
 	secret := &NetworkSecret{
 		Key: data[:32],
