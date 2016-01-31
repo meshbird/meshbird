@@ -5,6 +5,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net"
+	"crypto/aes"
+	"crypto/cipher"
+	"github.com/meshbird/meshbird/network"
 )
 
 type NetworkSecret struct {
@@ -54,7 +57,15 @@ func (ns NetworkSecret) CIDR() string {
 	return ns.Net.String()
 }
 
-func (ns NetworkSecret) Encode(data []byte) []byte {
-	// TODO: Make me happy
-	return data
+func (ns NetworkSecret) Encode(dst []byte, data []byte, nonce []byte) (error) {
+	aesCipher, err := aes.NewCipher(ns.Key)
+	if err != nil {
+		return err
+	}
+	c, err := cipher.NewGCM(aesCipher)
+	if err != nil {
+		return err
+	}
+	c.Seal(dst, nonce, dst, nil)
+	return nil
 }
