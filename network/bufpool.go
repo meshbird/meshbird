@@ -1,8 +1,8 @@
 package network
 
 import (
-	"sync"
 	"bytes"
+	"sync"
 )
 
 type BufPool struct {

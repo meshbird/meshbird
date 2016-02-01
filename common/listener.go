@@ -65,7 +65,7 @@ func (l *ListenerService) process(c net.Conn) error {
 
 	l.logger.Debug("processing hansdhake...")
 
-	if !protocol.IsMagicValid(handshakeMsg.Bytes()) {
+	if !protocol.IsMagicValid(handshakeMsg) {
 		return fmt.Errorf("invalid magic bytes")
 	}
 
@@ -85,7 +85,7 @@ func (l *ListenerService) process(c net.Conn) error {
 
 	l.logger.Debug("processing peer info...")
 
-	rn := NewRemoteNode(c, handshakeMsg.SessionKey(), peerInfo.PrivateIP())
+	rn := NewRemoteNode(c, protocol.ExtractSessionKey(handshakeMsg), net.IP(peerInfo))
 
 	l.logger.Debug("adding remote node...")
 	l.localNode.NetTable().AddRemoteNode(rn)

@@ -12,17 +12,17 @@ import (
 type NetTable struct {
 	BaseService
 
-	localNode       *LocalNode
-	waitGroup       sync.WaitGroup
-	dhtInChan       chan string
+	localNode *LocalNode
+	waitGroup sync.WaitGroup
+	dhtInChan chan string
 
-	lock            sync.RWMutex
-	blackList       map[string]time.Time
-	peers           map[string]*RemoteNode
+	lock      sync.RWMutex
+	blackList map[string]time.Time
+	peers     map[string]*RemoteNode
 
 	heartbeatTicker <-chan time.Time
 
-	logger          log.Logger
+	logger log.Logger
 }
 
 func (nt NetTable) Name() string {
@@ -55,7 +55,7 @@ func (nt *NetTable) Stop() {
 	}
 }
 
-func (nt *NetTable) GetDHTInChannel() chan <- string {
+func (nt *NetTable) GetDHTInChannel() chan<- string {
 	return nt.dhtInChan
 }
 
@@ -126,7 +126,12 @@ func (nt *NetTable) heartbeat() {
 			}
 			nt.lock.Lock()
 			for _, peer := range nt.peers {
-				if err := peer.SendPack(protocol.NewHeartbeatMessage(nt.localNode.State().PrivateIP)); err != nil {
+				if err := peer.SendPack(
+					protocol.NewRecord(
+						protocol.TypeHeartbeat,
+						nt.localNode.State().PrivateIP.To4(),
+					),
+				); err != nil {
 					nt.logger.Error("error on send heartbeat. %v", err)
 				}
 			}

@@ -2,12 +2,12 @@ package common
 
 import (
 	"fmt"
-	"io"
-	"net"
-	"time"
 	"github.com/meshbird/meshbird/log"
 	"github.com/meshbird/meshbird/network/protocol"
 	"github.com/meshbird/meshbird/secure"
+	"io"
+	"net"
+	"time"
 )
 
 var (
@@ -39,8 +39,8 @@ func (rn *RemoteNode) SendToInterface(payload []byte) error {
 	return protocol.WriteEncodeTransfer(rn.conn, payload)
 }
 
-func (rn *RemoteNode) SendPack(pack *protocol.Packet) (err error) {
-	if err = protocol.EncodeAndWrite(rn.conn, pack); err != nil {
+func (rn *RemoteNode) SendPack(rec *protocol.Record) (err error) {
+	if err = protocol.EncodeAndWrite(rn.conn, rec); err != nil {
 		err = fmt.Errorf("error on write transfer message, %v", err)
 	}
 	return
@@ -66,7 +66,7 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 	rn.logger.Debug("listening...")
 
 	for {
-		pack, err := protocol.Decode(rn.conn)
+		rec, err := protocol.Decode(rn.conn)
 		if err != nil {
 			rn.logger.Error("decode error, %v", err)
 			if err == io.EOF {
@@ -74,25 +74,25 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 			}
 			continue
 		}
-		rn.logger.Debug("received, %+v", pack)
+		rn.logger.Debug("received, %+v", rec)
 
-		switch pack.Data.Type {
+		switch rec.Type {
 		case protocol.TypeTransfer:
 			rn.logger.Debug("Writing to interface...")
-			payloadEncrypted := pack.Data.Msg.(protocol.TransferMessage).Bytes()
-			payload, errDec := secure.DecryptIV(payloadEncrypted, ln.State().Secret.Key, ln.State().Secret.Key)
+			payload, errDec := secure.DecryptIV(rec.Msg, ln.State().Secret.Key, ln.State().Secret.Key)
 			if errDec != nil {
 				rn.logger.Error("error on decrypt, %v", err)
 				break
 			}
-			srcAddr := net.IP(payload[12:16])
-			dstAddr := net.IP(payload[16:20])
-			rn.logger.Info("received packet from %s to %s", srcAddr.String(), dstAddr.String())
+			srcAddress := net.IP(payload[12:16])
+			dstAddress := net.IP(payload[16:20])
+			rn.logger.Info("received packet from %s to %s", srcAddress.String(), dstAddress.String())
 			if err = iface.WritePacket(payload); err != nil {
 				rn.logger.Error("write packet err: %s", err)
 			}
+
 		case protocol.TypeHeartbeat:
-			rn.logger.Debug("heardbeat received, %v", pack.Data.Msg)
+			rn.logger.Debug("heardbeat received, %v", rec.Msg)
 			rn.lastHeartbeat = time.Now()
 		}
 	}

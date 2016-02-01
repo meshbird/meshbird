@@ -1,13 +1,12 @@
 package secure
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
 	"net"
-	"crypto/aes"
-	"crypto/cipher"
-	"github.com/meshbird/meshbird/network"
 )
 
 type NetworkSecret struct {
