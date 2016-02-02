@@ -5,7 +5,6 @@ import (
 	"github.com/meshbird/meshbird/log"
 	"github.com/meshbird/meshbird/network/protocol"
 	"github.com/meshbird/meshbird/secure"
-	"io"
 	"net"
 	"time"
 )
