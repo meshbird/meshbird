@@ -56,6 +56,7 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 	defer func() {
 		ln.NetTable().RemoveRemoteNode(rn.privateIP)
 	}()
+	defer rn.conn.Close()
 
 	iface, ok := ln.Service("iface").(*InterfaceService)
 	if !ok {
@@ -69,10 +70,7 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 		rec, err := protocol.Decode(rn.conn)
 		if err != nil {
 			rn.logger.Error("decode error, %v", err)
-			if err == io.EOF {
-				break
-			}
-			continue
+			break
 		}
 		rn.logger.Debug("received, %+v", rec)
 
