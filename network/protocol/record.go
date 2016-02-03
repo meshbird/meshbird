@@ -46,7 +46,7 @@ func Decode(r io.Reader) (*Record, error) {
 		return nil, err
 	}
 
-	remainLength := int(rec.Length)
+	remainLength := int64(rec.Length)
 
 	// Only `Transfer` has vector
 	if TypeTransfer == rec.Type {
@@ -61,15 +61,15 @@ func Decode(r io.Reader) (*Record, error) {
 		remainLength -= bodyVectorLen
 	}
 
-	message := make([]byte, remainLength)
-	if n, err := r.Read(message); err != nil || n != remainLength {
+	buf := bytes.Buffer{}
+	if n, err := io.CopyN(&buf, r, remainLength); err != nil || n != remainLength {
 		if n != remainLength {
 			err = ErrorUnableToReadMessage
 		}
 		return nil, err
 	}
 
-	rec.Msg = message
+	rec.Msg = buf.Bytes()
 	return &rec, nil
 }
 

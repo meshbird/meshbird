@@ -7,6 +7,7 @@ import (
 	"github.com/meshbird/meshbird/secure"
 	"net"
 	"time"
+	"bufio"
 )
 
 var (
@@ -65,8 +66,9 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 
 	rn.logger.Debug("listening...")
 
+	bufReader := bufio.NewReader(rn.conn)
 	for {
-		rec, err := protocol.Decode(rn.conn)
+		rec, err := protocol.Decode(bufReader)
 		if err != nil {
 			rn.logger.Error("decode error, %v", err)
 			break
