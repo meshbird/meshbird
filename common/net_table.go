@@ -168,8 +168,8 @@ func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
 		nt.logger.Debug("known hosts, %v", nt.knownHosts())
 		return
 	}
-	nt.logger.Info("secret len: %d, payload: %d", len(nt.localNode.State().Secret.Key), len(payload))
-	payloadEnc, err := secure.EncryptIV(payload, nt.localNode.State().Secret.Key, nt.localNode.State().Secret.Key)
+	//nt.logger.Info("secret len: %d, payload: %d", len(nt.localNode.State().Secret.Key), len(payload))
+	payloadEnc, err := secure.EncryptIV(payload, nt.localNode.State().Secret.Key, nt.localNode.State().Secret.Key[:16])
 	if err != nil {
 		nt.logger.Error("error on encrypt, %v", err)
 		return
