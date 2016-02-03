@@ -76,7 +76,7 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 		switch rec.Type {
 		case protocol.TypeTransfer:
 			rn.logger.Debug("Writing to interface...")
-			payload, errDec := secure.DecryptIV(rec.Msg, ln.State().Secret.Key, ln.State().Secret.Key)
+			payload, errDec := secure.DecryptIV(rec.Msg, ln.State().Secret.Key, ln.State().Secret.Key[:16])
 			if errDec != nil {
 				rn.logger.Error("error on decrypt, %v", err)
 				break
