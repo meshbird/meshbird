@@ -103,12 +103,16 @@ func (s *State) Load() error {
 }
 
 func (s *State) Save() error {
+	log.Debug("state saving")
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	data, err := json.Marshal(s)
 	if err != nil {
+		log.Error("%s", err)
 		return err
 	}
+	log.Debug("state content: %#v", s)
+	log.Debug("state json content: %s", string(data))
 	if err = ioutil.WriteFile(s.getConfigPath(), data, os.ModePerm); err != nil {
 		return err
 	}
