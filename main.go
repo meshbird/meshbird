@@ -94,8 +94,8 @@ func actionGetIP(ctx *cli.Context) {
 	state := common.NewState(secret)
 	state.Save()
 
-	fmt.Println(state.PrivateIP.String())
-	log.Info("private IP %q restored successfully", state.PrivateIP.String())
+	fmt.Println(state.PrivateIP().String())
+	log.Info("private IP %q restored successfully", state.PrivateIP().String())
 }
 
 func actionNew(ctx *cli.Context) {

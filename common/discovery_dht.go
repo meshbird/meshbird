@@ -42,7 +42,7 @@ func (d *DiscoveryDHT) Run() error {
 		return fmt.Errorf("decode infohash err: %s", err)
 	}
 	config := dht.NewConfig()
-	config.Port = d.localNode.State().ListenPort
+	config.Port = d.localNode.State().ListenPort()
 	d.node, err = dht.New(config)
 	if err != nil {
 		return fmt.Errorf("new dht init err: %s", err)

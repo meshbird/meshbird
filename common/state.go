@@ -10,29 +10,35 @@ import (
 	"net"
 	"os"
 	"path"
+	"sync"
 )
 
 type State struct {
-	Secret     *secure.NetworkSecret `json:"-"`
-	ListenPort int                   `json:"port"`
-	PrivateIP  net.IP                `json:"private_ip"`
+	secret     *secure.NetworkSecret `json:"-"`
+	listenPort int                   `json:"port"`
+	privateIP  net.IP                `json:"private_ip"`
+	goodPeers  []string              `json:"good_peers"`
+	mutex      sync.Mutex            `json:"-"`
 }
 
 func NewState(secret *secure.NetworkSecret) *State {
 	s := &State{
-		Secret: secret,
+		secret: secret,
 	}
-	s.Load()
+	err := s.Load()
+	if err != nil {
+		log.Error("state load err: %s", err)
+	}
 
 	var save bool
 
-	if s.ListenPort < 1 {
-		s.ListenPort = GetRandomPort()
+	if s.listenPort < 1 {
+		s.listenPort = GetRandomPort()
 		save = true
 	}
-	if s.PrivateIP == nil {
+	if s.privateIP == nil {
 		var err error
-		if s.PrivateIP, err = network.GenerateIPAddress(secret.Net); err == nil {
+		if s.privateIP, err = network.GenerateIPAddress(secret.Net); err == nil {
 			save = true
 		} else {
 			log.Error("error on generate IP, %v", err)
@@ -40,28 +46,75 @@ func NewState(secret *secure.NetworkSecret) *State {
 	}
 
 	if save {
-		s.Save()
+		if err = s.Save(); err != nil {
+			log.Error("state save err: %s", err)
+		}
 	}
 
 	return s
 }
 
-func (s *State) Load() {
-	if data, err := ioutil.ReadFile(s.getConfigPath()); err == nil {
-		if err = json.Unmarshal(data, s); err == nil {
-			log.Info("state restored, %+v", s)
-		}
-	}
+func (s *State) Secret() *secure.NetworkSecret {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.secret
 }
 
-func (s *State) Save() {
-	if data, err := json.Marshal(s); err == nil {
-		if err = ioutil.WriteFile(s.getConfigPath(), data, os.ModePerm); err != nil {
-			log.Error("error on write state, %v", err)
+func (s *State) ListenPort() int {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.listenPort
+}
+
+func (s *State) PrivateIP() net.IP {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.privateIP
+}
+
+func (s *State) GoodPeers() []string {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	return s.goodPeers
+}
+
+func (s *State) AddGoodPeer(peer string) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.goodPeers = append(s.goodPeers, peer)
+	go func() {
+		if err := s.Save(); err != nil {
+			log.Error("state save err: %s", err)
 		}
+	}()
+}
+
+func (s *State) Load() error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	data, err := ioutil.ReadFile(s.getConfigPath())
+	if err != nil {
+		return err
 	}
+	if err = json.Unmarshal(data, s); err == nil {
+		return err
+	}
+	return nil
+}
+
+func (s *State) Save() error {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	data, err := json.Marshal(s)
+	if err != nil {
+		return err
+	}
+	if err = ioutil.WriteFile(s.getConfigPath(), data, os.ModePerm); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *State) getConfigPath() string {
-	return path.Join(os.Getenv("HOME"), fmt.Sprintf(".meshbird_%s.json", s.Secret.InfoHash()))
+	return path.Join(os.Getenv("HOME"), fmt.Sprintf(".meshbird_%s.json", s.secret.InfoHash()))
 }

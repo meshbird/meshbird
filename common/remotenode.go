@@ -1,13 +1,13 @@
 package common
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/meshbird/meshbird/log"
 	"github.com/meshbird/meshbird/network/protocol"
 	"github.com/meshbird/meshbird/secure"
 	"net"
 	"time"
-	"bufio"
 )
 
 var (
@@ -78,7 +78,8 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 		switch rec.Type {
 		case protocol.TypeTransfer:
 			rn.logger.Debug("Writing to interface...")
-			payload, errDec := secure.DecryptIV(rec.Msg, ln.State().Secret.Key, ln.State().Secret.Key[:16])
+			key := ln.State().Secret().Key
+			payload, errDec := secure.DecryptIV(rec.Msg, key, key[:16])
 			if errDec != nil {
 				rn.logger.Error("error on decrypt, %v", err)
 				break

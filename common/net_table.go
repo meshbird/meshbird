@@ -39,7 +39,20 @@ func (nt *NetTable) Init(ln *LocalNode) error {
 }
 
 func (nt *NetTable) Run() error {
-	for i := 0; i < 10; i++ {
+	goodPeers := nt.localNode.State().GoodPeers()
+	for _, goodPeer := range goodPeers {
+		go func(peer string) {
+			for {
+				err := nt.tryConnect(peer)
+				if err == nil {
+					break
+				}
+				nt.logger.Debug("connect to good peer %s err (reconnecting): %s", peer, err)
+				time.Sleep(time.Second)
+			}
+		}(goodPeer)
+	}
+	for i := 0; i < 20; i++ {
 		go nt.processDHTIn()
 	}
 	go nt.heartbeat()
@@ -68,14 +81,13 @@ func (nt *NetTable) RemoteNodeByIP(ip net.IP) *RemoteNode {
 func (nt *NetTable) AddRemoteNode(rn *RemoteNode) {
 	nt.logger.Debug("trying to add node, private %q, public %q", rn.privateIP.String(), rn.publicAddress)
 
-	if nt.localNode.State().PrivateIP.Equal(rn.privateIP) {
+	if nt.localNode.State().PrivateIP().Equal(rn.privateIP) {
 		nt.logger.Debug("i found myself, node will not be added")
 		return
 	}
-
+	nt.localNode.State().AddGoodPeer(rn.publicAddress)
 	nt.lock.Lock()
 	defer nt.lock.Unlock()
-
 	nt.peers[rn.privateIP.To4().String()] = rn
 	nt.logger.Info("added remove node, private %q, public %q", rn.privateIP.String(), rn.publicAddress)
 	go rn.listen(nt.localNode)
@@ -129,7 +141,7 @@ func (nt *NetTable) heartbeat() {
 				if err := peer.SendPack(
 					protocol.NewRecord(
 						protocol.TypeHeartbeat,
-						nt.localNode.State().PrivateIP.To4(),
+						nt.localNode.State().PrivateIP().To4(),
 					),
 				); err != nil {
 					nt.logger.Error("error on send heartbeat. %v", err)
@@ -143,7 +155,7 @@ func (nt *NetTable) heartbeat() {
 func (nt *NetTable) tryConnect(h string) error {
 	rn, err := TryConnect(h, nt.localNode.NetworkSecret(), nt.localNode)
 	if err != nil {
-		nt.addToBlackList(h)
+		//nt.addToBlackList(h)
 		return err
 	}
 	nt.logger.Debug("adding remote node...")
@@ -169,7 +181,8 @@ func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
 		return
 	}
 	//nt.logger.Info("secret len: %d, payload: %d", len(nt.localNode.State().Secret.Key), len(payload))
-	payloadEnc, err := secure.EncryptIV(payload, nt.localNode.State().Secret.Key, nt.localNode.State().Secret.Key[:16])
+	key := nt.localNode.State().Secret().Key
+	payloadEnc, err := secure.EncryptIV(payload, key, key[:16])
 	if err != nil {
 		nt.logger.Error("error on encrypt, %v", err)
 		return

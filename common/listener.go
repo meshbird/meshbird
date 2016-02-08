@@ -24,7 +24,7 @@ func (l ListenerService) Name() string {
 func (l *ListenerService) Init(ln *LocalNode) error {
 	l.logger = log.L(l.Name())
 
-	port := ln.State().ListenPort + 1
+	port := ln.State().ListenPort() + 1
 	l.logger.Info("listening on %d port", port)
 	socket, err := utp.NewSocket("udp4", fmt.Sprintf("0.0.0.0:%d", port))
 	if err != nil {
@@ -74,7 +74,7 @@ func (l *ListenerService) process(c net.Conn) error {
 	if err := protocol.WriteEncodeOk(c); err != nil {
 		return err
 	}
-	if err := protocol.WriteEncodePeerInfo(c, l.localNode.State().PrivateIP); err != nil {
+	if err := protocol.WriteEncodePeerInfo(c, l.localNode.State().PrivateIP()); err != nil {
 		return err
 	}
 

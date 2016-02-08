@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	//	"syscall"
+	"log"
 	"net"
 )
 
@@ -73,7 +74,6 @@ func interfaceOpen(ifType, ifName string) (*Interface, error) {
 	ifce := new(Interface)
 	for i := 0; i < 10; i++ {
 		ifPath := fmt.Sprintf("/dev/%s%d", ifType, i)
-		fmt.Println(ifPath)
 		ifce.file, err = os.OpenFile(ifPath, os.O_RDWR, 0)
 		if err != nil {
 			continue
@@ -85,8 +85,12 @@ func interfaceOpen(ifType, ifName string) (*Interface, error) {
 }
 
 func AssignIpAddress(iface string, IpAddr string) error {
-	ip, ipnet, _ := net.ParseCIDR(IpAddr)
-	err := exec.Command("ipconfig", "set", iface, "MANUAL", ip.To4().String(), fmt.Sprintf("0x%s", ipnet.Mask.String())).Run()
+	log.Printf("iface %s, ipaddr %s", iface, IpAddr)
+	ip, ipnet, err := net.ParseCIDR(IpAddr)
+	if err != nil {
+		return err
+	}
+	err = exec.Command("ipconfig", "set", iface, "MANUAL", ip.To4().String(), fmt.Sprintf("0x%s", ipnet.Mask.String())).Run()
 	if err != nil {
 		return fmt.Errorf("assign ip %s to %s err: %s", IpAddr, iface, err)
 	}

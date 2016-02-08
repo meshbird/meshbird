@@ -32,7 +32,7 @@ func (hs *HttpService) Init(ln *LocalNode) (err error) {
 func (hs *HttpService) Run() error {
 	http.HandleFunc("/stats", func(w http.ResponseWriter, r *http.Request) {
 		iName := hs.iface.instance.Name()
-		ipAddr := hs.localnode.State().PrivateIP.String()
+		ipAddr := hs.localnode.State().PrivateIP().String()
 		peers := hs.iface.netTable.PeerAddresses()
 		resp := Response{iName, ipAddr, peers}
 		data, err := json.Marshal(resp)

@@ -22,7 +22,7 @@ func (s UPnPService) Name() string {
 func (s *UPnPService) Init(ln *LocalNode) error {
 	s.logger = log.L(s.Name())
 	s.mapping = new(upnp.Upnp)
-	s.port = ln.State().ListenPort + 1
+	s.port = ln.State().ListenPort() + 1
 	return nil
 }
 

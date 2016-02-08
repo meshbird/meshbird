@@ -62,7 +62,7 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret, ln *LocalNode) (*
 	log.RemoveLogger(rn.logger.Name())
 	rn.logger = log.L(fmt.Sprintf(rnLoggerFormat, rn.privateIP.String()))
 
-	if err := protocol.WriteEncodePeerInfo(rn.conn, ln.State().PrivateIP); err != nil {
+	if err := protocol.WriteEncodePeerInfo(rn.conn, ln.State().PrivateIP()); err != nil {
 		return nil, err
 	}
 

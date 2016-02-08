@@ -24,9 +24,8 @@ func (is *InterfaceService) Init(ln *LocalNode) (err error) {
 	is.logger = log.L(is.Name())
 	is.ln = ln
 	is.netTable = ln.NetTable()
-	netSize, _ := ln.State().Secret.Net.Mask.Size()
-	IPAddress := fmt.Sprintf("%s/%s", ln.State().PrivateIP, strconv.Itoa(netSize))
-
+	netSize, _ := ln.State().Secret().Net.Mask.Size()
+	IPAddress := fmt.Sprintf("%s/%s", ln.State().PrivateIP(), strconv.Itoa(netSize))
 	if is.instance, err = network.CreateTunInterfaceWithIp("", IPAddress); err != nil {
 		return err
 	}
