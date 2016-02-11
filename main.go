@@ -53,6 +53,13 @@ func main() {
 			Aliases: []string{"j"},
 			Usage:   "join network",
 			Action:  actionJoin,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "bootstrap",
+					Value: "",
+					Usage: "Define bootstrap nodes for DHT",
+				},
+			},
 		},
 		{
 			Name:      "ip",
@@ -126,7 +133,12 @@ func actionJoin(ctx *cli.Context) {
 		log.Fatal(keyNotSetError.Error())
 	}
 
-	node, err := common.NewLocalNode(&common.Config{SecretKey: NetworkKey})
+	config := &common.Config{
+		SecretKey:      NetworkKey,
+		BootstrapNodes: ctx.String("bootstrap"),
+	}
+
+	node, err := common.NewLocalNode(config)
 	if err != nil {
 		log.Fatal("error on setup local node, %v", err)
 	}
