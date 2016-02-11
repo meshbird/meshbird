@@ -10,6 +10,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 )
 
@@ -18,8 +19,14 @@ var (
 	NetworkKey string
 	LogLevel   string
 
-	keyNotSetError = errors.New("please, set environment variable \"MESHBIRD_KEY\" or specify a flag \"key\"")
+	keyNotSetError = errors.New("please, set environment variable \"MESHBIRD_KEY\"")
 )
+
+func init() {
+	if envVal := os.Getenv("MESHBIRD_KEY"); envVal != "" {
+		NetworkKey = strings.TrimSpace(envVal)
+	}
+}
 
 func main() {
 	app := cli.NewApp()
@@ -61,12 +68,6 @@ func main() {
 	}
 
 	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:        "key",
-			Usage:       "set network key",
-			Destination: &NetworkKey,
-			EnvVar:      "MESHBIRD_KEY",
-		},
 		cli.StringFlag{
 			Name:        "loglevel",
 			Value:       "warning",

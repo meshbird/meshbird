@@ -25,9 +25,9 @@ func NewState(secret *secure.NetworkSecret) *State {
 	s := &State{
 		secret: secret,
 	}
-	err := s.Load()
-	if err != nil {
-		log.Error("state load err: %s", err)
+
+	if err := s.Load(); err != nil {
+		log.Debug("state load err: %s", err) // probably no file
 	}
 
 	var save bool
@@ -46,7 +46,7 @@ func NewState(secret *secure.NetworkSecret) *State {
 	}
 
 	if save {
-		if err = s.Save(); err != nil {
+		if err := s.Save(); err != nil {
 			log.Error("state save err: %s", err)
 		}
 	}
