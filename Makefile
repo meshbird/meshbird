@@ -32,8 +32,7 @@ deploy:
 	sudo reprepro -b /var/www/debian --confdir /root/conf includedeb vivid /tmp/*deb
 	sudo reprepro -b /var/www/debian --confdir /root/conf includedeb wily /tmp/*deb
 	rm /tmp/*.deb
-	sudo cp -rf dist/`cat VERSION`/{darwin,freebsd}* /var/www/dist/`cat VERSION`/
-	sudo cp dist/`cat VERSION`/*.tar.gz /var/www/dist/`cat VERSION`/
+	sudo cp -rf dist/`cat VERSION`/* /var/www/dist/`cat VERSION`/
 	sudo chown -R www-data:www-data /var/www/{debian,dist}
 
 xcupload:
