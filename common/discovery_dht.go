@@ -68,7 +68,7 @@ func (d *DiscoveryDHT) Stop() {
 func (d *DiscoveryDHT) process() {
 	defer d.node.Stop()
 	defer d.waitGroup.Done()
-	t := time.NewTimer(60 * time.Second)
+	t := time.NewTicker(60 * time.Second)
 	defer t.Stop()
 
 	d.request()
