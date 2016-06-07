@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 	"github.com/meshbird/meshbird/common"
 	"github.com/meshbird/meshbird/log"
 	"github.com/meshbird/meshbird/secure"
@@ -81,7 +81,7 @@ func main() {
 	}
 }
 
-func actionGetIP(ctx *cli.Context) {
+func actionGetIP(ctx *cli.Context) error {
 	if NetworkKey == "" {
 		log.Fatal(keyNotSetError.Error())
 	}
@@ -96,9 +96,10 @@ func actionGetIP(ctx *cli.Context) {
 
 	fmt.Println(state.PrivateIP.String())
 	log.Info("private IP %q restored successfully", state.PrivateIP.String())
+	return err
 }
 
-func actionNew(ctx *cli.Context) {
+func actionNew(ctx *cli.Context) error {
 	var secret *secure.NetworkSecret
 	var err error
 
@@ -116,9 +117,10 @@ func actionNew(ctx *cli.Context) {
 		secret = secure.NewNetworkSecret(ipNet)
 	}
 	fmt.Println(secret.Marshal())
+	return err
 }
 
-func actionJoin(ctx *cli.Context) {
+func actionJoin(ctx *cli.Context) error {
 	if NetworkKey == "" {
 		log.Fatal(keyNotSetError.Error())
 	}
@@ -147,4 +149,5 @@ func actionJoin(ctx *cli.Context) {
 	}
 
 	node.WaitStop()
+	return err
 }
