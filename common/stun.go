@@ -2,9 +2,10 @@ package common
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/ccding/go-stun/stun"
 	"github.com/meshbird/meshbird/log"
-	"time"
 )
 
 const (
@@ -51,23 +52,23 @@ func (s *STUNService) process() (err error) {
 		return err
 	}
 	switch nat {
-	case stun.NAT_ERROR:
+	case stun.NATError:
 		return fmt.Errorf("test failed")
-	case stun.NAT_UNKNOWN:
+	case stun.NATUnknown:
 		return fmt.Errorf("unexpected response from the STUN server")
-	case stun.NAT_BLOCKED:
+	case stun.NATBlocked:
 		return fmt.Errorf("UDP is blocked")
-	case stun.NAT_FULL:
+	case stun.NATFull:
 		return fmt.Errorf("full cone NAT")
-	case stun.NAT_SYMETRIC:
+	case stun.NATSymetric:
 		return fmt.Errorf("symetric NAT")
-	case stun.NAT_RESTRICTED:
+	case stun.NATRestricted:
 		return fmt.Errorf("restricted NAT")
-	case stun.NAT_PORT_RESTRICTED:
+	case stun.NATPortRestricted:
 		return fmt.Errorf("port restricted NAT")
-	case stun.NAT_NONE:
+	case stun.NATNone:
 		return fmt.Errorf("not behind a NAT")
-	case stun.NAT_SYMETRIC_UDP_FIREWALL:
+	case stun.NATSymetricUDPFirewall:
 		return fmt.Errorf("symetric UDP firewall")
 	}
 
