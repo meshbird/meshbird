@@ -6,7 +6,9 @@ Meshbird - distributed private networking. [Twitter](https://twitter.com/meshbir
 ![MeshBird](https://avatars0.githubusercontent.com/u/16837838?v=3&u=dbd30ffcc7383854dba5a66425ce9fe0591b03ac&s=700)
 
 ## Intro
-Meshbird enables distributed private networking across geographically dispersed datacenters. With Meshbird senders can send data directly to recipients without the need for gateways or centralized servers. Furthermore, Meshbird encrypts all traffic using industry standard encryption techniques such as AES-256. Meshbird is compatible across countries, cloud providers, and container technologies.
+Meshbird enables distributed private networking across geographically dispersed datacenters. With Meshbird senders can send data directly to recipients without the need for gateways or centralized servers. Meshbird is compatible across countries, cloud providers, and container technologies.
+
+**Meshbird encrypts all traffic, but currently uses AES-256 in unauthenticated CBC mode, which does not guarantee confidentiality. Meshbird's encryption is currently not suited for working with sensitive data, unless an additional layer of protection like SSH is used.**
 
 For example, with a single command, Meshbird can be used to create a private network connecting a Docker container in DigitalOcean's in New York data center to a laptop in a Kyrgyzstan café.
 
@@ -27,10 +29,10 @@ Full video can be found at https://www.youtube.com/watch?v=sW5ZIcfX7w8
 
 ## Technologies used
 
-1. DHT - this is our strongest side that open way to build fully distributed and secured private networking
-2. STUN
-3. AES-256 - traffic encription
-4. uTP node communication
+1. **DHT** - distributed node discovery (based on seed IP address list)
+2. **STUN** - NAT traversal
+3. **AES-256** - traffic encryption
+4. **uTP** - node communication with low-latency congestion control
 
 ## Roadmap
 
