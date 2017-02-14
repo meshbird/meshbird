@@ -6,10 +6,9 @@ Meshbird - distributed private networking. [Twitter](https://twitter.com/meshbir
 ![MeshBird](https://avatars0.githubusercontent.com/u/16837838?v=3&u=dbd30ffcc7383854dba5a66425ce9fe0591b03ac&s=700)
 
 ## Intro
+Meshbird enables distributed private networking across geographically dispersed datacenters. With Meshbird senders can send data directly to recipients without the need for gateways or centralized servers. Furthermore, Meshbird encrypts all traffic using industry standard encryption techniques such as AES-256. Meshbird is compatible across countries, cloud providers, and container technologies.
 
-Meshbird create distributed private networking between servers, containers, virtual machines and any computers in different datacenters, different countries, different cloud providers. All traffic transmit directly to recepient peer without passing any gateways. Meshbird do not require any centralized servers. Meshbird is absolutly decentralized distributed private networking.
-
-For example, user can create private network between DigitalOcean's droplets in each datacenter and link it together by executing one command. All traffic will be encrypted with strong AES-256.
+For example, with a single command, Meshbird can be used to create a private network connecting a Docker container in DigitalOcean's in New York data center to a laptop in a Kyrgyzstan café.
 
 ## Supported OS
 
