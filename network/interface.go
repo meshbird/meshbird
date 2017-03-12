@@ -3,7 +3,7 @@ package network
 import (
 	"fmt"
 	"net"
-	"os"
+	"io"
 )
 
 const DEFAULT_MTU = 1500
@@ -17,7 +17,7 @@ func init() {
 type Interface struct {
 	isTAP bool
 	name  string
-	file  *os.File
+	file  io.ReadWriter
 }
 
 func (i Interface) Name() string {
