@@ -3,14 +3,79 @@
 package network
 
 import (
+	"errors"
 	"fmt"
-	"os"
+	"net"
 	"os/exec"
 	"strconv"
 	"strings"
-	//	"syscall"
-	"net"
+	"syscall"
 )
+
+/*
+#include <unistd.h>
+#include <netinet/in.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <sys/kern_control.h>
+#include <net/if_utun.h>
+#include <sys/ioctl.h>
+#include <sys/kern_event.h>
+
+int open_utun(int num) {
+	int err;
+	int fd;
+	struct sockaddr_ctl addr;
+	struct ctl_info info;
+
+	fd = socket(PF_SYSTEM, SOCK_DGRAM, SYSPROTO_CONTROL);
+	if (fd < 0) {
+		return fd;
+	}
+	memset(&info, 0, sizeof (info));
+	strncpy(info.ctl_name, UTUN_CONTROL_NAME, strlen(UTUN_CONTROL_NAME));
+	err = ioctl(fd, CTLIOCGINFO, &info);
+	if (err < 0) {
+		close(fd);
+		return err;
+	}
+
+	addr.sc_id = info.ctl_id;
+	addr.sc_len = sizeof(addr);
+	addr.sc_family = AF_SYSTEM;
+	addr.ss_sysaddr = AF_SYS_CONTROL;
+	addr.sc_unit = num + 1; // utunX where X is sc.sc_unit -1
+
+	err = connect(fd, (struct sockaddr*)&addr, sizeof(addr));
+	if (err < 0) {
+		// this utun is in use
+		close(fd);
+		return err;
+	}
+
+	return fd;
+}
+*/
+import "C"
+
+type UTUNAccess struct {
+	fd int
+}
+
+func (a *UTUNAccess) Write(data []byte) (n int, err error) {
+	// data from utun is not an ip packet directly. 4 bytes [0, 0, 0, 2] are prepended to it.
+ 	buf := append([]byte{0, 0, 0, 2}, data...)
+	n, err = syscall.Write(a.fd, buf)
+	return
+}
+
+func (a *UTUNAccess) Read(data []byte) (n int, err error) {
+	buf := make([]byte, 1496)
+	n, err = syscall.Read(a.fd, buf)
+	// data from utun is not an ip packet directly. 4 bytes [0, 0, 0, 2] are prepended to it.
+	copy(data, buf[4:])
+	return
+}
 
 const (
 	cIFF_TUN   = 0x0001
@@ -25,15 +90,16 @@ type ifReq struct {
 }
 
 func newTAP(ifName string) (ifce *Interface, err error) {
-	file, err := os.OpenFile("/dev/net/tun", os.O_RDWR, 0)
-	if err != nil {
-		return nil, err
-	}
-	name, err := createInterface(file.Fd(), ifName, cIFF_TAP|cIFF_NO_PI)
-	if err != nil {
-		return nil, err
-	}
-	ifce = &Interface{isTAP: true, file: file, name: name}
+	//	file, err := os.OpenFile("/dev/net/tun", os.O_RDWR, 0)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	name, err := createInterface(file.Fd(), ifName, cIFF_TAP|cIFF_NO_PI)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	ifce = &Interface{isTAP: true, file: file, name: name}
+	err = errors.New("unsupported")
 	return
 }
 
@@ -72,14 +138,23 @@ func interfaceOpen(ifType, ifName string) (*Interface, error) {
 	}
 	ifce := new(Interface)
 	for i := 0; i < 10; i++ {
-		ifPath := fmt.Sprintf("/dev/%s%d", ifType, i)
-		fmt.Println(ifPath)
-		ifce.file, err = os.OpenFile(ifPath, os.O_RDWR, 0)
-		if err != nil {
+		fd := C.open_utun(C.int(i))
+		if fd < 0 {
 			continue
 		}
-		ifce.name = fmt.Sprintf("%s%d", ifType, i)
+
+		ifce.name = fmt.Sprintf("utun%d", i)
+		ifce.file = &UTUNAccess{fd: int(fd)}
 		break
+
+		//ifPath := fmt.Sprintf("/dev/%s%d", ifType, i)
+		//fmt.Println(ifPath)
+		//ifce.file, err = os.OpenFile(ifPath, os.O_RDWR, 0)
+		//if err != nil {
+		//	continue
+		//}
+		//ifce.name = fmt.Sprintf("%s%d", ifType, i)
+		//break
 	}
 	return ifce, err
 }
