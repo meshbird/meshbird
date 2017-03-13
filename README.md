@@ -37,7 +37,7 @@ Full video can be found at https://www.youtube.com/watch?v=sW5ZIcfX7w8
 ## Roadmap
 
 1. Better encryption
-2. Windows/OSx support
+2. Windows support
 3. IPv6
 4. Much more
 5. IP Load Balancing

@@ -8,7 +8,6 @@ import (
 	"net"
 	"os/exec"
 	"strconv"
-	"strings"
 	"syscall"
 )
 
@@ -77,28 +76,7 @@ func (a *UTUNAccess) Read(data []byte) (n int, err error) {
 	return
 }
 
-const (
-	cIFF_TUN   = 0x0001
-	cIFF_TAP   = 0x0002
-	cIFF_NO_PI = 0x1000
-)
-
-type ifReq struct {
-	Name  [0x10]byte
-	Flags uint16
-	pad   [0x28 - 0x10 - 2]byte
-}
-
 func newTAP(ifName string) (ifce *Interface, err error) {
-	//	file, err := os.OpenFile("/dev/net/tun", os.O_RDWR, 0)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	name, err := createInterface(file.Fd(), ifName, cIFF_TAP|cIFF_NO_PI)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	ifce = &Interface{isTAP: true, file: file, name: name}
 	err = errors.New("unsupported")
 	return
 }
@@ -111,24 +89,8 @@ func newTUN(ifName string) (ifce *Interface, err error) {
 	return ifce, nil
 }
 
-func createInterface(fd uintptr, ifName string, flags uint16) (createdIFName string, err error) {
-	var req ifReq
-	req.Flags = flags
-	copy(req.Name[:], ifName)
-	createdIFName = strings.Trim(string(req.Name[:]), "\x00")
-	return
-}
-
 func setPersistent(fd uintptr, persistent bool) error {
-	//	var val uintptr = 0
-	//	if persistent {
-	//		val = 1
-	//	}
-	//	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TUNSETPERSIST), val)
-	//	if errno != 0 {
-	//		return errno
-	//	}
-	return nil
+	return errors.New("unsupported")
 }
 
 func interfaceOpen(ifType, ifName string) (*Interface, error) {
@@ -146,15 +108,6 @@ func interfaceOpen(ifType, ifName string) (*Interface, error) {
 		ifce.name = fmt.Sprintf("utun%d", i)
 		ifce.file = &UTUNAccess{fd: int(fd)}
 		break
-
-		//ifPath := fmt.Sprintf("/dev/%s%d", ifType, i)
-		//fmt.Println(ifPath)
-		//ifce.file, err = os.OpenFile(ifPath, os.O_RDWR, 0)
-		//if err != nil {
-		//	continue
-		//}
-		//ifce.name = fmt.Sprintf("%s%d", ifType, i)
-		//break
 	}
 	return ifce, err
 }
