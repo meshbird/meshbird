@@ -1,28 +1,29 @@
 package common
 
 import (
-	"github.com/meshbird/meshbird/log"
-	"github.com/meshbird/meshbird/network/protocol"
-	"github.com/meshbird/meshbird/secure"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/meshbird/meshbird/log"
+	"github.com/meshbird/meshbird/network/protocol"
+	"github.com/meshbird/meshbird/secure"
 )
 
 type NetTable struct {
 	BaseService
 
-	localNode       *LocalNode
-	waitGroup       sync.WaitGroup
-	dhtInChan       chan string
+	localNode *LocalNode
+	waitGroup sync.WaitGroup
+	dhtInChan chan string
 
-	lock            sync.RWMutex
-	blackList       map[string]time.Time
-	peers           map[string]*RemoteNode
+	lock      sync.RWMutex
+	blackList map[string]time.Time
+	peers     map[string]*RemoteNode
 
 	heartbeatTicker <-chan time.Time
 
-	logger          log.Logger
+	logger log.Logger
 }
 
 func (nt NetTable) Name() string {
@@ -55,7 +56,7 @@ func (nt *NetTable) Stop() {
 	}
 }
 
-func (nt *NetTable) GetDHTInChannel() chan <- string {
+func (nt *NetTable) GetDHTInChannel() chan<- string {
 	return nt.dhtInChan
 }
 
@@ -164,7 +165,7 @@ func (nt *NetTable) SendPacket(dstIP net.IP, payload []byte) {
 		return
 	}
 
-	payloadEnc, err := secure.EncryptIV(payload, nt.localNode.State().Secret.Key, nt.localNode.State().Secret.Key)
+	payloadEnc, err := secure.EncryptIV(payload, nt.localNode.State().Secret.Key)
 	if err != nil {
 		nt.logger.Error("error on encrypt, %v", err)
 		return
