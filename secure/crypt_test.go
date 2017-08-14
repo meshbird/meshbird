@@ -38,7 +38,7 @@ func BenchmarkEncryptAesCbc(b *testing.B) {
 func BenchmarkDescryptAesCbc(b *testing.B) {
 	key := randomBytes(16)
 	iv := randomBytes(16)
-	encrypted, err := EncryptIV(original, key, iv)
+	encrypted, err := EncryptIV(original, key)
 	if err != nil {
 		b.Fatal(err)
 	}

@@ -5,6 +5,7 @@ import (
 	"io"
 	"net"
 	"time"
+
 	"github.com/meshbird/meshbird/log"
 	"github.com/meshbird/meshbird/network/protocol"
 	"github.com/meshbird/meshbird/secure"
@@ -80,7 +81,7 @@ func (rn *RemoteNode) listen(ln *LocalNode) {
 		case protocol.TypeTransfer:
 			rn.logger.Debug("Writing to interface...")
 			payloadEncrypted := pack.Data.Msg.(protocol.TransferMessage).Bytes()
-			payload, errDec := secure.DecryptIV(payloadEncrypted, ln.State().Secret.Key, ln.State().Secret.Key)
+			payload, errDec := secure.DecryptIV(payloadEncrypted, ln.State().Secret.Key)
 			if errDec != nil {
 				rn.logger.Error("error on decrypt, %v", err)
 				break
