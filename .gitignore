@@ -2,4 +2,5 @@
 /.vagrant
 *.iml
 *.sw[p,o]
-/meshbird
+pkg
+bin
