@@ -2,6 +2,7 @@ package common
 
 import (
 	"github.com/meshbird/meshbird/secure"
+	"context"
 	"net"
 	"strconv"
 	"time"
@@ -35,7 +36,9 @@ func TryConnect(h string, networkSecret *secure.NetworkSecret, ln *LocalNode) (*
 		return nil, errSocket
 	}
 
-	conn, errDial := s.DialTimeout(rn.publicAddress, 10 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+	defer cancel()
+	conn, errDial := s.DialContext(ctx, rn.publicAddress)
 	if errDial != nil {
 		rn.logger.Error("unable to dial, %s", errDial)
 		return nil, errDial
