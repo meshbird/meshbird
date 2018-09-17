@@ -4,7 +4,7 @@
 
 ## About
 
-Multi-region multi-cloud decentralized private networking.
+Meshbird is open-source **cloud-native** Multi-region multi-cloud decentralized private networking.
 
 ## Install
 
