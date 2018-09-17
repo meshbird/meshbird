@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option go_package = "meshbird/protocol";
+
+message Envelope {
+	oneof type {
+		MessagePing ping = 1;
+		MessagePacket packet = 2;
+	}
+}
+
+message MessagePing {
+	int64  Timestamp = 1;
+	string LocalAddr = 2;
+	string LocalPrivateAddr = 3;
+	string IP = 4;
+	string DC = 5;
+}
+
+message MessagePacket {
+	bytes payload = 1;
+}
