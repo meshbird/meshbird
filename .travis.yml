@@ -10,5 +10,3 @@ install:
 
 script:
 - make build
-
-script:
