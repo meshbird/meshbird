@@ -11,7 +11,8 @@ Download and install latest release from this page https://github.com/meshbird/m
 How to run
 ----------
 
-$ sudo ./meshbird --help
+```
+$ ./meshbird --help
 Password:
 NAME:
    meshbird - multi-region multi-cloud decentralized private networking. 
@@ -37,3 +38,4 @@ GLOBAL OPTIONS:
    --verbose value             (default: 0) [$MESHBIRD_VERBOSE]
    --help, -h                  show help
    --version, -v               print the version
+```
