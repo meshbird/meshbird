@@ -1,15 +1,16 @@
-Meshbird 2.0
-============
+[![GitHub release](https://img.shields.io/github/release/meshbird/meshbird/all.svg?style=flat-square)](https://github.com/meshbird/meshbird/releases)
+
+# Meshbird 2.0
+
+## About
 
 Multi-region multi-cloud decentralized private networking.
 
-Install
--------
+## Install
 
 Download and install latest release from this page https://github.com/meshbird/meshbird/releases.
 
-How to run
-----------
+## How to run
 
 ```
 $ ./meshbird --help
