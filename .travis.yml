@@ -10,3 +10,10 @@ install:
 
 script:
 - make build
+
+deploy:
+  provider: releases
+    api_key: $GITHUB_OAUTH_TOKEN
+    skip_cleanup: true
+    on:
+      tags: true
