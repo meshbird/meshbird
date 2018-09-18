@@ -23,6 +23,6 @@ func main() {
 	}
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Printf("app run: %s", err)
+		log.Printf("app run err: %s", err)
 	}
 }
