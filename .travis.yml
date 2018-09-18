@@ -13,6 +13,7 @@ script:
 
 deploy:
   provider: releases
+    file: bin/meshbird
     api_key: $GITHUB_OAUTH_TOKEN
     skip_cleanup: true
     on:
