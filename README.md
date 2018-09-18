@@ -45,7 +45,8 @@ GLOBAL OPTIONS:
 
 DigitalOcean NYC3 eth1 - private network, encryption on
 
-```# iperf3 -P 1 -R -c 10.247.0.1                                          
+```
+# iperf3 -P 1 -R -c 10.247.0.1                                          
 Connecting to host 10.247.0.1, port 5201
 Reverse mode, remote host 10.247.0.1 is sending
 [  4] local 10.247.0.2 port 42536 connected to 10.247.0.1 port 5201
@@ -63,4 +64,5 @@ Reverse mode, remote host 10.247.0.1 is sending
 - - - - - - - - - - - - - - - - - - - - - - - - -
 [ ID] Interval           Transfer     Bandwidth       Retr
 [  4]   0.00-10.00  sec  1.84 GBytes  1.58 Gbits/sec    0             sender
-[  4]   0.00-10.00  sec  1.83 GBytes  1.58 Gbits/sec                  receiver```
+[  4]   0.00-10.00  sec  1.83 GBytes  1.58 Gbits/sec                  receiver
+```
