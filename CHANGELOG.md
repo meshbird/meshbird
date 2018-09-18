@@ -1,8 +1,5 @@
 # Changelog
 
-## v2.2
-- try to fix Travis CI deploy GitHub releases on tags
-
 ## v2.1
 - encryption switched to AES-128-GCM
 - disabling encryption on empty key

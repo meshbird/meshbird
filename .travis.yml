@@ -11,10 +11,13 @@ install:
 script:
 - make build
 
+before_deploy:
+- tar czvf meshbird-$TRAVIS_TAG.darwin-amd64.tar.gz bin/meshbird
+
 deploy:
-  - provider: releases
-    file: bin/meshbird
-    api_key: $GITHUB_OAUTH_TOKEN
-    skip_cleanup: true
-    on:
-      tags: true
+- provider: releases
+  file: meshbird-$TRAVIS_TAG.darwin-amd64.tar.gz
+  api_key: $GITHUB_OAUTH_TOKEN
+  skip_cleanup: true
+  on:
+    tags: true
