@@ -1,16 +1,16 @@
 package meshbird
 
 import (
-	"net"
 	"log"
+	"net"
 	"time"
-	
+
 	"meshbird/config"
-	"meshbird/transport"
-	"meshbird/protocol"
-	"meshbird/utils"
 	"meshbird/iface"
-	
+	"meshbird/protocol"
+	"meshbird/transport"
+	"meshbird/utils"
+
 	"github.com/golang/protobuf/proto"
 )
 
@@ -48,7 +48,7 @@ func (p *Peer) process() {
 	for range tickerPing.C {
 		env := &protocol.Envelope{
 			Type: &protocol.Envelope_Ping{
-				Ping: &protocol.MessagePing {
+				Ping: &protocol.MessagePing{
 					Timestamp:        time.Now().UnixNano(),
 					LocalAddr:        p.config.LocalAddr,
 					LocalPrivateAddr: p.config.LocalPrivateAddr,
@@ -70,7 +70,7 @@ func (p *Peer) SendPing() error {
 func (p *Peer) SendPacket(pkt iface.PacketIP) {
 	data, _ := proto.Marshal(&protocol.Envelope{
 		Type: &protocol.Envelope_Packet{
-			Packet: &protocol.MessagePacket{Payload:pkt},
+			Packet: &protocol.MessagePacket{Payload: pkt},
 		},
 	})
 	p.client.WriteNow(data)
