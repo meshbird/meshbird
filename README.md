@@ -41,7 +41,7 @@ GLOBAL OPTIONS:
    --version, -v               print the version
 ```
 
-== Benchmark
+## Benchmark
 
 DigitalOcean NYC3 eth1 - private network, encryption on
 
