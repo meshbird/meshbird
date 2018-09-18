@@ -2,7 +2,6 @@ package transport
 
 import (
 	"bytes"
-	"crypto/aes"
 	"crypto/cipher"
 	crand "crypto/rand"
 	"encoding/binary"
@@ -76,6 +75,14 @@ func (cc *ClientConn) tryConnect() error {
 	return nil
 }
 
+func (cc *ClientConn) crypto() (err error) {
+	if cc.key == "" {
+		return nil
+	}
+	cc.aesgcm, err = makeAES128GCM(cc.key)
+	return
+}
+
 func (cc *ClientConn) run() {
 	defer func() {
 		if err := recover(); err != nil {
@@ -84,7 +91,9 @@ func (cc *ClientConn) run() {
 		cc.wg.Done()
 	}()
 	cc.wg.Add(1)
-	cc.crypto()
+	var err error
+	err = cc.crypto()
+	utils.POE(err)
 	for {
 		select {
 		case <-cc.chanClose:
@@ -151,41 +160,50 @@ func (cc *ClientConn) process() (err error) {
 	}
 }
 
-func (cc *ClientConn) crypto() error {
-	key := utils.SHA256([]byte(cc.key))
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return err
-	}
-	cc.aesgcm, err = cipher.NewGCM(block)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (cc *ClientConn) write(data []byte) error {
-	cc.mutex.Lock()
-	defer cc.mutex.Unlock()
 	if cc.conn == nil {
 		return fmt.Errorf("no connection")
 	}
-	_, err := io.ReadFull(crand.Reader, cc.nonce)
+	var err error
+	cc.buf.Reset()
+	var secure uint8 = 0
+	if cc.aesgcm != nil {
+		secure = 1
+	}
+
+	err = binary.Write(cc.buf, binary.LittleEndian, &secure)
 	if err != nil {
 		return err
 	}
-	data = cc.aesgcm.Seal(nil, cc.nonce, data, nil)
+
 	dataLen := uint16(len(data))
-	cc.buf.Reset()
-	_, err = cc.buf.Write(cc.nonce)
-	if err == nil {
-		err = binary.Write(cc.buf, binary.LittleEndian, &dataLen)
-		if err == nil {
-			_, err = cc.buf.Write(data)
-			if err == nil {
-				_, err = cc.conn.Write(cc.buf.Bytes())
-			}
+	err = binary.Write(cc.buf, binary.LittleEndian, &dataLen)
+	if err != nil {
+		return err
+	}
+
+	if secure == 0 {
+		_, err = cc.buf.Write(data)
+		if err != nil {
+			return err
 		}
+	} else {
+		_, err = io.ReadFull(crand.Reader, cc.nonce)
+		if err != nil {
+			return err
+		}
+		data = cc.aesgcm.Seal(nil, cc.nonce, data, nil)
+		_, err = cc.buf.Write(data)
+		if err != nil {
+			return err
+		}
+		_, err = cc.buf.Write(cc.nonce)
+		if err != nil {
+			return err
+		}
+	}
+	if err == nil {
+		_, err = cc.buf.WriteTo(cc.conn)
 	}
 	return err
 }

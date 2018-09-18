@@ -1,7 +1,6 @@
 package transport
 
 import (
-	"crypto/aes"
 	"crypto/cipher"
 	"encoding/binary"
 	"io"
@@ -36,10 +35,8 @@ func (sc *ServerConn) run() {
 			log.Printf("server conn run err: %s", err)
 		}
 	}()
-	key := utils.SHA256([]byte(sc.key))
-	block, err := aes.NewCipher(key)
-	utils.POE(err)
-	sc.aesgcm, err = cipher.NewGCM(block)
+	var err error
+	err = sc.crypto()
 	utils.POE(err)
 	for {
 		data, err := sc.read()
@@ -53,28 +50,42 @@ func (sc *ServerConn) run() {
 	}
 }
 
+func (sc *ServerConn) crypto() error {
+	if sc.key == "" {
+		return nil
+	}
+	var err error
+	sc.aesgcm, err = makeAES128GCM(sc.key)
+	return err
+}
+
 func (sc *ServerConn) read() ([]byte, error) {
 	var err error
-	var n int
-	_, err = io.ReadFull(sc.conn, sc.nonce)
+	var secure uint8 = 0
+	err = binary.Read(sc.conn, binary.LittleEndian, &secure)
 	if err != nil {
-		if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
-			return nil, nil
+		return nil, err
+	}
+	var dataLen uint16
+	err = binary.Read(sc.conn, binary.LittleEndian, &dataLen)
+	if err != nil {
+		return nil, err
+	}
+	_, err = io.ReadFull(sc.conn, sc.buf[:dataLen])
+	if err != nil {
+		return nil, err
+	}
+	if secure == 0 {
+		return sc.buf[:dataLen], err
+	} else {
+		_, err = io.ReadFull(sc.conn, sc.nonce)
+		if err != nil {
+			return nil, err
 		}
-		return nil, err
+		plain, err := sc.aesgcm.Open(nil, sc.nonce, sc.buf[:dataLen], nil)
+		if err != nil {
+			return nil, err
+		}
+		return plain, nil
 	}
-	var msgLen uint16
-	err = binary.Read(sc.conn, binary.LittleEndian, &msgLen)
-	if err != nil {
-		return nil, err
-	}
-	n, err = io.ReadFull(sc.conn, sc.buf[:msgLen])
-	if err != nil {
-		return nil, err
-	}
-	plain, err := sc.aesgcm.Open(nil, sc.nonce, sc.buf[:n], nil)
-	if err != nil {
-		return nil, err
-	}
-	return plain, nil
 }

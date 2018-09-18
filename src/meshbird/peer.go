@@ -22,12 +22,17 @@ type Peer struct {
 }
 
 func NewPeer(remoteDC, remoteAddr string, cfg config.Config, getRoutes func() []Route) *Peer {
-	return &Peer{
+	peer := &Peer{
 		remoteDC:   remoteDC,
 		remoteAddr: remoteAddr,
 		config:     cfg,
-		client:     transport.NewClient(remoteAddr, cfg),
 	}
+	if remoteDC == cfg.Dc {
+		peer.client = transport.NewClient(remoteAddr, "", cfg.TransportThreads)
+	} else {
+		peer.client = transport.NewClient(remoteAddr, cfg.Key, cfg.TransportThreads)
+	}
+	return peer
 }
 
 func (p *Peer) Start() {
@@ -73,5 +78,5 @@ func (p *Peer) SendPacket(pkt iface.PacketIP) {
 			Packet: &protocol.MessagePacket{Payload: pkt},
 		},
 	})
-	p.client.WriteNow(data)
+	p.client.Write(data)
 }
