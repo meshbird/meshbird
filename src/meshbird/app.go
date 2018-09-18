@@ -36,7 +36,7 @@ func (a *App) Run() error {
 	if err != nil {
 		return err
 	}
-	go a.server.Run()
+	go a.server.Start()
 	return a.runIface()
 }
 
