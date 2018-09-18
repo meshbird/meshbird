@@ -1,12 +1,12 @@
 package transport
 
 import (
-	"crypto/aes"
 	"crypto/cipher"
 	"encoding/binary"
 	"io"
 	"log"
 	"net"
+	"bufio"
 
 	"meshbird/utils"
 )
@@ -18,6 +18,7 @@ type ServerConn struct {
 	buf     []byte
 	aesgcm  cipher.AEAD
 	handler ServerHandler
+	reader  *bufio.Reader
 }
 
 func NewServerConn(conn *net.TCPConn, key string, handler ServerHandler) *ServerConn {
@@ -35,12 +36,18 @@ func (sc *ServerConn) run() {
 		if err := recover(); err != nil {
 			log.Printf("server conn run err: %s", err)
 		}
+		sc.conn.Close()
 	}()
-	key := utils.SHA256([]byte(sc.key))
-	block, err := aes.NewCipher(key)
+	var err error
+	err = sc.crypto()
 	utils.POE(err)
-	sc.aesgcm, err = cipher.NewGCM(block)
-	utils.POE(err)
+
+	sc.conn.SetReadBuffer(1024 * 1024)
+        sc.conn.SetWriteBuffer(1024 * 1024)
+        sc.conn.SetNoDelay(true)
+
+
+	sc.reader = bufio.NewReader(sc.conn)
 	for {
 		data, err := sc.read()
 		if err != nil {
@@ -53,28 +60,44 @@ func (sc *ServerConn) run() {
 	}
 }
 
+func (sc *ServerConn) crypto() error {
+	if sc.key == "" {
+		log.Printf("incoming encryption disabled for %s", sc.conn.RemoteAddr())
+		return nil
+	}
+	var err error
+	sc.aesgcm, err = makeAES128GCM(sc.key)
+	return err
+}
+
 func (sc *ServerConn) read() ([]byte, error) {
 	var err error
-	var n int
-	_, err = io.ReadFull(sc.conn, sc.nonce)
+	var secure uint8 = 0
+	reader := sc.reader
+	err = binary.Read(reader, binary.LittleEndian, &secure)
 	if err != nil {
-		if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
-			return nil, nil
+		return nil, err
+	}
+	var dataLen uint16
+	err = binary.Read(reader, binary.LittleEndian, &dataLen)
+	if err != nil {
+		return nil, err
+	}
+	_, err = io.ReadFull(reader, sc.buf[:dataLen])
+	if err != nil {
+		return nil, err
+	}
+	if secure == 0 {
+		return sc.buf[:dataLen], err
+	} else {
+		_, err = io.ReadFull(reader, sc.nonce)
+		if err != nil {
+			return nil, err
 		}
-		return nil, err
+		plain, err := sc.aesgcm.Open(nil, sc.nonce, sc.buf[:dataLen], nil)
+		if err != nil {
+			return nil, err
+		}
+		return plain, nil
 	}
-	var msgLen uint16
-	err = binary.Read(sc.conn, binary.LittleEndian, &msgLen)
-	if err != nil {
-		return nil, err
-	}
-	n, err = io.ReadFull(sc.conn, sc.buf[:msgLen])
-	if err != nil {
-		return nil, err
-	}
-	plain, err := sc.aesgcm.Open(nil, sc.nonce, sc.buf[:n], nil)
-	if err != nil {
-		return nil, err
-	}
-	return plain, nil
 }

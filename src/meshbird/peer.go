@@ -22,12 +22,17 @@ type Peer struct {
 }
 
 func NewPeer(remoteDC, remoteAddr string, cfg config.Config, getRoutes func() []Route) *Peer {
-	return &Peer{
+	peer := &Peer{
 		remoteDC:   remoteDC,
 		remoteAddr: remoteAddr,
 		config:     cfg,
-		client:     transport.NewClient(remoteAddr, cfg),
 	}
+	if remoteDC == cfg.Dc {
+		peer.client = transport.NewClient(remoteAddr, "", cfg.TransportThreads)
+	} else {
+		peer.client = transport.NewClient(remoteAddr, cfg.Key, cfg.TransportThreads)
+	}
+	return peer
 }
 
 func (p *Peer) Start() {
@@ -43,28 +48,28 @@ func (p *Peer) process() {
 	}()
 	tickerPing := time.NewTicker(time.Second)
 	defer tickerPing.Stop()
-	ip, _, err := net.ParseCIDR(p.config.Ip)
-	utils.POE(err)
 	for range tickerPing.C {
-		env := &protocol.Envelope{
-			Type: &protocol.Envelope_Ping{
-				Ping: &protocol.MessagePing{
-					Timestamp:        time.Now().UnixNano(),
-					LocalAddr:        p.config.LocalAddr,
-					LocalPrivateAddr: p.config.LocalPrivateAddr,
-					DC:               p.config.Dc,
-					IP:               ip.String(),
-				},
-			},
-		}
-		data, err := proto.Marshal(env)
-		utils.POE(err)
-		p.client.Write(data)
+		p.SendPing()
 	}
 }
 
-func (p *Peer) SendPing() error {
-	return nil
+func (p *Peer) SendPing() {
+	ip, _, err := net.ParseCIDR(p.config.Ip)
+	utils.POE(err)
+	env := &protocol.Envelope{
+		Type: &protocol.Envelope_Ping{
+			Ping: &protocol.MessagePing{
+				Timestamp:        time.Now().UnixNano(),
+				LocalAddr:        p.config.LocalAddr,
+				LocalPrivateAddr: p.config.LocalPrivateAddr,
+				DC:               p.config.Dc,
+				IP:               ip.String(),
+			},
+		},
+	}
+	data, err := proto.Marshal(env)
+	utils.POE(err)
+	p.client.Write(data)
 }
 
 func (p *Peer) SendPacket(pkt iface.PacketIP) {
@@ -73,5 +78,5 @@ func (p *Peer) SendPacket(pkt iface.PacketIP) {
 			Packet: &protocol.MessagePacket{Payload: pkt},
 		},
 	})
-	p.client.WriteNow(data)
+	p.client.Write(data)
 }

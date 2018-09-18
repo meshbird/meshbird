@@ -31,12 +31,12 @@ func NewApp(config config.Config) *App {
 }
 
 func (a *App) Run() error {
-	a.server = transport.NewServer(a.config.LocalAddr, a, a.config.Key)
+	a.server = transport.NewServer(a.config.LocalAddr, a.config.LocalPrivateAddr, a, a.config.Key)
 	err := a.bootstrap()
 	if err != nil {
 		return err
 	}
-	go a.server.Run()
+	go a.server.Start()
 	return a.runIface()
 }
 
@@ -130,8 +130,8 @@ func (a *App) OnData(buf []byte) {
 			} else {
 				peer = NewPeer(ping.GetDC(), ping.GetLocalAddr(),
 					a.config, a.getRoutes)
-				peer.Start()
 			}
+			peer.Start()
 			a.peers[ping.GetLocalAddr()] = peer
 			if a.config.Verbose == 1 {
 				log.Printf("new peer %s", ping)
