@@ -31,7 +31,7 @@ func NewApp(config config.Config) *App {
 }
 
 func (a *App) Run() error {
-	a.server = transport.NewServer(a.config.LocalAddr, a, a.config.Key)
+	a.server = transport.NewServer(a.config.LocalAddr, a.config.LocalPrivateAddr, a, a.config.Key)
 	err := a.bootstrap()
 	if err != nil {
 		return err
