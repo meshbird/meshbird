@@ -1,15 +1,16 @@
 package meshbird
 
 import (
-	"github.com/golang/protobuf/proto"
 	"log"
 	"strings"
 	"sync"
 
 	"meshbird/config"
+	"meshbird/iface"
 	"meshbird/protocol"
 	"meshbird/transport"
-	"meshbird/iface"
+
+	"github.com/golang/protobuf/proto"
 )
 
 type App struct {
@@ -54,14 +55,14 @@ func (a *App) runIface() error {
 		if err != nil {
 			return err
 		}
-		src := pkt.GetSourceIP()
-		dst := pkt.GetDestinationIP()
+		src := pkt.GetSourceIP().String()
+		dst := pkt.GetDestinationIP().String()
 		if a.config.Verbose == 1 {
-			log.Printf("packet: src=%s dst=%s len=%d", src.String(), dst.String(), n)
+			log.Printf("packet: src=%s dst=%s len=%d", src, dst, n)
 		}
-		a.mutex.Lock()
-		peer, ok := a.peers[a.routes[dst.String()].LocalAddr]
-		a.mutex.Unlock()
+		a.mutex.RLock()
+		peer, ok := a.peers[a.routes[dst].LocalAddr]
+		a.mutex.RUnlock()
 		if !ok {
 			if a.config.Verbose == 1 {
 				log.Printf("unknown destination, packet dropped")
@@ -115,11 +116,11 @@ func (a *App) OnData(buf []byte) {
 		ping := ep.GetPing()
 		//log.Printf("received ping: %s", ping.String())
 		a.mutex.Lock()
-		a.routes[ping.GetIP()] = Route {
-			LocalAddr: ping.GetLocalAddr(),
+		a.routes[ping.GetIP()] = Route{
+			LocalAddr:        ping.GetLocalAddr(),
 			LocalPrivateAddr: ping.GetLocalPrivateAddr(),
-			IP: ping.GetIP(),
-			DC: ping.GetDC(),
+			IP:               ping.GetIP(),
+			DC:               ping.GetDC(),
 		}
 		if _, ok := a.peers[ping.GetLocalAddr()]; !ok {
 			var peer *Peer

@@ -4,3 +4,6 @@
 *.sw[p,o]
 pkg
 bin
+_test.go
+.test
+.out

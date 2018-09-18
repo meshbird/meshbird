@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	crand "crypto/rand"
@@ -25,15 +26,32 @@ type ClientConn struct {
 	mutex      sync.RWMutex
 	aesgcm     cipher.AEAD
 	chanWrite  chan []byte
+	chanClose  chan bool
+	wg         sync.WaitGroup
+	parentWG   *sync.WaitGroup
+	connected  bool
+	nonce      []byte
+	buf        *bytes.Buffer
 }
 
-func NewClientConn(remoteAddr, key string, index int) *ClientConn {
+func NewClientConn(remoteAddr, key string, index int, parentWG *sync.WaitGroup) *ClientConn {
 	return &ClientConn{
 		remoteAddr: remoteAddr,
 		key:        key,
 		index:      index,
 		chanWrite:  make(chan []byte),
+		chanClose:  make(chan bool),
+		parentWG:   parentWG,
+		nonce:      make([]byte, 12),
+		buf:        &bytes.Buffer{},
 	}
+}
+
+func (cc *ClientConn) IsConnected() bool {
+	cc.mutex.RLock()
+	connected := cc.connected
+	cc.mutex.RUnlock()
+	return connected
 }
 
 func (cc *ClientConn) tryConnect() error {
@@ -47,8 +65,8 @@ func (cc *ClientConn) tryConnect() error {
 		return err
 	}
 
-	//cc.conn.SetReadBuffer(4096)
-	//cc.conn.SetWriteBuffer(4096)
+	//cc.conn.SetReadBuffer(409600)
+	//cc.conn.SetWriteBuffer(409600)
 	cc.conn.SetNoDelay(true)
 
 	if err != nil {
@@ -63,10 +81,16 @@ func (cc *ClientConn) run() {
 		if err := recover(); err != nil {
 			log.Printf("transport thread %d addr %s panic: %s", cc.index, cc.remoteAddr, err)
 		}
+		cc.wg.Done()
 	}()
+	cc.wg.Add(1)
 	cc.crypto()
 	for {
-		//log.Printf("transport thread %d to %s", cc.iIndex, cc.remoteAddr)
+		select {
+		case <-cc.chanClose:
+			return
+		default:
+		}
 		err := cc.tryConnect()
 		if err != nil {
 			log.Printf("transport thread %d addr %s connect err: %s", cc.index, cc.remoteAddr, err)
@@ -74,11 +98,29 @@ func (cc *ClientConn) run() {
 		} else {
 			if err == nil {
 				err = cc.process()
-			} else {
+				if err == nil {
+					break
+				}
+			}
+			if err != nil {
 				log.Printf("client err: %s", err)
 			}
 		}
 	}
+}
+
+func (cc *ClientConn) Close() {
+	cc.chanClose <- true
+	cc.wg.Wait()
+	if cc.parentWG != nil {
+		cc.parentWG.Done()
+	}
+}
+
+func (cc *ClientConn) setConnected(value bool) {
+	cc.mutex.Lock()
+	cc.connected = value
+	cc.mutex.Unlock()
 }
 
 func (cc *ClientConn) process() (err error) {
@@ -86,14 +128,18 @@ func (cc *ClientConn) process() (err error) {
 		if perr := recover(); perr != nil {
 			err = fmt.Errorf("client process panic: %s", perr)
 		}
+		cc.setConnected(false)
 		cc.conn.Close()
-		log.Printf("conn closed %s", err)
+		log.Printf("client conn closed")
 	}()
+	cc.setConnected(true)
 	log.Printf("connection good to %s : %d", cc.remoteAddr, cc.index)
 	pingTicker := time.NewTicker(time.Second * 1)
 	defer pingTicker.Stop()
 	for {
 		select {
+		case <-cc.chanClose:
+			return nil
 		case <-pingTicker.C:
 			err = cc.write(nilBuf)
 		case buf := <-cc.chanWrite:
@@ -107,7 +153,6 @@ func (cc *ClientConn) process() (err error) {
 
 func (cc *ClientConn) crypto() error {
 	key := utils.SHA256([]byte(cc.key))
-	//log.Printf("CLIENT KEY %s", utils.B64(key))
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return err
@@ -120,22 +165,26 @@ func (cc *ClientConn) crypto() error {
 }
 
 func (cc *ClientConn) write(data []byte) error {
+	cc.mutex.Lock()
+	defer cc.mutex.Unlock()
 	if cc.conn == nil {
 		return fmt.Errorf("no connection")
 	}
-	nonce := make([]byte, 12)
-	_, err := io.ReadFull(crand.Reader, nonce)
+	_, err := io.ReadFull(crand.Reader, cc.nonce)
 	if err != nil {
 		return err
 	}
-	data = cc.aesgcm.Seal(nil, nonce, data, nil)
+	data = cc.aesgcm.Seal(nil, cc.nonce, data, nil)
 	dataLen := uint16(len(data))
-	//log.Printf("write %d %s %s", dataLen, utils.B64(nonce), utils.B64(data))
-	_, err = cc.conn.Write(nonce)
+	cc.buf.Reset()
+	_, err = cc.buf.Write(cc.nonce)
 	if err == nil {
-		err = binary.Write(cc.conn, binary.LittleEndian, &dataLen)
+		err = binary.Write(cc.buf, binary.LittleEndian, &dataLen)
 		if err == nil {
-			_, err = cc.conn.Write(data)
+			_, err = cc.buf.Write(data)
+			if err == nil {
+				_, err = cc.conn.Write(cc.buf.Bytes())
+			}
 		}
 	}
 	return err
