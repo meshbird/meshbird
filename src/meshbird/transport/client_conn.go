@@ -77,6 +77,7 @@ func (cc *ClientConn) tryConnect() error {
 
 func (cc *ClientConn) crypto() (err error) {
 	if cc.key == "" {
+		log.Printf("outgoing encryption disabled for %s", cc.remoteAddr)
 		return nil
 	}
 	cc.aesgcm, err = makeAES128GCM(cc.key)
@@ -170,19 +171,16 @@ func (cc *ClientConn) write(data []byte) error {
 	if cc.aesgcm != nil {
 		secure = 1
 	}
-
 	err = binary.Write(cc.buf, binary.LittleEndian, &secure)
 	if err != nil {
 		return err
 	}
-
-	dataLen := uint16(len(data))
-	err = binary.Write(cc.buf, binary.LittleEndian, &dataLen)
-	if err != nil {
-		return err
-	}
-
 	if secure == 0 {
+		dataLen := uint16(len(data))
+		err = binary.Write(cc.buf, binary.LittleEndian, &dataLen)
+		if err != nil {
+			return err
+		}
 		_, err = cc.buf.Write(data)
 		if err != nil {
 			return err
@@ -192,8 +190,13 @@ func (cc *ClientConn) write(data []byte) error {
 		if err != nil {
 			return err
 		}
-		data = cc.aesgcm.Seal(nil, cc.nonce, data, nil)
-		_, err = cc.buf.Write(data)
+		data2 := cc.aesgcm.Seal(nil, cc.nonce, data, nil)
+		dataLen := uint16(len(data2))
+		err = binary.Write(cc.buf, binary.LittleEndian, &dataLen)
+		if err != nil {
+			return err
+		}
+		_, err = cc.buf.Write(data2)
 		if err != nil {
 			return err
 		}

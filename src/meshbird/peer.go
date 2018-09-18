@@ -48,28 +48,28 @@ func (p *Peer) process() {
 	}()
 	tickerPing := time.NewTicker(time.Second)
 	defer tickerPing.Stop()
-	ip, _, err := net.ParseCIDR(p.config.Ip)
-	utils.POE(err)
 	for range tickerPing.C {
-		env := &protocol.Envelope{
-			Type: &protocol.Envelope_Ping{
-				Ping: &protocol.MessagePing{
-					Timestamp:        time.Now().UnixNano(),
-					LocalAddr:        p.config.LocalAddr,
-					LocalPrivateAddr: p.config.LocalPrivateAddr,
-					DC:               p.config.Dc,
-					IP:               ip.String(),
-				},
-			},
-		}
-		data, err := proto.Marshal(env)
-		utils.POE(err)
-		p.client.Write(data)
+		p.SendPing()
 	}
 }
 
-func (p *Peer) SendPing() error {
-	return nil
+func (p *Peer) SendPing() {
+	ip, _, err := net.ParseCIDR(p.config.Ip)
+	utils.POE(err)
+	env := &protocol.Envelope{
+		Type: &protocol.Envelope_Ping{
+			Ping: &protocol.MessagePing{
+				Timestamp:        time.Now().UnixNano(),
+				LocalAddr:        p.config.LocalAddr,
+				LocalPrivateAddr: p.config.LocalPrivateAddr,
+				DC:               p.config.Dc,
+				IP:               ip.String(),
+			},
+		},
+	}
+	data, err := proto.Marshal(env)
+	utils.POE(err)
+	p.client.Write(data)
 }
 
 func (p *Peer) SendPacket(pkt iface.PacketIP) {

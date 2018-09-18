@@ -34,6 +34,7 @@ func (sc *ServerConn) run() {
 		if err := recover(); err != nil {
 			log.Printf("server conn run err: %s", err)
 		}
+		sc.conn.Close()
 	}()
 	var err error
 	err = sc.crypto()
@@ -52,6 +53,7 @@ func (sc *ServerConn) run() {
 
 func (sc *ServerConn) crypto() error {
 	if sc.key == "" {
+		log.Printf("incoming encryption disabled for %s", sc.conn.RemoteAddr())
 		return nil
 	}
 	var err error
