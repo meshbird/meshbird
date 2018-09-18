@@ -2,7 +2,11 @@ language: go
 
 sudo: false
 
-go: 
+os:
+- linux
+- osx
+
+go:
 - 1.11
 
 install:
@@ -12,12 +16,15 @@ script:
 - make build
 
 before_deploy:
-- tar czvf meshbird-$TRAVIS_TAG.darwin-amd64.tar.gz bin/meshbird
+- mkdir -p build
+- tar czvf build/meshbird-$TRAVIS_TAG.$TRAVIS_OS_NAME-amd64.tar.gz bin/meshbird
 
 deploy:
 - provider: releases
-  file: meshbird-$TRAVIS_TAG.darwin-amd64.tar.gz
   api_key: $GITHUB_OAUTH_TOKEN
+    file:
+  - build/meshbird-$TRAVIS_TAG.linux-amd64.tar.gz
+  - build/meshbird-$TRAVIS_TAG.osx-amd64.tar.gz
   skip_cleanup: true
   on:
     tags: true
