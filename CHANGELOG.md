@@ -1,8 +1,16 @@
 # Changelog
 
+## v2.2
+- try to fix Travis CI deploy GitHub releases on tags
+
+## v2.1
+- encryption switched to AES-128-GCM
+- disabling encryption on empty key
+- disabling encryption between nodes in same DC
+
 ## v2.0
 
-- trasport changed to TCP
+- transport changed to TCP
 - encryption changed to AES-256-GCM
 - removed DHT
 - removed NAT traversal
