@@ -41,6 +41,12 @@ func (sc *ServerConn) run() {
 	var err error
 	err = sc.crypto()
 	utils.POE(err)
+
+	sc.conn.SetReadBuffer(1024 * 1024)
+        sc.conn.SetWriteBuffer(1024 * 1024)
+        sc.conn.SetNoDelay(true)
+
+
 	sc.reader = bufio.NewReader(sc.conn)
 	for {
 		data, err := sc.read()

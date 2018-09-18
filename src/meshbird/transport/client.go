@@ -22,12 +22,12 @@ func NewClient(remoteAddr string, key string, threads int) *Client {
 		remoteAddr: remoteAddr,
 		key:        key,
 		threads:    threads,
-		conns:      make([]*ClientConn, threads),
 	}
 }
 
 func (c *Client) Start() {
 	c.mutex.Lock()
+	c.conns = make([]*ClientConn, c.threads)
 	for connIndex := 0; connIndex < c.threads; connIndex++ {
 		c.wg.Add(1)
 		conn := NewClientConn(c.remoteAddr, c.key, connIndex, &c.wg)

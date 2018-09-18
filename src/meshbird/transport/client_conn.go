@@ -64,13 +64,9 @@ func (cc *ClientConn) tryConnect() error {
 		return err
 	}
 
-	//cc.conn.SetReadBuffer(409600)
-	//cc.conn.SetWriteBuffer(409600)
+	cc.conn.SetReadBuffer(1024 * 1024)
+	cc.conn.SetWriteBuffer(1024 * 1024)
 	cc.conn.SetNoDelay(true)
-
-	if err != nil {
-		return err
-	}
 
 	return nil
 }
