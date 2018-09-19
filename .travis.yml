@@ -22,7 +22,7 @@ before_deploy:
 deploy:
 - provider: releases
   api_key: $GITHUB_OAUTH_TOKEN
-    file:
+  file:
   - build/meshbird-$TRAVIS_TAG.linux-amd64.tar.gz
   - build/meshbird-$TRAVIS_TAG.osx-amd64.tar.gz
   skip_cleanup: true
