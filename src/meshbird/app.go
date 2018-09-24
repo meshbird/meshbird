@@ -77,6 +77,9 @@ func (a *App) bootstrap() error {
 	seedAddrs := strings.Split(a.config.SeedAddrs, ",")
 	for _, seedAddr := range seedAddrs {
 		parts := strings.Split(seedAddr, "/")
+		if len(parts) == 0 {
+			continue
+		}
 		seedDC := parts[0]
 		seedAddr = parts[1]
 		if seedAddr == a.config.LocalAddr {
