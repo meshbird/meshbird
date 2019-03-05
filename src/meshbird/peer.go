@@ -48,7 +48,7 @@ func (p *Peer) process() {
 }
 
 func (p *Peer) SendPing() {
-	ip, _, err := net.ParseCIDR(p.config.IP)
+	ip, _, err := net.ParseCIDR(p.config.Ip)
 	utils.POE(err)
 	env := &protocol.Envelope{
 		Type: &protocol.Envelope_Ping{

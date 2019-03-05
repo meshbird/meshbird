@@ -61,12 +61,12 @@ func (a *App) Run() error {
 }
 
 func (a *App) runIface() error {
-	a.iface = iface.New("", a.config.IP, a.config.MTU)
+	a.iface = iface.New("", a.config.Ip, a.config.Mtu)
 	err := a.iface.Start()
 	if err != nil {
 		return err
 	}
-	pkt := iface.NewPacketIP(a.config.MTU)
+	pkt := iface.NewPacketIP(a.config.Mtu)
 	if a.config.Verbose == 1 {
 		log.Printf("interface name: %s", a.iface.Name())
 	}
