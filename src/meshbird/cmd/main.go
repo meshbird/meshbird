@@ -19,7 +19,11 @@ func main() {
 	app.Action = func(ctx *cli.Context) error {
 		log.Printf("config: %#v", cfg)
 		meshbirdApp := meshbird.NewApp(cfg)
-		return meshbirdApp.Run()
+		err := meshbirdApp.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+		return nil
 	}
 	err := app.Run(os.Args)
 	if err != nil {

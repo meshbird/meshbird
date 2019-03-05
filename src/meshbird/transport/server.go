@@ -8,19 +8,14 @@ import (
 )
 
 type Server struct {
-	publicAddr    string
-	privateAddr string
+	addrs   []string
 	handler ServerHandler
 	key     string
-
-	publicListener *net.TCPListener
-	privateListener *net.TCPListener
 }
 
-func NewServer(publicAddr, privateAddr string, handler ServerHandler, key string) *Server {
+func NewServer(addrs []string, handler ServerHandler, key string) *Server {
 	srv := &Server{
-		publicAddr:    publicAddr,
-		privateAddr:   privateAddr,
+		addrs:   addrs,
 		handler: handler,
 		key:     key,
 	}
@@ -28,11 +23,13 @@ func NewServer(publicAddr, privateAddr string, handler ServerHandler, key string
 }
 
 func (s *Server) Start() {
-	go s.processPublic()
-	go s.processPrivate()
+	for _, addr := range s.addrs {
+		log.Printf("run listener on %s", addr)
+		go s.process(addr)
+	}
 }
 
-func (s *Server) processPublic() {
+func (s *Server) process(addr string) {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Printf("public server panic: %s", err)
@@ -40,35 +37,12 @@ func (s *Server) processPublic() {
 		log.Printf("public server closed")
 	}()
 	for {
-		tcpAddr, err := net.ResolveTCPAddr("tcp", s.publicAddr)
+		tcpAddr, err := net.ResolveTCPAddr("tcp", addr)
 		if err != nil {
 			log.Printf("net resolve tcp addr err: %s", err)
 			time.Sleep(time.Second * 5)
 			continue
 		}
-		err = s.listen(tcpAddr)
-		if err != nil {
-			log.Printf("server listen err: %s", err)
-		}
-		time.Sleep(time.Millisecond * 1000)
-	}
-}
-
-func (s *Server) processPrivate() {
-	defer func() {
-		if err := recover(); err != nil {
-			log.Printf("private server panic: %s", err)
-		}
-		log.Printf("private server closed")
-	}()
-	for {
-		tcpAddr, err := net.ResolveTCPAddr("tcp", s.privateAddr)
-		if err != nil {
-			log.Printf("net resolve tcp addr err: %s", err)
-			time.Sleep(time.Second * 5)
-			continue
-		}
-
 		err = s.listen(tcpAddr)
 		if err != nil {
 			log.Printf("server listen err: %s", err)

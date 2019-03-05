@@ -8,20 +8,20 @@ import (
 )
 
 type Client struct {
-	remoteAddr string
-	key        string
-	threads    int
-	conns      []*ClientConn
-	mutex      sync.RWMutex
-	serial     int64
-	wg         sync.WaitGroup
+	remoteAddrs []string
+	key         string
+	threads     int
+	conns       []*ClientConn
+	mutex       sync.RWMutex
+	serial      int64
+	wg          sync.WaitGroup
 }
 
-func NewClient(remoteAddr string, key string, threads int) *Client {
+func NewClient(remoteAddrs []string, key string, threads int) *Client {
 	return &Client{
-		remoteAddr: remoteAddr,
-		key:        key,
-		threads:    threads,
+		remoteAddrs: remoteAddrs,
+		key:         key,
+		threads:     threads,
 	}
 }
 
@@ -29,10 +29,12 @@ func (c *Client) Start() {
 	c.mutex.Lock()
 	c.conns = make([]*ClientConn, c.threads)
 	for connIndex := 0; connIndex < c.threads; connIndex++ {
-		c.wg.Add(1)
-		conn := NewClientConn(c.remoteAddr, c.key, connIndex, &c.wg)
-		c.conns[connIndex] = conn
-		go c.conns[connIndex].run()
+		for _, remoteAddr := range c.remoteAddrs {
+			c.wg.Add(1)
+			conn := NewClientConn(remoteAddr, c.key, connIndex, &c.wg)
+			c.conns[connIndex] = conn
+			go c.conns[connIndex].run()
+		}
 	}
 	c.mutex.Unlock()
 }

@@ -15,23 +15,17 @@ import (
 )
 
 type Peer struct {
-	remoteDC   string
-	remoteAddr string
-	config     config.Config
-	client     *transport.Client
+	publicAddrs []string
+	config      config.Config
+	client      *transport.Client
 }
 
-func NewPeer(remoteDC, remoteAddr string, cfg config.Config, getRoutes func() []Route) *Peer {
+func NewPeer(publicAddrs []string, cfg config.Config, getRoutes func() []Route) *Peer {
 	peer := &Peer{
-		remoteDC:   remoteDC,
-		remoteAddr: remoteAddr,
-		config:     cfg,
+		publicAddrs: publicAddrs,
+		config:      cfg,
 	}
-	if remoteDC == cfg.Dc {
-		peer.client = transport.NewClient(remoteAddr, "", cfg.TransportThreads)
-	} else {
-		peer.client = transport.NewClient(remoteAddr, cfg.Key, cfg.TransportThreads)
-	}
+	peer.client = transport.NewClient(publicAddrs, cfg.Key, cfg.TransportThreads)
 	return peer
 }
 
@@ -54,16 +48,14 @@ func (p *Peer) process() {
 }
 
 func (p *Peer) SendPing() {
-	ip, _, err := net.ParseCIDR(p.config.Ip)
+	ip, _, err := net.ParseCIDR(p.config.IP)
 	utils.POE(err)
 	env := &protocol.Envelope{
 		Type: &protocol.Envelope_Ping{
 			Ping: &protocol.MessagePing{
-				Timestamp:        time.Now().UnixNano(),
-				LocalAddr:        p.config.LocalAddr,
-				LocalPrivateAddr: p.config.LocalPrivateAddr,
-				DC:               p.config.Dc,
-				IP:               ip.String(),
+				Timestamp:   time.Now().UnixNano(),
+				PublicAddrs: p.config.PublicAddrs,
+				IP:          ip.String(),
 			},
 		},
 	}

@@ -73,7 +73,6 @@ func (cc *ClientConn) tryConnect() error {
 
 func (cc *ClientConn) crypto() (err error) {
 	if cc.key == "" {
-		log.Printf("outgoing encryption disabled for %s", cc.remoteAddr)
 		return nil
 	}
 	cc.aesgcm, err = makeAES128GCM(cc.key)

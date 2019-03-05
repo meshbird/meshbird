@@ -1,8 +1,8 @@
 package meshbird
 
 import (
+	"fmt"
 	"log"
-	"strings"
 	"sync"
 
 	"meshbird/config"
@@ -31,22 +31,42 @@ func NewApp(config config.Config) *App {
 }
 
 func (a *App) Run() error {
-	a.server = transport.NewServer(a.config.LocalAddr, a.config.LocalPrivateAddr, a, a.config.Key)
-	err := a.bootstrap()
-	if err != nil {
-		return err
+	if a.config.HostAddr == "" {
+		log.Printf("host_addr is empty")
+		if len(a.config.PublicAddrs) == 0 || a.config.PublicAddrs[0] == "" {
+			return fmt.Errorf("if host_addr is e16ympty, need public_addrs")
+		}
+		if len(a.config.BindAddrs) == 0 || a.config.BindAddrs[0] == "" {
+			return fmt.Errorf("if host_addr is empty, need bind_addrs")
+		}
+	} else {
+		a.config.PublicAddrs = []string{a.config.HostAddr}
+		a.config.BindAddrs = []string{a.config.HostAddr}
+	}
+	if a.config.Key == "" {
+		log.Printf("key is empty, encryption disabled")
+	}
+	log.Printf("run listeners on %s", a.config.BindAddrs)
+	a.server = transport.NewServer(a.config.BindAddrs, a, a.config.Key)
+	if len(a.config.SeedAddrs) == 0 || a.config.SeedAddrs[0] == "" {
+		log.Printf("seed_addrs is empty, bootstrap disabled")
+	} else {
+		err := a.bootstrap()
+		if err != nil {
+			return err
+		}
 	}
 	go a.server.Start()
 	return a.runIface()
 }
 
 func (a *App) runIface() error {
-	a.iface = iface.New("", a.config.Ip, a.config.Mtu)
+	a.iface = iface.New("", a.config.IP, a.config.MTU)
 	err := a.iface.Start()
 	if err != nil {
 		return err
 	}
-	pkt := iface.NewPacketIP(a.config.Mtu)
+	pkt := iface.NewPacketIP(a.config.MTU)
 	if a.config.Verbose == 1 {
 		log.Printf("interface name: %s", a.iface.Name())
 	}
@@ -61,7 +81,7 @@ func (a *App) runIface() error {
 			log.Printf("packet: src=%s dst=%s len=%d", src, dst, n)
 		}
 		a.mutex.RLock()
-		peer, ok := a.peers[a.routes[dst].LocalAddr]
+		peer, ok := a.findPeerByIP(dst)
 		a.mutex.RUnlock()
 		if !ok {
 			if a.config.Verbose == 1 {
@@ -74,19 +94,19 @@ func (a *App) runIface() error {
 }
 
 func (a *App) bootstrap() error {
-	seedAddrs := strings.Split(a.config.SeedAddrs, ",")
-	for _, seedAddr := range seedAddrs {
-		parts := strings.Split(seedAddr, "/")
-		if len(parts) < 2 {
-			continue
+	for _, seedAddr := range a.config.SeedAddrs {
+		found := false
+		for _, publicAddr := range a.config.PublicAddrs {
+			if seedAddr == publicAddr {
+				found = true
+				break
+			}
 		}
-		seedDC := parts[0]
-		seedAddr = parts[1]
-		if seedAddr == a.config.LocalAddr {
+		if found {
 			log.Printf("skip seed addr %s because it's local addr", seedAddr)
 			continue
 		}
-		peer := NewPeer(seedDC, seedAddr, a.config, a.getRoutes)
+		peer := NewPeer([]string{seedAddr}, a.config, a.getRoutes)
 		peer.Start()
 		a.mutex.Lock()
 		a.peers[seedAddr] = peer
@@ -120,25 +140,20 @@ func (a *App) OnData(buf []byte) {
 		//log.Printf("received ping: %s", ping.String())
 		a.mutex.Lock()
 		a.routes[ping.GetIP()] = Route{
-			LocalAddr:        ping.GetLocalAddr(),
-			LocalPrivateAddr: ping.GetLocalPrivateAddr(),
-			IP:               ping.GetIP(),
-			DC:               ping.GetDC(),
+			PublicAddrs: ping.GetPublicAddrs(),
+			IP:          ping.GetIP(),
 		}
-		if _, ok := a.peers[ping.GetLocalAddr()]; !ok {
+		peer, ok := a.findPeerByPublicAddrs(ping.GetPublicAddrs())
+		if !ok {
 			var peer *Peer
-			if a.config.Dc == ping.GetDC() {
-				peer = NewPeer(ping.GetDC(), ping.GetLocalPrivateAddr(),
-					a.config, a.getRoutes)
-			} else {
-				peer = NewPeer(ping.GetDC(), ping.GetLocalAddr(),
-					a.config, a.getRoutes)
-			}
+			peer = NewPeer(ping.PublicAddrs, a.config, a.getRoutes)
 			peer.Start()
-			a.peers[ping.GetLocalAddr()] = peer
+			a.peers[ping.GetIP()] = peer
 			if a.config.Verbose == 1 {
 				log.Printf("new peer %s", ping)
 			}
+		} else {
+			peer.publicAddrs = ping.GetPublicAddrs()
 		}
 		if a.config.Verbose == 1 {
 			log.Printf("routes %s", a.routes)
@@ -152,4 +167,22 @@ func (a *App) OnData(buf []byte) {
 		}
 		a.iface.Write(pkt)
 	}
+}
+
+func (a *App) findPeerByPublicAddrs(addrs []string) (peer *Peer, ok bool) {
+	for _, peer := range a.peers {
+		for _, peerPublicAddr := range peer.publicAddrs {
+			for _, addr := range addrs {
+				if peerPublicAddr == addr {
+					return peer, true
+				}
+			}
+		}
+	}
+	return nil, false
+}
+
+func (a *App) findPeerByIP(ip string) (peer *Peer, ok bool) {
+	peer, ok = a.peers[ip]
+	return
 }

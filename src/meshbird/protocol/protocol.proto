@@ -11,10 +11,8 @@ message Envelope {
 
 message MessagePing {
 	int64  Timestamp = 1;
-	string LocalAddr = 2;
-	string LocalPrivateAddr = 3;
+	repeated string PublicAddrs = 2;
 	string IP = 4;
-	string DC = 5;
 }
 
 message MessagePacket {
