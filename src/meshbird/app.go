@@ -34,7 +34,7 @@ func (a *App) Run() error {
 	if a.config.HostAddr == "" {
 		log.Printf("host_addr is empty")
 		if len(a.config.PublicAddrs) == 0 || a.config.PublicAddrs[0] == "" {
-			return fmt.Errorf("if host_addr is e16ympty, need public_addrs")
+			return fmt.Errorf("if host_addr is empty, need public_addrs")
 		}
 		if len(a.config.BindAddrs) == 0 || a.config.BindAddrs[0] == "" {
 			return fmt.Errorf("if host_addr is empty, need bind_addrs")
