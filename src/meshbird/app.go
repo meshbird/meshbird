@@ -46,6 +46,10 @@ func (a *App) Run() error {
 	if a.config.Key == "" {
 		log.Printf("key is empty, encryption disabled")
 	}
+	if a.config.Mtu == 0 {
+		a.config.Mtu = 9000
+	}
+	log.Printf("config: %#v", a.config)
 	log.Printf("run listeners on %s", a.config.BindAddrs)
 	a.server = transport.NewServer(a.config.BindAddrs, a, a.config.Key)
 	if len(a.config.SeedAddrs) == 0 || a.config.SeedAddrs[0] == "" {
