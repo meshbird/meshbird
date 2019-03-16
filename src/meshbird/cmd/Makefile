@@ -3,3 +3,4 @@ dep_init:
 
 dep_ensure:
 	GOPATH=$(shell pwd)/../../.. dep ensure
+	GOPATH=$(shell pwd)/../../.. dep ensure -add github.com/songgao/water

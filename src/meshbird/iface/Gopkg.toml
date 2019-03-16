@@ -26,13 +26,9 @@
 
 
 [[constraint]]
-  name = "github.com/alexflint/go-arg"
-  version = "1.0.0"
+  branch = "master"
+  name = "github.com/songgao/water"
 
 [prune]
   go-tests = true
   unused-packages = true
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/songgao/water"

@@ -22,5 +22,5 @@ run3:
 		--ip 10.237.0.3/16
 	
 deps:
-	$(MAKE) -C src/meshbird/cmd dep_init
+	# $(MAKE) -C src/meshbird/cmd dep_init
 	$(MAKE) -C src/meshbird/cmd dep_ensure
