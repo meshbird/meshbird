@@ -22,4 +22,5 @@ run3:
 		--ip 10.237.0.3/16
 	
 deps:
-	GOPATH=$(shell pwd) go get -v meshbird/cmd
+	$(MAKE) -C src/meshbird/cmd dep_init
+	$(MAKE) -C src/meshbird/cmd dep_ensure
