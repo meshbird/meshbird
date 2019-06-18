@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.3
+- add support go mod
+
+## v2.2
+
 ## v2.1
 - encryption switched to AES-128-GCM
 - disabling encryption on empty key
