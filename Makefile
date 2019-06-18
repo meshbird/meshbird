@@ -1,9 +1,8 @@
-GOPATH=$(shell pwd)
 SEED_ADDRS="dc1/127.0.0.1:7001"
 
 
 build:
-	go build -v -o bin/meshbird src/meshbird/cmd/main.go
+	go build -v -o bin/meshbird main.go
 
 run1:
 	go run -v src/meshbird/cmd/main.go \
