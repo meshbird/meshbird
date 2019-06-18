@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"meshbird/common"
+	"github.com/meshbird/meshbird/common"
 
 	"github.com/alexflint/go-arg"
 )

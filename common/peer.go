@@ -5,10 +5,10 @@ import (
 	"net"
 	"time"
 
-	"meshbird/iface"
-	"meshbird/protocol"
-	"meshbird/transport"
-	"meshbird/utils"
+	"github.com/meshbird/meshbird/iface"
+	"github.com/meshbird/meshbird/protocol"
+	"github.com/meshbird/meshbird/transport"
+	"github.com/meshbird/meshbird/utils"
 
 	"github.com/golang/protobuf/proto"
 )

@@ -8,7 +8,7 @@ import (
 	"net"
 	"bufio"
 
-	"meshbird/utils"
+	"github.com/meshbird/meshbird/utils"
 )
 
 type ServerConn struct {

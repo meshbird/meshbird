@@ -1,4 +1,4 @@
-module meshbird
+module github.com/meshbird/meshbird
 
 go 1.12
 

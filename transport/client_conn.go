@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"meshbird/utils"
+	"github.com/meshbird/meshbird/utils"
 )
 
 var nilBuf = make([]byte, 0)

@@ -5,9 +5,9 @@ import (
 	"log"
 	"sync"
 
-	"meshbird/iface"
-	"meshbird/protocol"
-	"meshbird/transport"
+	"github.com/meshbird/meshbird/iface"
+	"github.com/meshbird/meshbird/protocol"
+	"github.com/meshbird/meshbird/transport"
 
 	"github.com/golang/protobuf/proto"
 )

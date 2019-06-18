@@ -4,7 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 
-	"meshbird/utils"
+	"github.com/meshbird/meshbird/utils"
 )
 
 func makeAES128GCM(key string) (cipher.AEAD, error) {
