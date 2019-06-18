@@ -14,7 +14,7 @@ Download and install latest release from this page https://github.com/meshbird/m
 
 ```
 $ ./meshbird --help
-Usage: meshbird [--key KEY] [--hostaddr HOSTADDR] [--publicaddrs PUBLICADDRS] [--bindaddrs BINDADDRS] [--seedaddrs SEEDADDRS] [--transportthreads TRANSPORTTHREADS] --ip IP [--mtu MTU] [--verbose VERBOSE]
+UUsage: meshbird [--key KEY] [--hostaddr HOSTADDR] [--publicaddrs PUBLICADDRS] [--bindaddrs BINDADDRS] [--seedaddrs SEEDADDRS] [--transportthreads TRANSPORTTHREADS] --ip IP [--mtu MTU] [--verbose VERBOSE]
 
 Options:
   --key KEY
