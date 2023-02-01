@@ -18,3 +18,9 @@ message MessagePing {
 message MessagePacket {
 	bytes payload = 1;
 }
+
+message MessageMetricReport {
+	int64 ID = 1;
+	string Name = 2;
+	string Value = 3;
+}
