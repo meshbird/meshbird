@@ -24,3 +24,10 @@ message MessageMetricReport {
 	string Name = 2;
 	string Value = 3;
 }
+
+message MessageMultiplexedTunnel {
+    int64 ID = 1;
+	int64 Channel = 2;
+	int64 Index = 3;
+	bytes Payload = 4;
+}
