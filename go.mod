@@ -1,6 +1,6 @@
 module github.com/meshbird/meshbird
 
-go 1.20
+go 1.26
 
 require (
 	github.com/alexflint/go-arg v1.0.0
